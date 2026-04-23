@@ -13,19 +13,19 @@ const TEAMS = {
   'Ecuador': { flag: 'ec', primary: '#FFD100' }, 
   'Kanada': { flag: 'ca', primary: '#FF0000' }, 
   'Slovakien': { flag: 'sk', primary: '#0B4EA2' }, 
-  'Italien': { flag: 'it', primary: '#0066B2' }, 
+  'Italien': { flag: 'it', primary: '#0093D0' }, 
   'Togo': { flag: 'tg', primary: '#006A4E' }, 
-  'USA': { flag: 'us', primary: '#B31942' }, 
+  'USA': { flag: 'us', primary: '#FFFFFF' }, 
   'Marocko': { flag: 'ma', primary: '#C1272D' }, 
-  'Spanien': { flag: 'es', primary: '#AA151B' }, 
+  'Spanien': { flag: 'es', primary: '#E30A17' }, 
   'Japan': { flag: 'jp', primary: '#BC002D' }, 
-  'Brasilien': { flag: 'br', primary: '#FFDF00' }, 
+  'Brasilien': { flag: 'br', primary: '#FFCD00' }, 
   'Sydkorea': { flag: 'kr', primary: '#0047A0' }, 
-  'Sverige': { flag: 'se', primary: '#006AA7' }, 
+  'Sverige': { flag: 'se', primary: '#FFCD00' }, 
   'Jordanien': { flag: 'jo', primary: '#CE1126' }, 
-  'England': { flag: 'gb-eng', primary: '#000040' }, 
+  'England': { flag: 'gb-eng', primary: '#FFFFFF' }, 
   'Peru': { flag: 'pe', primary: '#D91023' }, 
-  'Tyskland': { flag: 'de', primary: '#000000' }, 
+  'Tyskland': { flag: 'de', primary: '#FFFFFF' }, 
   'Norge': { flag: 'no', primary: '#EF2B2D' }, 
   'Frankrike': { flag: 'fr', primary: '#002395' }, 
   'Uzbekistan': { flag: 'uz', primary: '#0099B5' }, 
@@ -35,7 +35,7 @@ const TEAMS = {
   'Australien': { flag: 'au', primary: '#00008B' }, 
   'Argentina': { flag: 'ar', primary: '#75AADB' }, 
   'Haiti': { flag: 'ht', primary: '#00209F' }, 
-  'Belgien': { flag: 'be', primary: '#000000' }, 
+  'Belgien': { flag: 'be', primary: '#E30A17' }, 
   'Panama': { flag: 'pa', primary: '#005293' }, 
   'Portugal': { flag: 'pt', primary: '#006600' }, 
   'Senegal': { flag: 'sn', primary: '#00853F' }, 
@@ -239,14 +239,16 @@ export default function App() {
                         </div>
                         <div className="flex gap-3">
                           {['1','X','2'].map(s => {
+                            const primaryColor = s === '1' ? TEAMS[m.team1]?.primary : s === '2' ? TEAMS[m.team2]?.primary : '#64748b';
+                            const isWhite = primaryColor?.toUpperCase() === '#FFFFFF';
+                            
                             let style = { backgroundColor: 'rgba(255,255,255,0.05)' };
                             let cl = "text-white scale-100 opacity-60";
                             
                             if(regPicks[m.id] === s) {
                               cl = "scale-105 shadow-xl opacity-100 ring-2 ring-white/20";
-                              if(s === '1') style.backgroundColor = TEAMS[m.team1]?.primary || '#4f46e5';
-                              if(s === 'X') style.backgroundColor = '#64748b';
-                              if(s === '2') style.backgroundColor = TEAMS[m.team2]?.primary || '#10b981';
+                              style.backgroundColor = primaryColor;
+                              if(isWhite) cl += " text-slate-900 border border-slate-200";
                             }
 
                             return (
@@ -319,13 +321,22 @@ export default function App() {
                             <span className="text-[10px]">{m.team2.slice(0,3)}</span>
                           </div>
                         </td>
-                        {activePlayers.map(u => (
-                          <td key={u.id} className="p-4 text-center border-r font-black">
-                            <span className={`${u.predictions?.[m.id] === '1' ? 'text-blue-600' : u.predictions?.[m.id] === '2' ? 'text-emerald-600' : 'text-slate-400'}`}>
-                              {u.predictions?.[m.id] || '-'}
-                            </span>
-                          </td>
-                        ))}
+                        {activePlayers.map(u => {
+                          const pick = u.predictions?.[m.id];
+                          const pickColor = pick === '1' ? TEAMS[m.team1]?.primary : pick === '2' ? TEAMS[m.team2]?.primary : '#94a3b8';
+                          const isWhite = pickColor?.toUpperCase() === '#FFFFFF';
+
+                          return (
+                            <td key={u.id} className="p-4 text-center border-r font-black">
+                              <span 
+                                style={{ color: pickColor }}
+                                className={`px-2 py-1 rounded ${isWhite ? 'bg-slate-800 border border-slate-700' : ''}`}
+                              >
+                                {pick || '-'}
+                              </span>
+                            </td>
+                          );
+                        })}
                      </tr>
                    ))}</tbody>
                 </table>
