@@ -158,6 +158,12 @@ const Flag = ({ code, className = "w-5 h-4 rounded-sm object-cover shadow-sm" })
   />
 );
 
+const TvBadge = ({ tv }) => {
+  if (tv === 'SVT') return <span className="bg-[#000030] text-white font-black text-[9px] px-1.5 py-0.5 rounded uppercase tracking-wider">SVT</span>;
+  if (tv === 'TV4') return <span className="bg-[#E50000] text-white font-black text-[9px] px-1.5 py-0.5 rounded uppercase tracking-wider">TV4</span>;
+  return <span className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-full text-[9px]"><Tv size={10}/> {tv}</span>;
+};
+
 const Logo = () => (
   <div className="flex items-center justify-center gap-3">
     <div className="relative"><Trophy className="w-10 h-10 text-vmgold relative z-10 drop-shadow-[0_0_10px_rgba(251,191,36,0.8)]" /><div className="absolute inset-0 bg-vmgold blur-xl opacity-40" /></div>
@@ -176,6 +182,8 @@ export default function App() {
   const [showFolketsTips, setShowFolketsTips] = useState(false);
   const [h2hUser1, setH2hUser1] = useState('');
   const [h2hUser2, setH2hUser2] = useState('');
+  const [showMentions, setShowMentions] = useState(false);
+  const [mentionSearch, setMentionSearch] = useState('');
 
   // --- FIREBASE DATA ---
   const [tips, setTips] = useState([]);
@@ -360,7 +368,7 @@ export default function App() {
                                <Clock size={11}/> {m.date}
                            </div>
                            <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                               <MapPin size={10}/> {m.arena}, {m.city} | <Tv size={10}/> {m.tv}
+                               <MapPin size={10}/> {m.arena}, {m.city} | <TvBadge tv={m.tv} />
                            </div>
                            <div className="flex items-center justify-center gap-4 text-sm font-black text-white italic">
                              <div className="flex items-center gap-2 flex-1 justify-end">
@@ -439,7 +447,7 @@ export default function App() {
                 <h3 className="font-black text-xs uppercase mb-6 text-slate-400 flex items-center gap-2"><Grid3X3 size={16}/> Tippningsmatris</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm border-collapse whitespace-nowrap min-w-max">
-                     <thead><tr className="bg-slate-50 border-b font-black text-xs uppercase text-slate-500"><th className="p-4 sticky left-0 z-10 bg-slate-50 border-r text-left w-48">Match</th>{activePlayers.map(u => <th key={u.id} className="p-4 text-center border-r px-4">{u.name.split(' ')[0]}</th>)}</tr></thead>
+                     <thead><tr className="bg-slate-50 border-b font-black text-xs uppercase text-slate-500"><th className="p-4 sticky left-0 z-10 bg-slate-50 border-r text-left w-48">Match</th><th className="p-4 text-center border-r w-12 text-[10px]">Res</th>{activePlayers.map(u => <th key={u.id} className="p-4 text-center border-r px-4">{u.name.split(' ')[0]}</th>)}</tr></thead>
                      <tbody>{matches.slice(0, 72).map(m => (
                        <tr key={m.id} className="border-b hover:bg-slate-50 transition-colors">
                           <td className="p-4 sticky left-0 z-10 bg-white border-r font-black flex items-center gap-3 shadow-[2px_0_5px_rgba(0,0,0,0.02)]">
@@ -452,6 +460,9 @@ export default function App() {
                               <Flag code={TEAMS[m.team2]?.flag} className="w-4 h-3 rounded-px" />
                               <span className="text-[10px]">{m.team2.slice(0,3)}</span>
                             </div>
+                          </td>
+                          <td className="p-4 text-center border-r font-black text-[10px] text-slate-500 whitespace-nowrap">
+                             {(m.status === 'finished' || m.status === 'live') ? `${m.goals1 ?? 0}-${m.goals2 ?? 0}` : '-'}
                           </td>
                           {activePlayers.map(u => {
                             const pick = u.predictions?.[m.id];
@@ -549,7 +560,7 @@ export default function App() {
                     {m.status === 'live' && <div className="absolute top-4 right-4 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" title="LIVE" />}
                     <div className="flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
                        <span>{m.date} | Grupp {m.group}</span>
-                       <span className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-full"><Tv size={10}/> {m.tv}</span>
+                       <TvBadge tv={m.tv} />
                     </div>
                     <div className="flex items-center justify-between gap-4">
                        <div className="flex items-center gap-2 flex-1"><Flag code={TEAMS[m.team1]?.flag} /><span className="text-sm font-black">{m.team1}</span></div>
@@ -572,9 +583,36 @@ export default function App() {
                 </div>
               ))}
             </div>
-            <form onSubmit={sendChat} className="p-4 border-t bg-white flex gap-3">
-              <input value={newChatMsg} onChange={e => setNewChatMsg(e.target.value)} placeholder="Skriv nåt till gruppen..." className="flex-1 bg-slate-100 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm" />
-              <button className="bg-indigo-600 text-white p-4 rounded-2xl shadow-lg shadow-indigo-600/20 active:scale-95 transition-transform"><Send size={20}/></button>
+            <form onSubmit={sendChat} className="p-4 border-t bg-white flex gap-3 relative overflow-visible">
+              <div className="relative flex-1">
+                {showMentions && (
+                   <div className="absolute bottom-full left-0 mb-2 w-48 bg-white border rounded-xl shadow-xl overflow-hidden z-50">
+                     {activePlayers.filter(p => p.name.toLowerCase().includes(mentionSearch.toLowerCase())).map(p => (
+                       <button key={p.id} type="button" onClick={() => {
+                          const parts = newChatMsg.split('@');
+                          parts.pop();
+                          setNewChatMsg(parts.join('@') + '@' + p.name + ' ');
+                          setShowMentions(false);
+                          document.getElementById('chat-input')?.focus();
+                       }} className="w-full text-left px-4 py-2 text-sm font-bold hover:bg-indigo-50 hover:text-indigo-600 transition-colors">
+                         {p.name}
+                       </button>
+                     ))}
+                   </div>
+                )}
+                <input id="chat-input" value={newChatMsg} onChange={e => {
+                  const val = e.target.value;
+                  setNewChatMsg(val);
+                  const lastAt = val.lastIndexOf('@');
+                  if (lastAt !== -1 && !val.substring(lastAt).includes(' ')) {
+                    setShowMentions(true);
+                    setMentionSearch(val.substring(lastAt + 1));
+                  } else {
+                    setShowMentions(false);
+                  }
+                }} placeholder="Skriv nåt till gruppen..." className="w-full bg-slate-100 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm" />
+              </div>
+              <button className="bg-indigo-600 text-white px-6 rounded-2xl shadow-lg shadow-indigo-600/20 active:scale-95 transition-transform"><Send size={20}/></button>
             </form>
           </div>
         )}
@@ -607,20 +645,20 @@ export default function App() {
                     <div className="flex items-center justify-between">
                       <div className="flex flex-col">
                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{m.date} | {m.group}</span>
-                         <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1"><MapPin size={10} className="inline"/> {m.arena} | <Tv size={10} className="inline"/> {m.tv}</span>
+                         <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1 flex items-center gap-1"><MapPin size={10}/> {m.arena} | <TvBadge tv={m.tv} /></span>
                       </div>
                       <div className="flex gap-2 items-center">
                          <button onClick={() => updateMatch(m.id, { status: m.status === 'live' ? 'upcoming' : 'live' })} className={`w-3 h-3 rounded-full transition-all ${m.status === 'live' ? 'bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]' : 'bg-slate-300 hover:bg-slate-400'}`} title="Markera som Live"></button>
                          {m.status === 'finished' && <Check className="text-emerald-500" size={14} />}
                       </div>
                     </div>
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 flex-1"><Flag code={TEAMS[m.team1]?.flag} /><span className="text-xs font-black">{m.team1.slice(0,10)}</span></div>
-                      <div className="flex gap-1.5">
-                        <input type="number" value={m.goals1 ?? ''} onChange={e => updateMatch(m.id, { goals1: parseInt(e.target.value) || 0, status: 'finished' })} className="w-14 h-14 text-xl text-center border-2 rounded-xl font-black bg-white focus:border-indigo-500 outline-none transition-all"/>
-                        <input type="number" value={m.goals2 ?? ''} onChange={e => updateMatch(m.id, { goals2: parseInt(e.target.value) || 0, status: 'finished' })} className="w-14 h-14 text-xl text-center border-2 rounded-xl font-black bg-white focus:border-indigo-500 outline-none transition-all"/>
+                    <div className="grid grid-cols-3 items-center gap-2 mt-2">
+                      <div className="flex items-center gap-2 justify-end text-right"><span className="text-xs font-black truncate">{m.team1}</span><Flag code={TEAMS[m.team1]?.flag} /></div>
+                      <div className="flex justify-center gap-1.5">
+                        <input type="number" value={m.goals1 ?? ''} onChange={e => updateMatch(m.id, { goals1: parseInt(e.target.value) || 0, status: 'finished' })} className="w-12 h-12 text-lg text-center border-2 rounded-xl font-black bg-white focus:border-indigo-500 outline-none transition-all"/>
+                        <input type="number" value={m.goals2 ?? ''} onChange={e => updateMatch(m.id, { goals2: parseInt(e.target.value) || 0, status: 'finished' })} className="w-12 h-12 text-lg text-center border-2 rounded-xl font-black bg-white focus:border-indigo-500 outline-none transition-all"/>
                       </div>
-                      <div className="flex items-center gap-2 flex-1 justify-end"><span className="text-xs font-black text-right">{m.team2.slice(0,10)}</span><Flag code={TEAMS[m.team2]?.flag} /></div>
+                      <div className="flex items-center gap-2 justify-start text-left"><Flag code={TEAMS[m.team2]?.flag} /><span className="text-xs font-black truncate">{m.team2}</span></div>
                     </div>
                   </div>
                 ))}
@@ -649,11 +687,14 @@ export default function App() {
                    return (
                      <div key={m.id} className="flex items-center justify-between bg-white p-3 rounded-2xl border shadow-sm">
                        <div className="flex items-center gap-2 flex-1">
-                         <Flag code={TEAMS[m.team1]?.flag} /><span className="text-xs font-bold">{m.team1}</span>
+                         <Flag code={TEAMS[m.team1]?.flag} /><span className="text-xs font-bold truncate">{m.team1}</span>
                        </div>
-                       <div className={`w-8 h-8 flex items-center justify-center rounded-xl font-black text-sm shadow-sm ${pickColor}`}>{pick || '-'}</div>
+                       <div className="flex items-center gap-3 px-2">
+                         <div className="text-[10px] font-black text-slate-400 w-8 text-center">{(m.status === 'finished' || m.status === 'live') ? `${m.goals1 ?? 0}-${m.goals2 ?? 0}` : ''}</div>
+                         <div className={`w-8 h-8 flex items-center justify-center rounded-xl font-black text-sm shadow-sm shrink-0 ${pickColor}`}>{pick || '-'}</div>
+                       </div>
                        <div className="flex items-center gap-2 flex-1 justify-end">
-                         <span className="text-xs font-bold">{m.team2}</span><Flag code={TEAMS[m.team2]?.flag} />
+                         <span className="text-xs font-bold truncate">{m.team2}</span><Flag code={TEAMS[m.team2]?.flag} />
                        </div>
                      </div>
                    )
