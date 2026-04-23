@@ -59,7 +59,7 @@ const TEAMS = {
   'Nya Zeeland': { flag: 'nz', primary: '#000000' }, 
   'Irak': { flag: 'iq', primary: '#007A33' }, 
   'Algeriet': { flag: 'dz', primary: '#006233' }, 
-  'Ã–sterrike': { flag: 'at', primary: '#EF3340' }, 
+  'Österrike': { flag: 'at', primary: '#EF3340' }, 
   'DR Kongo': { flag: 'cd', primary: '#007FFF' }, 
   'Colombia': { flag: 'co', primary: '#FCD116' }, 
   'Kroatien': { flag: 'hr', primary: '#FF0000' }, 
@@ -75,8 +75,8 @@ const VM_SCHEDULE = [
   "6|14 jun 00:00|C|Brasilien|Marocko|MetLife|New Jersey|USA|TV4",
   "7|14 jun 03:00|C|Haiti|Skottland|Gillette|Boston|USA|SVT",
   "8|14 jun 06:00|D|Australien|Turkiet|BC Place|Vancouver|Kanada|TV4",
-  "9|14 jun 19:00|E|Tyskland|CuraÃ§ao|NRG|Houston|USA|SVT",
-  "10|14 jun 22:00|F|NederlÃ¤nderna|Japan|AT&T|Dallas|USA|TV4",
+  "9|14 jun 19:00|E|Tyskland|Curaçao|NRG|Houston|USA|SVT",
+  "10|14 jun 22:00|F|Nederländerna|Japan|AT&T|Dallas|USA|TV4",
   "11|15 jun 01:00|E|Elfenbenskusten|Ecuador|Lincoln|Philadelphia|USA|SVT",
   "12|15 jun 04:00|F|Sverige|Tunisien|BBVA|Monterrey|Mexiko|TV4",
   "13|15 jun 18:00|H|Spanien|Kap Verde|Mercedes|Atlanta|USA|SVT",
@@ -86,7 +86,7 @@ const VM_SCHEDULE = [
   "17|16 jun 21:00|I|Frankrike|Senegal|MetLife|New Jersey|USA|SVT",
   "18|17 jun 00:00|I|Irak|Norge|Gillette|Boston|USA|TV4",
   "19|17 jun 03:00|J|Argentina|Algeriet|Arrowhead|Kansas City|USA|SVT",
-  "20|17 jun 06:00|J|Ã–sterrike|Jordanien|Levi's|San Francisco|USA|TV4",
+  "20|17 jun 06:00|J|Österrike|Jordanien|Levi's|San Francisco|USA|TV4",
   "21|17 jun 19:00|K|Portugal|DR Kongo|NRG|Houston|USA|SVT",
   "22|17 jun 22:00|L|England|Kroatien|AT&T|Dallas|USA|TV4",
   "23|18 jun 01:00|L|Ghana|Panama|BMO Field|Toronto|Kanada|SVT",
@@ -99,15 +99,15 @@ const VM_SCHEDULE = [
   "30|20 jun 00:00|C|Skottland|Marocko|Gillette|Boston|USA|TV4",
   "31|20 jun 03:00|C|Brasilien|Haiti|Lincoln|Philadelphia|USA|SVT",
   "32|20 jun 06:00|D|Turkiet|Paraguay|Levi's|San Francisco|USA|TV4",
-  "33|20 jun 19:00|F|NederlÃ¤nderna|Sverige|NRG|Houston|USA|SVT",
+  "33|20 jun 19:00|F|Nederländerna|Sverige|NRG|Houston|USA|SVT",
   "34|20 jun 22:00|E|Tyskland|Elfenbenskusten|BMO Field|Toronto|Kanada|TV4",
-  "35|21 jun 02:00|E|Ecuador|CuraÃ§ao|Arrowhead|Kansas City|USA|SVT",
+  "35|21 jun 02:00|E|Ecuador|Curaçao|Arrowhead|Kansas City|USA|SVT",
   "36|21 jun 06:00|F|Tunisien|Japan|BBVA|Monterrey|Mexiko|TV4",
   "37|21 jun 18:00|H|Spanien|Saudiarabien|Mercedes|Atlanta|USA|SVT",
   "38|21 jun 21:00|G|Belgien|Iran|SoFi|Los Angeles|USA|TV4",
   "39|22 jun 00:00|H|Uruguay|Kap Verde|Hard Rock|Miami|USA|SVT",
   "40|22 jun 03:00|G|Nya Zeeland|Egypten|BC Place|Vancouver|Kanada|TV4",
-  "41|22 jun 19:00|J|Argentina|Ã–sterrike|Arrowhead|Kansas City|USA|SVT",
+  "41|22 jun 19:00|J|Argentina|Österrike|Arrowhead|Kansas City|USA|SVT",
   "42|22 jun 23:00|I|Frankrike|Irak|Lincoln|Philadelphia|USA|TV4",
   "43|23 jun 02:00|I|Norge|Senegal|MetLife|New Jersey|USA|SVT",
   "44|23 jun 05:00|J|Jordanien|Algeriet|Levi's|San Francisco|USA|TV4",
@@ -123,17 +123,17 @@ const VM_SCHEDULE = [
   "54|25 jun 21:00|C|Skottland|Brasilien|MetLife|New Jersey|USA|TV4",
   "55|26 jun 00:00|D|Paraguay|Australien|Lumen|Seattle|USA|SVT",
   "56|26 jun 03:00|D|Turkiet|USA|SoFi|Los Angeles|USA|TV4",
-  "57|26 jun 18:00|E|CuraÃ§ao|Elfenbenskusten|Mercedes|Atlanta|USA|SVT",
+  "57|26 jun 18:00|E|Curaçao|Elfenbenskusten|Mercedes|Atlanta|USA|SVT",
   "58|26 jun 21:00|E|Ecuador|Tyskland|AT&T|Dallas|USA|TV4",
   "59|27 jun 00:00|F|Sverige|Japan|Azteca|Mexico City|Mexiko|SVT",
-  "60|27 jun 03:00|F|Tunisien|NederlÃ¤nderna|Arrowhead|Kansas City|USA|TV4",
+  "60|27 jun 03:00|F|Tunisien|Nederländerna|Arrowhead|Kansas City|USA|TV4",
   "61|27 jun 18:00|G|Egypten|Iran|Lincoln|Philadelphia|USA|SVT",
   "62|27 jun 21:00|G|Nya Zeeland|Belgien|SoFi|Los Angeles|USA|TV4",
   "63|28 jun 00:00|H|Kap Verde|Saudiarabien|Lumen|Seattle|USA|SVT",
   "64|28 jun 03:00|H|Uruguay|Spanien|Hard Rock|Miami|USA|TV4",
   "65|28 jun 18:00|I|Senegal|Irak|Mercedes|Atlanta|USA|SVT",
   "66|28 jun 21:00|I|Norge|Frankrike|MetLife|New Jersey|USA|TV4",
-  "67|29 jun 00:00|J|Algeriet|Ã–sterrike|Gillette|Boston|USA|SVT",
+  "67|29 jun 00:00|J|Algeriet|Österrike|Gillette|Boston|USA|SVT",
   "68|29 jun 03:00|J|Jordanien|Argentina|Arrowhead|Kansas City|USA|TV4",
   "69|29 jun 18:00|K|DR Kongo|Uzbekistan|Azteca|Mexico City|Mexiko|SVT",
   "70|29 jun 21:00|K|Colombia|Portugal|NRG|Houston|USA|TV4",
@@ -450,11 +450,11 @@ export default function App() {
         {!showRegister ? (
           <form onSubmit={handleLogin} className="mt-10 space-y-4">
             <input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} placeholder="Din e-post" className="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none" required />
-            {loginEmail.toLowerCase() === 'zettergren.emil@gmail.com' && <input type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} placeholder="LÃ¶senord" className="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none" required />}
+            {loginEmail.toLowerCase() === 'zettergren.emil@gmail.com' && <input type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} placeholder="Lösenord" className="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none" required />}
             {authError && <p className="text-red-400 text-xs font-bold text-center">{authError}</p>}
             <button type="submit" className="w-full py-4 bg-indigo-600 rounded-xl font-black shadow-lg">LOGGA IN</button>
-            {!isDeadlinePassed && <button type="button" onClick={() => setShowRegister(true)} className="w-full text-emerald-400 font-bold text-sm">LÃ„MNA NYTT TIPS {Object.keys(regPicks).length > 0 && " (Utkast finns)"}</button>}
-            {isDeadlinePassed && <p className="text-center text-xs text-slate-500 font-bold italic">AnmÃ¤lan stÃ¤ngd</p>}
+            {!isDeadlinePassed && <button type="button" onClick={() => setShowRegister(true)} className="w-full text-emerald-400 font-bold text-sm">LÄMNA NYTT TIPS {Object.keys(regPicks).length > 0 && " (Utkast finns)"}</button>}
+            {isDeadlinePassed && <p className="text-center text-xs text-slate-500 font-bold italic">Anmälan stängd</p>}
           </form>
         ) : (
           <div className="mt-8 space-y-4 animate-in slide-in-from-right-4 duration-300">
@@ -463,7 +463,7 @@ export default function App() {
                 <div className="flex justify-between items-center mb-2"><h2 className="font-bold">1. Dina Uppgifter</h2><button onClick={() => setShowRegister(false)}><X/></button></div>
                 <input type="text" value={regName} onChange={e=>setRegName(e.target.value)} placeholder="Namn" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
                 <input type="email" value={regEmail} onChange={e=>setRegEmail(e.target.value)} placeholder="E-post" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
-                <input type="number" value={regGoals} onChange={e=>setRegGoals(e.target.value)} placeholder="MÃ¥l totalt i hela VM?" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
+                <input type="number" value={regGoals} onChange={e=>setRegGoals(e.target.value)} placeholder="Mål totalt i hela VM?" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
                 <div className="flex gap-2">
                    {Object.keys(regPicks).length > 0 && <button onClick={clearDraft} className="p-4 bg-red-500/20 text-red-400 rounded-2xl"><Trash2/></button>}
                    <button onClick={checkExistingUser} className="flex-1 py-4 bg-emerald-600 rounded-xl font-bold">NÃ„STA: FYLL I TIPS</button>
@@ -471,7 +471,7 @@ export default function App() {
                </>
              ) : (
                <div className="space-y-4">
-                  <div className="flex justify-between items-center"><button onClick={() => setRegStep(1)} className="text-xs text-slate-400">â† BakÃ¥t</button><span className="text-vmgold text-xs font-black">{Object.keys(regPicks).length}/72 tippade</span></div>
+                  <div className="flex justify-between items-center"><button onClick={() => setRegStep(1)} className="text-xs text-slate-400">â† Bakåt</button><span className="text-vmgold text-xs font-black">{Object.keys(regPicks).length}/72 tippade</span></div>
                   <div className="max-h-[50vh] overflow-y-auto space-y-3 pr-2 no-scrollbar">
                     {initialMatchesList.map(m => (
                       <div key={m.id} className="bg-black/30 p-5 rounded-[2rem] border border-white/5 space-y-4">
@@ -581,9 +581,9 @@ export default function App() {
                {isPrizeExpanded && (
                  <div className="grid grid-cols-3 gap-3 px-6 pb-6">
                    {[
-                     {prize:'600 kr', color:'#FFD700', label:'1:a'},
-                     {prize:'300 kr', color:'#C0C0C0', label:'2:a'},
-                     {prize:'100 kr', color:'#CD7F32', label:'3:e'},
+                     {prize: prizePool.first + ' kr', color: '#fbbf24', label: '1:a'},
+                     {prize: prizePool.second + ' kr', color: '#94a3b8', label: '2:a'},
+                     {prize: prizePool.third + ' kr', color: '#b45309', label: '3:e'},
                    ].map(({prize, color, label}, i) => {
                      const rankUser = leaderboard[i];
                      return (
@@ -611,9 +611,9 @@ export default function App() {
              </div>
              <div className="bg-white/90 backdrop-blur-md rounded-[2rem] border overflow-hidden shadow-sm overflow-x-auto p-6 w-full">
                 <h3 className="font-black text-xs uppercase mb-6 text-slate-400 flex items-center gap-2"><Grid3X3 size={16}/> Tippningsmatris</h3>
-                <div className="overflow-x-auto">
+                <div className="overflow-auto max-h-[70vh]">
                   <table className="w-full text-sm border-collapse whitespace-nowrap min-w-max">
-                      <thead className="sticky top-0 z-20"><tr className="bg-slate-50 border-b font-black text-xs uppercase text-slate-500"><th className="p-4 sticky left-0 z-30 bg-slate-50 border-r text-left w-48">Match</th><th className="p-4 text-center border-r w-12 text-[10px] bg-slate-50">Res</th>{activePlayers.map(u => { const rank = leaderboard.find(l => l.id === u.id)?.rank; return <th key={u.id} className="p-4 text-center border-r px-4 bg-slate-50"><div className="text-[9px] text-indigo-400 font-black">#{rank || '-'}</div><div>{u.name.split(' ')[0]}</div></th>; })}</tr></thead>
+                      <thead className="sticky top-0 z-40 bg-slate-50"><tr className="bg-slate-50 border-b font-black text-xs uppercase text-slate-500"><th className="p-4 sticky left-0 z-30 bg-slate-50 border-r text-left w-48">Match</th><th className="p-4 text-center border-r w-12 text-[10px] bg-slate-50">Res</th>{activePlayers.map(u => { const rank = leaderboard.find(l => l.id === u.id)?.rank; return <th key={u.id} className="p-4 text-center border-r px-4 bg-slate-50"><div className="text-[9px] text-indigo-400 font-black">#{rank || '-'}</div><div>{u.name.split(' ')[0]}</div></th>; })}</tr></thead>
                      <tbody>{matches.slice(0, 72).map(m => (
                        <tr key={m.id} className="border-b hover:bg-slate-50 transition-colors">
                           <td className="p-4 sticky left-0 z-10 bg-white border-r font-black flex items-center gap-3 shadow-[2px_0_5px_rgba(0,0,0,0.02)]">
@@ -671,7 +671,7 @@ export default function App() {
                            <td className="p-3 font-bold flex items-center gap-2">
                              <Flag code={TEAMS[t.name]?.flag} />
                              {t.name}
-                             {showFolketsTips && <Users size={10} className="text-indigo-400 ml-1 opacity-50"/>}
+                             {folketsTipsMode > 0 && <Users size={10} className="text-indigo-400 ml-1 opacity-50"/>}
                            </td>
                            <td className="p-3 text-center font-medium">{t.gd > 0 ? `+${t.gd}` : t.gd}</td>
                            <td className="p-3 text-center font-black text-indigo-600 bg-indigo-50/30">{t.pts}</td>
@@ -689,12 +689,12 @@ export default function App() {
             <h2 className="font-black text-xl mb-6 flex items-center gap-2"><Swords className="text-indigo-600"/> Head 2 Head</h2>
             <div className="flex gap-4 mb-4">
               <select className="flex-1 p-3 bg-slate-50 border rounded-xl font-bold outline-none focus:border-indigo-400 transition-colors" value={h2hUser1} onChange={e => setH2hUser1(e.target.value)}>
-                <option value="">VÃ¤lj Spelare 1...</option>
+                <option value="">Välj Spelare 1...</option>
                 {activePlayers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
               </select>
               <div className="flex items-center font-black text-slate-300">VS</div>
               <select className="flex-1 p-3 bg-slate-50 border rounded-xl font-bold outline-none focus:border-indigo-400 transition-colors" value={h2hUser2} onChange={e => setH2hUser2(e.target.value)}>
-                <option value="">VÃ¤lj Spelare 2...</option>
+                <option value="">Välj Spelare 2...</option>
                 {activePlayers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
               </select>
             </div>
@@ -706,8 +706,8 @@ export default function App() {
               return (
                 <>
                   <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div className="bg-indigo-50 rounded-2xl p-4 text-center"><div className="font-black text-lg">{u1?.name?.split(' ')[0]}</div><div className="text-indigo-600 font-black text-2xl">{u1pts}</div><div className="text-xs text-slate-400 font-bold">rÃ¤tta tips</div></div>
-                    <div className="bg-emerald-50 rounded-2xl p-4 text-center"><div className="font-black text-lg">{u2?.name?.split(' ')[0]}</div><div className="text-emerald-600 font-black text-2xl">{u2pts}</div><div className="text-xs text-slate-400 font-bold">rÃ¤tta tips</div></div>
+                    <div className="bg-indigo-50 rounded-2xl p-4 text-center"><div className="font-black text-lg">{u1?.name?.split(' ')[0]}</div><div className="text-indigo-600 font-black text-2xl">{u1pts}</div><div className="text-xs text-slate-400 font-bold">rätta tips</div></div>
+                    <div className="bg-emerald-50 rounded-2xl p-4 text-center"><div className="font-black text-lg">{u2?.name?.split(' ')[0]}</div><div className="text-emerald-600 font-black text-2xl">{u2pts}</div><div className="text-xs text-slate-400 font-bold">rätta tips</div></div>
                   </div>
                   <div className="space-y-2">
                     {matches.map(m => {
