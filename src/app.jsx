@@ -3,7 +3,7 @@ import { db } from './firebase';
 import { collection, onSnapshot, doc, setDoc, addDoc, query, orderBy, serverTimestamp, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { 
   Trophy, BarChart3, Settings, CalendarDays, Check, 
-  AlertCircle, Clock, Grid3X3, User, X, Lock, LogOut, Award,
+  AlertCircle, Clock, Grid3X3, User, X, Lock, LogOut, Award, History, Star,
   Swords, Bell, PlayCircle, Banknote, MessageSquare, Send, Goal, ShieldCheck, ChevronDown, ChevronUp, MapPin, ListOrdered, Trash2, Tv, Users, Activity
 } from 'lucide-react';
 
@@ -186,6 +186,8 @@ export default function App() {
   const [mentionSearch, setMentionSearch] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
   const [isPrizeExpanded, setIsPrizeExpanded] = useState(false);
+  const [hofYear, setHofYear] = useState('');
+  const [hofName, setHofName] = useState('');
 
   // --- FIREBASE DATA ---
   const [tips, setTips] = useState([]);
@@ -193,6 +195,7 @@ export default function App() {
   const [chatMessages, setChatMessages] = useState([]);
   const [newChatMsg, setNewChatMsg] = useState('');
   const [deadline, setDeadline] = useState(null);
+  const [hallOfFame, setHallOfFame] = useState([]);
 
   // --- REGISTRATION DRAFT ---
   const [regStep, setRegStep] = useState(1);
@@ -216,7 +219,10 @@ export default function App() {
     const unsubConfig = onSnapshot(doc(db, "settings", "appConfig"), (snap) => {
       if(snap.exists()) setDeadline(snap.data().deadline?.toDate());
     });
-    return () => { unsubTips(); unsubMatches(); unsubChat(); unsubConfig(); };
+    const unsubHof = onSnapshot(query(collection(db, "hallOfFame"), orderBy("year", "desc")), (snap) => {
+      setHallOfFame(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    return () => { unsubTips(); unsubMatches(); unsubChat(); unsubConfig(); unsubHof(); };
   }, []);
 
   // --- AUTOSAVE LOGIC ---
@@ -553,6 +559,7 @@ export default function App() {
         <button onClick={() => navigateTab('h2h')} className={`p-4 transition-colors ${activeTab==='h2h'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><Swords/></button>
         <button onClick={() => navigateTab('chat')} className={`p-4 transition-colors ${activeTab==='chat'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><MessageSquare/></button>
         <button onClick={() => navigateTab('matches')} className={`p-4 transition-colors ${activeTab==='matches'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><CalendarDays/></button>
+        <button onClick={() => navigateTab('hof')} className={`p-4 transition-colors ${activeTab==='hof'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><History/></button>
         {currentUser.isAdmin && <button onClick={() => navigateTab('admin')} className={`p-4 transition-colors ${activeTab==='admin'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><Settings/></button>}
       </nav>
 
@@ -800,6 +807,38 @@ export default function App() {
           </div>
         )}
 
+        {activeTab === 'hof' && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            <div className="bg-vmdark text-white rounded-[2rem] p-8 shadow-xl text-center">
+              <Trophy size={48} className="text-vmgold mx-auto mb-4 drop-shadow-[0_0_12px_rgba(251,191,36,0.6)]"/>
+              <h2 className="font-black text-3xl italic tracking-tight">Hall of Fame</h2>
+              <p className="text-slate-400 text-sm mt-2 font-bold">Kompisligan &mdash; Tidigare Mästare</p>
+            </div>
+            {hallOfFame.length === 0 ? (
+              <div className="bg-white/90 backdrop-blur-md rounded-[2rem] border p-12 text-center text-slate-400 font-bold shadow-sm">
+                <History size={40} className="mx-auto mb-4 opacity-30"/>
+                <p>Inga mästare registrerade ännu.</p>
+              </div>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {hallOfFame.map((entry, idx) => {
+                  const isActive = activePlayers.some(p => p.name.toLowerCase() === entry.champion.toLowerCase());
+                  const isLatest = idx === 0;
+                  return (
+                    <div key={entry.id} className={`rounded-[2rem] border p-6 shadow-sm flex flex-col items-center text-center transition-all ${isLatest ? 'bg-vmdark text-white border-vmgold/30 shadow-[0_0_30px_rgba(251,191,36,0.1)]' : 'bg-white/90 backdrop-blur-md'}`}>
+                      <div className={`text-5xl font-black italic mb-1 ${isLatest ? 'text-vmgold' : 'text-slate-200'}`}>{entry.year}</div>
+                      <Trophy size={isLatest ? 32 : 20} className={isLatest ? 'text-vmgold drop-shadow-[0_0_8px_rgba(251,191,36,0.8)] mb-2' : 'text-slate-300 mb-2'}/>
+                      <div className={`font-black text-lg ${isLatest ? 'text-white' : 'text-slate-800'}`}>{entry.champion}</div>
+                      {isLatest && <span className="mt-2 px-3 py-1 bg-vmgold/20 text-vmgold text-[10px] font-black rounded-full uppercase tracking-widest border border-vmgold/30">Regerande Mästare</span>}
+                      {isActive && !isLatest && <span className="mt-2 px-3 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black rounded-full uppercase tracking-widest border border-indigo-100">Aktiv deltagare</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
         {activeTab === 'admin' && currentUser.isAdmin && (
           <div className="space-y-8 animate-in fade-in duration-500">
             <div className="bg-white/90 backdrop-blur-md rounded-[2.5rem] border p-8 shadow-xl">
@@ -821,6 +860,27 @@ export default function App() {
               </div>
             </div>
             
+
+            <div className="bg-white/90 backdrop-blur-md rounded-[2.5rem] border p-8 shadow-xl">
+              <h2 className="text-2xl font-black mb-6 flex items-center gap-3"><History className="text-vmgold" size={28}/> Hantera Hall of Fame</h2>
+              <div className="flex gap-3 mb-6">
+                <input type="number" placeholder="Årtal (t.ex. 2024)" value={hofYear} onChange={e => setHofYear(e.target.value)} className="flex-1 p-3 border rounded-xl font-bold outline-none focus:border-vmgold text-sm"/>
+                <input type="text" placeholder="Mästarens namn" value={hofName} onChange={e => setHofName(e.target.value)} className="flex-1 p-3 border rounded-xl font-bold outline-none focus:border-vmgold text-sm"/>
+                <button onClick={async () => { if (!hofYear || !hofName) return; await addDoc(collection(db, 'hallOfFame'), { year: parseInt(hofYear), champion: hofName }); setHofYear(''); setHofName(''); }} className="px-5 py-3 bg-vmgold text-vmdark font-black rounded-xl text-sm shadow-lg hover:brightness-105 transition-all">Spara</button>
+              </div>
+              <div className="space-y-3">
+                {hallOfFame.map(entry => (
+                  <div key={entry.id} className="flex items-center justify-between p-4 rounded-2xl border bg-slate-50/50">
+                    <div className="flex items-center gap-3">
+                      <Trophy size={16} className="text-vmgold"/>
+                      <span className="font-black">{entry.year}</span>
+                      <span className="text-slate-600 font-bold">{entry.champion}</span>
+                    </div>
+                    <button onClick={() => deleteDoc(doc(db, 'hallOfFame', entry.id))} className="p-2 text-red-400 hover:bg-red-50 rounded-xl transition-colors"><Trash2 size={16}/></button>
+                  </div>
+                ))}
+              </div>
+            </div>
             <div className="bg-white/90 backdrop-blur-md rounded-[2.5rem] border p-8 shadow-xl"><h2 className="text-2xl font-black mb-6 flex items-center gap-3"><PlayCircle className="text-indigo-600" size={28}/> Rapportera Matchresultat</h2>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {matches.map(m => (
