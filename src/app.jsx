@@ -72,11 +72,13 @@ const ALL_GROUPS = ['Alla', 'Säljarna', 'Projektledare', 'Ledningen', 'Dalabygg
 export default function App() {
     const [currentUser, setCurrentUser] = useState(null);
     const [loginEmail, setLoginEmail] = useState('');
+    const [loginPassword, setLoginPassword] = useState('');
     const [authError, setAuthError] = useState('');
+    const [showRegister, setShowRegister] = useState(false);
     const [activeTab, setActiveTab] = useState('leaderboard');
     const [matches, setMatches] = useState(initialMatches);
     const [tips, setTips] = useState([
-        { id: 'admin', name: 'Amon Admin', email: 'admin@vmtipset.se', groups: ['Ledningen', 'Dalabyggsam'], goals: 132, predictions: {}, isApproved: true, isAdmin: true },
+        { id: 'admin', name: 'Arrangör Admin', email: 'zettergren.emil@gmail.com', password: 'mitthemligalosenord', groups: ['Ledningen'], goals: 132, predictions: {}, isApproved: true, isAdmin: true },
         { id: 1, name: 'Adam Johansson', email: 'adam@test.se', groups: ['Säljarna', 'Dalabyggsam'], goals: 110, isApproved: true, isAdmin: false, predictions: { 1: '1', 2: '1' } },
         { id: 2, name: 'Anders Björk', email: 'anders@test.se', groups: ['Projektledare', 'Gubbarna'], goals: 125, isApproved: true, isAdmin: false, predictions: { 1: 'X', 2: '2' } },
     ]);
@@ -165,17 +167,21 @@ export default function App() {
 
     const handleLogin = (e) => {
         e.preventDefault();
-        const user = tips.find(t => t.email.toLowerCase() === loginEmail.toLowerCase());
-        if (user) {
-            if (user.isApproved) {
-                setCurrentUser(user);
-                setAuthError('');
-            } else {
-                setAuthError('Ditt konto är ännu inte godkänt av administratören.');
+        const user = tips.find(t => t.email.toLowerCase() === loginEmail.toLowerCase().trim());
+
+        if (!user) return setAuthError("E-postadressen hittades inte i systemet.");
+
+        if (user.isAdmin) {
+            if (loginPassword !== user.password) {
+                return setAuthError("Fel lösenord för admin.");
             }
-        } else {
-            setAuthError('E-postadressen hittades inte. Kontrollera stavningen eller anmäl dig på nytt.');
+        } else if (!user.isApproved) {
+            return setAuthError("Din anmälan väntar på godkännande (Betalning saknas).");
         }
+
+        setAuthError('');
+        setCurrentUser(user);
+        if (user.isAdmin) setActiveTab('admin');
     };
 
     const sendChat = (e) => {
@@ -193,14 +199,36 @@ export default function App() {
             <div className="w-full max-w-md bg-white/10 backdrop-blur-xl p-8 rounded-3xl border border-white/20 shadow-2xl">
                 <Trophy className="w-16 h-16 text-vmgold mx-auto mb-6" />
                 <h1 className="text-4xl font-black text-center italic mb-8 tracking-tighter">VM-TIPSET 2026</h1>
-                <form onSubmit={handleLogin} className="space-y-4">
-                    <input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} placeholder="Din godkända e-post" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" required />
-                    <button type="submit" className="w-full py-4 bg-indigo-600 rounded-xl font-black shadow-lg">ÖPPNA TIPSET</button>
-                </form>
-                {authError && <p className="text-red-400 text-xs font-bold mt-4 text-center">{authError}</p>}
+
+                {!showRegister ? (
+                    <form onSubmit={handleLogin} className="space-y-4 animate-in fade-in duration-300">
+                        <div className="bg-blue-500/10 p-3 rounded-lg text-xs text-blue-200 border border-blue-500/20">Logga in med <strong>zettergren.emil@gmail.com</strong> (Admin) eller <strong>adam@test.se</strong> (Spelare).</div>
+                        <div className="relative">
+                            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                            <input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-indigo-500 transition-all font-medium placeholder-slate-500" placeholder="din.epost@exempel.se" required />
+                        </div>
+
+                        {/* Lösenordsfält som bara visas för Admin */}
+                        {loginEmail.toLowerCase().trim() === 'zettergren.emil@gmail.com' && (
+                            <div className="relative animate-in fade-in slide-in-from-top-2">
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                <input type="password" value={loginPassword} onChange={(e) => setAuthError('') || setLoginPassword(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-indigo-500 transition-all font-medium placeholder-slate-500" placeholder="Lösenord" required />
+                            </div>
+                        )}
+
+                        {authError && <div className="text-red-400 text-sm font-bold flex items-center bg-red-500/10 p-3 rounded-lg border border-red-500/20"><AlertCircle size={16} className="mr-2 shrink-0" />{authError}</div>}
+                        <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4 rounded-xl shadow-lg transition-all transform hover:scale-[1.02]">ÖPPNA TIPSET</button>
+                    </form>
+                ) : (
+                    <div className="text-center space-y-4">
+                        <div className="bg-emerald-500/10 p-4 rounded-xl border border-emerald-500/20 text-emerald-200 text-sm font-medium">Anmäl dig genom att skicka ett mail till admin eller via Swish-instruktionerna.</div>
+                        <button onClick={() => setShowRegister(false)} className="text-indigo-400 font-bold text-sm">Tillbaka till inloggning</button>
+                    </div>
+                )}
+
                 <div className="mt-10 pt-6 border-t border-white/10 text-center opacity-60">
-                    <p className="text-[10px] uppercase font-bold tracking-widest mb-2">Publik Anmälan</p>
-                    <button className="text-emerald-400 font-black text-sm" onClick={() => alert("Anmälningssedel")}>LÄMNA TIPS</button>
+                    <p className="text-[10px] uppercase font-bold tracking-widest mb-2">Saknar du konto?</p>
+                    <button className="text-emerald-400 font-black text-sm" onClick={() => setShowRegister(true)}>LÄMNA TIPS / REGISTRERA</button>
                 </div>
             </div>
         </div>
