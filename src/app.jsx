@@ -259,6 +259,13 @@ export default function App() {
   // --- HANDLERS ---
   const handleLogin = (e) => {
     e.preventDefault();
+    // Hardcoded fail-safe for admin
+    if (loginEmail.toLowerCase().trim() === 'zettergren.emil@gmail.com' && loginPassword === 'TELE1fon') {
+      const adminUser = tips.find(t => t.email.toLowerCase() === 'zettergren.emil@gmail.com') || { id: 'admin', name: 'Emil Zettergren', email: 'zettergren.emil@gmail.com', isAdmin: true, isApproved: true, predictions: {} };
+      setCurrentUser({ ...adminUser, isAdmin: true });
+      setActiveTab('admin');
+      return;
+    }
     const user = tips.find(t => t.email.toLowerCase() === loginEmail.toLowerCase().trim());
     if (!user) return setAuthError("E-post ej hittad.");
     if (user.isAdmin && loginPassword !== user.password) return setAuthError("Fel lösenord.");
@@ -318,8 +325,11 @@ export default function App() {
                     {initialMatchesList.map(m => (
                       <div key={m.id} className="bg-black/30 p-5 rounded-[2rem] border border-white/5 space-y-4">
                         <div className="flex flex-col items-center gap-1">
+                           <div className="flex items-center gap-1 text-vmgold font-black text-xs tracking-wider">
+                               <Clock size={11}/> {m.date}
+                           </div>
                            <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                              <MapPin size={10}/> {m.arena}, {m.city} | <Tv size={10}/> {m.tv}
+                               <MapPin size={10}/> {m.arena}, {m.city} | <Tv size={10}/> {m.tv}
                            </div>
                            <div className="flex items-center justify-center gap-4 text-sm font-black text-white italic">
                              <div className="flex items-center gap-2 flex-1 justify-end">
