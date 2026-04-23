@@ -1,7 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
-// KLISTRA IN DIN CONFIG FRÅN FIREBASE HÄR:
 const firebaseConfig = {
   apiKey: "AIzaSyDgZeryeAXjnW3u5fExDm029c1IoXLOqTI",
   authDomain: "kroppsoptimering.firebaseapp.com",
