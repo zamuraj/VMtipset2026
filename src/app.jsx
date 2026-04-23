@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { db } from './firebase';
-import { collection, onSnapshot, doc, setDoc, addDoc, query, orderBy, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, doc, setDoc, addDoc, query, orderBy, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { 
   Trophy, BarChart3, Settings, CalendarDays, Check, 
   AlertCircle, Clock, Grid3X3, User, X, Lock, 
@@ -10,6 +10,13 @@ import {
 // --- DATA: LAG & SCHEMA ---
 const TEAMS = { 'Mexiko': { flag: '🇲🇽', primary: '#006847' }, 'Ecuador': { flag: '🇪🇨', primary: '#FFD100' }, 'Kanada': { flag: '🇨🇦', primary: '#FF0000' }, 'Slovakien': { flag: '🇸🇰', primary: '#0B4EA2' }, 'Italien': { flag: '🇮🇹', primary: '#0066B2' }, 'Togo': { flag: '🇹🇬', primary: '#006A4E' }, 'USA': { flag: '🇺🇸', primary: '#B31942' }, 'Marocko': { flag: '🇲🇦', primary: '#C1272D' }, 'Spanien': { flag: '🇪🇸', primary: '#AA151B' }, 'Japan': { flag: '🇯🇵', primary: '#BC002D' }, 'Brasilien': { flag: '🇧🇷', primary: '#FFDF00' }, 'Sydkorea': { flag: '🇰🇷', primary: '#0047A0' }, 'Sverige': { flag: '🇸🇪', primary: '#006AA7' }, 'Jordanien': { flag: '🇯🇴', primary: '#CE1126' }, 'England': { flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', primary: '#000040' }, 'Peru': { flag: '🇵🇪', primary: '#D91023' }, 'Tyskland': { flag: '🇩🇪', primary: '#000000' }, 'Norge': { flag: '🇳🇴', primary: '#EF2B2D' }, 'Frankrike': { flag: '🇫🇷', primary: '#002395' }, 'Uzbekistan': { flag: '🇺🇿', primary: '#0099B5' }, 'Uruguay': { flag: '🇺🇾', primary: '#0038A8' }, 'Kamerun': { flag: '🇨🇲', primary: '#007A5E' }, 'Nederländerna': { flag: '🇳🇱', primary: '#F36C21' }, 'Australien': { flag: '🇦🇺', primary: '#00008B' }, 'Argentina': { flag: '🇦🇷', primary: '#75AADB' }, 'Haiti': { flag: '🇭🇹', primary: '#00209F' }, 'Belgien': { flag: '🇧🇪', primary: '#000000' }, 'Panama': { flag: '🇵🇦', primary: '#005293' }, 'Portugal': { flag: '🇵🇹', primary: '#006600' }, 'Senegal': { flag: '🇸🇳', primary: '#00853F' }, 'Danmark': { flag: '🇩🇰', primary: '#C60C30' }, 'Nigeria': { flag: '🇳🇬', primary: '#008751' }, 'Sydafrika': { flag: '🇿🇦', primary: '#007C59' }, 'Tjeckien': { flag: '🇨🇿', primary: '#11457E' }, 'Bosnien': { flag: '🇧🇦', primary: '#002395' }, 'Paraguay': { flag: '🇵🇾', primary: '#D52B1E' }, 'Qatar': { flag: '🇶🇦', primary: '#8D1B3D' }, 'Schweiz': { flag: '🇨🇭', primary: '#D52B1E' }, 'Skottland': { flag: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', primary: '#004B84' }, 'Turkiet': { flag: '🇹🇷', primary: '#E30A17' }, 'Curaçao': { flag: '🇨🇼', primary: '#002B7F' }, 'Elfenbenskusten': { flag: '🇨🇮', primary: '#FF8200' }, 'Tunisien': { flag: '🇹🇳', primary: '#E70013' }, 'Kap Verde': { flag: '🇨🇻', primary: '#003893' }, 'Egypten': { flag: '🇪🇬', primary: '#C09307' }, 'Saudiarabien': { flag: '🇸🇦', primary: '#006C35' }, 'Iran': { flag: '🇮🇷', primary: '#239f40' }, 'Nya Zeeland': { flag: '🇳🇿', primary: '#000000' }, 'Irak': { flag: '🇮🇶', primary: '#007A33' }, 'Algeriet': { flag: '🇩🇿', primary: '#006233' }, 'Österrike': { flag: '🇦🇹', primary: '#EF3340' }, 'DR Kongo': { flag: '🇨🇩', primary: '#007FFF' }, 'Colombia': { flag: '🇨🇴', primary: '#FCD116' }, 'Kroatien': { flag: '🇭🇷', primary: '#FF0000' }, 'Ghana': { flag: '🇬🇭', primary: '#FCD116' } };
 const VM_SCHEDULE = [ "1|11 jun 21:00|A|Mexiko|Sydafrika|Mexico City", "2|12 jun 00:00|B|Kanada|Slovakien|Toronto", "3|12 jun 15:00|A|Sydkorea|Tjeckien|Guadalajara", "4|13 jun 00:00|D|USA|Paraguay|Los Angeles", "5|13 jun 21:00|B|Qatar|Schweiz|San Francisco", "6|14 jun 00:00|C|Brasilien|Marocko|New Jersey", "7|14 jun 03:00|C|Haiti|Skottland|Boston", "8|14 jun 06:00|D|Australien|Turkiet|Vancouver", "9|14 jun 19:00|E|Tyskland|Curaçao|Houston", "10|14 jun 22:00|F|Nederländerna|Japan|Dallas", "11|15 jun 01:00|E|Elfenbenskusten|Ecuador|Philadelphia", "12|15 jun 04:00|F|Sverige|Tunisien|Monterrey", "13|15 jun 18:00|H|Spanien|Kap Verde|Atlanta", "14|15 jun 21:00|G|Belgien|Egypten|Seattle", "15|16 jun 00:00|H|Saudiarabien|Uruguay|Miami", "16|16 jun 03:00|G|Iran|Nya Zeeland|SoFi Stadium", "17|16 jun 21:00|I|Frankrike|Senegal|MetLife Stadium", "18|17 jun 00:00|I|Irak|Norge|Gillette Stadium", "19|17 jun 03:00|J|Argentina|Algeriet|Kansas City", "20|17 jun 06:00|J|Österrike|Jordanien|Levi's Stadium", "21|17 jun 19:00|K|Portugal|DR Kongo|NRG Stadium", "22|17 jun 22:00|L|England|Kroatien|AT&T Stadium", "23|18 jun 01:00|L|Ghana|Panama|BMO Field", "24|18 jun 04:00|K|Uzbekistan|Colombia|Mexico City", "25|18 jun 18:00|A|Tjeckien|Sydafrika|Atlanta", "26|18 jun 21:00|B|Schweiz|Bosnien|SoFi Stadium", "27|19 jun 00:00|B|Kanada|Qatar|BC Place", "28|19 jun 03:00|A|Mexiko|Sydkorea|Akron Stadium", "29|19 jun 21:00|D|USA|Australien|Lumen Field", "30|20 jun 00:00|C|Skottland|Marocko|Gillette Stadium", "31|20 jun 03:00|C|Brasilien|Haiti|Lincoln Financial", "32|20 jun 06:00|D|Turkiet|Paraguay|Levi's Stadium", "33|20 jun 19:00|F|Nederländerna|Sverige|NRG Stadium", "34|20 jun 22:00|E|Tyskland|Elfenbenskusten|BMO Field", "35|21 jun 02:00|E|Ecuador|Curaçao|Arrowhead Stadium", "36|21 jun 06:00|F|Tunisien|Japan|BBVA Bancomer", "37|21 jun 18:00|H|Spanien|Saudiarabien|Atlanta", "38|21 jun 21:00|G|Belgien|Iran|SoFi Stadium", "39|22 jun 00:00|H|Uruguay|Kap Verde|Hard Rock Stadium", "40|22 jun 03:00|G|Nya Zeeland|Egypten|BC Place", "41|22 jun 19:00|J|Argentina|Österrike|Arrowhead Stadium", "42|22 jun 23:00|I|Frankrike|Irak|Lincoln Financial", "43|23 jun 02:00|I|Norge|Senegal|MetLife Stadium", "44|23 jun 05:00|J|Jordanien|Algeriet|Levi's Stadium", "45|23 jun 19:00|K|Portugal|Uzbekistan|NRG Stadium", "46|23 jun 22:00|L|England|Ghana|Gillette Stadium", "47|24 jun 01:00|L|Panama|Kroatien|Gillette Stadium", "48|24 jun 04:00|K|Colombia|DR Kongo|Akron Stadium" ];
+
+const initialMatchesList = VM_SCHEDULE.map(m => {
+  const [id, date, grp, t1, t2, ven] = m.split('|');
+  return { id: parseInt(id), date, group: grp, team1: t1, team2: t2, venue: ven };
+});
+
+const TOURNAMENT_GROUPS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 
 // --- UI UTILS ---
 const Logo = () => (
@@ -32,6 +39,7 @@ export default function App() {
   const [matches, setMatches] = useState([]);
   const [chatMessages, setChatMessages] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [newChatMsg, setNewChatMsg] = useState('');
 
   // --- REGISTRATION DRAFT ---
   const [regStep, setRegStep] = useState(1);
@@ -116,6 +124,10 @@ export default function App() {
     setNewChatMsg('');
   };
 
+  const updateMatch = async (id, data) => {
+    await setDoc(doc(db, "matches", id.toString()), data, { merge: true });
+  };
+
   // --- UI RENDERING ---
   if (!currentUser) return (
     <div className="min-h-screen bg-vmdark text-white flex items-center justify-center p-4 relative overflow-hidden">
@@ -195,7 +207,7 @@ export default function App() {
                 <table className="w-full text-left">
                   <thead className="bg-slate-50 border-b text-[10px] font-black uppercase text-slate-400"><tr><th className="p-4">Rank</th><th className="p-4">Namn</th><th className="p-4 text-center">P</th></tr></thead>
                   <tbody className="divide-y">{leaderboard.map(u => (
-                    <tr key={u.id} className="hover:bg-indigo-50/50" onClick={() => setSelectedUserId(u.id)}>
+                    <tr key={u.id} className="hover:bg-indigo-50/50">
                       <td className="p-4 font-black">#{u.rank}</td><td className="p-4 font-bold">{u.name}</td><td className="p-4 text-center font-black bg-indigo-50/20 text-indigo-700">{u.pts}</td>
                     </tr>
                   ))}</tbody>
@@ -278,5 +290,3 @@ export default function App() {
     </div>
   );
 }
-
-
