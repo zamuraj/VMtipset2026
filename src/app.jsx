@@ -1,9 +1,9 @@
-﻿import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { db } from './firebase';
 import { collection, onSnapshot, doc, setDoc, addDoc, query, orderBy, serverTimestamp, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { 
   Trophy, BarChart3, Settings, CalendarDays, Check, 
-  AlertCircle, Clock, Grid3X3, User, X, Lock, LogOut,
+  AlertCircle, Clock, Grid3X3, User, X, Lock, LogOut, Award,
   Swords, Bell, PlayCircle, Banknote, MessageSquare, Send, Goal, ShieldCheck, ChevronDown, ChevronUp, MapPin, ListOrdered, Trash2, Tv, Users, Activity
 } from 'lucide-react';
 
@@ -185,6 +185,7 @@ export default function App() {
   const [showMentions, setShowMentions] = useState(false);
   const [mentionSearch, setMentionSearch] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
+  const [isPrizeExpanded, setIsPrizeExpanded] = useState(false);
 
   // --- FIREBASE DATA ---
   const [tips, setTips] = useState([]);
@@ -497,20 +498,29 @@ export default function App() {
         {activeTab === 'leaderboard' && (
           <div className="space-y-6 animate-in fade-in duration-300">
              {/* PRISPOTT */}
-             <div className="bg-vmdark text-white rounded-[2rem] p-6 shadow-xl">
-               <h3 className="font-black text-xs uppercase tracking-widest text-vmgold mb-4 flex items-center gap-2"><Trophy size={14}/> Prispott</h3>
-               <div className="grid grid-cols-3 gap-3">
-                 {[{place:'1:a', prize:'600 kr', icon:'ðŸ¥‡'},{place:'2:a', prize:'300 kr', icon:'ðŸ¥ˆ'},{place:'3:e', prize:'100 kr', icon:'ðŸ¥‰'}].map(({place, prize, icon}, i) => {
-                   const rankUser = leaderboard[i];
-                   return (
-                     <div key={place} className="bg-white/5 rounded-2xl p-3 text-center">
-                       <div className="text-2xl">{icon}</div>
-                       <div className="font-black text-sm mt-1">{prize}</div>
-                       <div className="text-[10px] text-slate-400 font-bold mt-1 truncate">{rankUser?.name?.split(' ')[0] || '?'}</div>
-                     </div>
-                   );
-                 })}
-               </div>
+             <div className="bg-vmdark text-white rounded-[2rem] shadow-xl overflow-hidden">
+               <button onClick={() => setIsPrizeExpanded(!isPrizeExpanded)} className="w-full p-6 flex justify-between items-center">
+                 <h3 className="font-black text-xs uppercase tracking-widest text-vmgold flex items-center gap-2"><Trophy size={14}/> Prispott &mdash; {activePlayers.length * 100} kr totalt</h3>
+                 {isPrizeExpanded ? <ChevronUp size={16} className="text-vmgold"/> : <ChevronDown size={16} className="text-vmgold"/>}
+               </button>
+               {isPrizeExpanded && (
+                 <div className="grid grid-cols-3 gap-3 px-6 pb-6">
+                   {[
+                     {prize:'600 kr', color:'#FFD700', label:'1:a'},
+                     {prize:'300 kr', color:'#C0C0C0', label:'2:a'},
+                     {prize:'100 kr', color:'#CD7F32', label:'3:e'},
+                   ].map(({prize, color, label}, i) => {
+                     const rankUser = leaderboard[i];
+                     return (
+                       <div key={label} className="bg-white/5 rounded-2xl p-3 text-center">
+                         <Award size={24} style={{color}} className="mx-auto mb-1"/>
+                         <div className="font-black text-sm">{prize}</div>
+                         <div className="text-[10px] text-slate-400 font-bold mt-1 truncate">{rankUser?.name?.split(' ')[0] || '?'}</div>
+                       </div>
+                     );
+                   })}
+                 </div>
+               )}
              </div>
              <div className="bg-white/90 backdrop-blur-md rounded-[2rem] border overflow-hidden shadow-sm">
                 <table className="w-full text-left">
@@ -528,7 +538,7 @@ export default function App() {
                 <h3 className="font-black text-xs uppercase mb-6 text-slate-400 flex items-center gap-2"><Grid3X3 size={16}/> Tippningsmatris</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm border-collapse whitespace-nowrap min-w-max">
-                      <thead className="sticky top-0 z-20"><tr className="bg-slate-50 border-b font-black text-xs uppercase text-slate-500"><th className="p-4 sticky left-0 z-30 bg-slate-50 border-r text-left w-48">Match</th><th className="p-4 text-center border-r w-12 text-[10px] bg-slate-50">Res</th>{activePlayers.map(u => <th key={u.id} className="p-4 text-center border-r px-4 bg-slate-50">{u.name.split(' ')[0]}</th>)}</tr></thead>
+                      <thead className="sticky top-0 z-20"><tr className="bg-slate-50 border-b font-black text-xs uppercase text-slate-500"><th className="p-4 sticky left-0 z-30 bg-slate-50 border-r text-left w-48">Match</th><th className="p-4 text-center border-r w-12 text-[10px] bg-slate-50">Res</th>{activePlayers.map(u => { const rank = leaderboard.find(l => l.id === u.id)?.rank; return <th key={u.id} className="p-4 text-center border-r px-4 bg-slate-50"><div className="text-[9px] text-indigo-400 font-black">#{rank || '-'}</div><div>{u.name.split(' ')[0]}</div></th>; })}</tr></thead>
                      <tbody>{matches.slice(0, 72).map(m => (
                        <tr key={m.id} className="border-b hover:bg-slate-50 transition-colors">
                           <td className="p-4 sticky left-0 z-10 bg-white border-r font-black flex items-center gap-3 shadow-[2px_0_5px_rgba(0,0,0,0.02)]">
@@ -652,7 +662,12 @@ export default function App() {
            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 animate-in fade-in duration-300">
               {matches.map(m => (
                  <div key={m.id} className="bg-white/90 backdrop-blur-md p-6 rounded-[2rem] border shadow-sm space-y-3 relative overflow-hidden">
-                    {m.status === 'live' && <div className="absolute top-4 right-4 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" title="LIVE" />}
+                    {m.status === 'live' && (
+                      <div className="absolute top-4 right-4 flex items-center gap-1.5">
+                        <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]"/>
+                        {m.minute && <span className="text-red-500 font-black text-[10px]">{m.minute}'</span>}
+                      </div>
+                    )}
                     <div className="flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
                        <span>{m.date} | Grupp {m.group}</span>
                        <TvBadge tv={m.tv} />
@@ -672,7 +687,7 @@ export default function App() {
           <div className="bg-white/90 backdrop-blur-md rounded-[2rem] border h-[65vh] flex flex-col overflow-hidden shadow-xl animate-in fade-in duration-300">
             <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/50 flex flex-col no-scrollbar">
               {chatMessages.map(m => {
-                const parts = m.text.split(/(@[a-zA-ZÃ¥Ã¤Ã¶Ã…Ã„Ã–0-9_-]+(?: [a-zA-ZÃ¥Ã¤Ã¶Ã…Ã„Ã–0-9_-]+)?)/g);
+                const parts = m.text.split(/(@[a-zA-ZåäöÅÄÖ0-9_-]+(?: [a-zA-ZåäöÅÄÖ0-9_-]+)?)/g);
                 const renderedText = parts.map((part, i) => {
                   if (part.startsWith('@')) {
                     const namePart = part.substring(1).toLowerCase();
@@ -716,7 +731,7 @@ export default function App() {
                   } else {
                     setShowMentions(false);
                   }
-                }} placeholder="Skriv nÃ¥t till gruppen..." className="w-full bg-slate-100 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm" />
+                }} placeholder="Skriv nåt till gruppen..." className="w-full bg-slate-100 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm" />
               </div>
               <button className="bg-indigo-600 text-white px-6 rounded-2xl shadow-lg shadow-indigo-600/20 active:scale-95 transition-transform"><Send size={20}/></button>
             </form>
@@ -760,9 +775,12 @@ export default function App() {
                     </div>
                     <div className="grid grid-cols-3 items-center gap-2 mt-2">
                       <div className="flex items-center gap-2 justify-end text-right"><span className="text-xs font-black truncate">{m.team1}</span><Flag code={TEAMS[m.team1]?.flag} /></div>
-                      <div className="flex justify-center gap-1.5">
-                        <input type="number" value={m.goals1 ?? ''} onChange={e => updateMatch(m.id, { goals1: parseInt(e.target.value) || 0, status: 'finished' })} className="w-12 h-12 text-lg text-center border-2 rounded-xl font-black bg-white focus:border-indigo-500 outline-none transition-all"/>
-                        <input type="number" value={m.goals2 ?? ''} onChange={e => updateMatch(m.id, { goals2: parseInt(e.target.value) || 0, status: 'finished' })} className="w-12 h-12 text-lg text-center border-2 rounded-xl font-black bg-white focus:border-indigo-500 outline-none transition-all"/>
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="flex gap-1.5">
+                          <input type="number" min="0" value={m.goals1 ?? ''} onChange={e => updateMatch(m.id, { goals1: parseInt(e.target.value) || 0, status: m.minute ? 'live' : 'finished' })} className="w-12 h-12 text-lg text-center border-2 rounded-xl font-black bg-white focus:border-indigo-500 outline-none transition-all"/>
+                          <input type="number" min="0" value={m.goals2 ?? ''} onChange={e => updateMatch(m.id, { goals2: parseInt(e.target.value) || 0, status: m.minute ? 'live' : 'finished' })} className="w-12 h-12 text-lg text-center border-2 rounded-xl font-black bg-white focus:border-indigo-500 outline-none transition-all"/>
+                        </div>
+                        <input type="text" maxLength={4} placeholder="Min'" value={m.minute ?? ''} onChange={e => { const min = e.target.value.replace(/[^0-9]/g,''); updateMatch(m.id, { minute: min || null, status: min ? 'live' : (m.goals1 != null ? 'finished' : 'upcoming') }); }} className="w-20 h-7 text-xs text-center border rounded-lg font-bold bg-white focus:border-red-400 outline-none transition-all text-red-500 placeholder:text-slate-300" />
                       </div>
                       <div className="flex items-center gap-2 justify-start text-left"><Flag code={TEAMS[m.team2]?.flag} /><span className="text-xs font-black truncate">{m.team2}</span></div>
                     </div>
@@ -782,10 +800,10 @@ export default function App() {
               <button onClick={() => setSelectedUser(null)} className="absolute top-4 right-4 p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors"><X size={16}/></button>
               <div className="w-24 h-24 bg-vmgold rounded-full flex items-center justify-center text-vmdark font-black text-4xl mb-4 shadow-[0_0_20px_rgba(251,191,36,0.3)]">{selectedUser.name.charAt(0)}</div>
               <h2 className="text-2xl font-black">{selectedUser.name}</h2>
-              <p className="text-indigo-300 text-sm font-bold mt-1 uppercase tracking-widest flex items-center gap-2"><Goal size={14}/> MÃ¥lgissning: {selectedUser.goals}</p>
+              <p className="text-indigo-300 text-sm font-bold mt-1 uppercase tracking-widest flex items-center gap-2"><Goal size={14}/> Målgissning: {selectedUser.goals}</p>
             </div>
             <div className="p-6 overflow-y-auto bg-slate-50 flex-1 no-scrollbar">
-              <h3 className="font-black text-xs uppercase text-slate-400 mb-4 tracking-widest">InlÃ¤mnat Tips</h3>
+              <h3 className="font-black text-xs uppercase text-slate-400 mb-4 tracking-widest">Inlämnat Tips</h3>
               <div className="space-y-2">
                 {matches.map(m => {
                    const pick = selectedUser.predictions?.[m.id];
