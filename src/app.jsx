@@ -163,6 +163,21 @@ export default function App() {
         return { ...m, u1Pick, u2Pick, res, state };
     });
 
+    const handleLogin = (e) => {
+        e.preventDefault();
+        const user = tips.find(t => t.email.toLowerCase() === loginEmail.toLowerCase());
+        if (user) {
+            if (user.isApproved) {
+                setCurrentUser(user);
+                setAuthError('');
+            } else {
+                setAuthError('Ditt konto är ännu inte godkänt av administratören.');
+            }
+        } else {
+            setAuthError('E-postadressen hittades inte. Kontrollera stavningen eller anmäl dig på nytt.');
+        }
+    };
+
     const sendChat = (e) => {
         e.preventDefault();
         if (!newChatMsg.trim()) return;
