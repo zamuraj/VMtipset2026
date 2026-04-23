@@ -196,6 +196,7 @@ export default function App() {
   const [newChatMsg, setNewChatMsg] = useState('');
   const [deadline, setDeadline] = useState(null);
   const [hallOfFame, setHallOfFame] = useState([]);
+  const [adminFee, setAdminFee] = useState(100);
 
   // --- REGISTRATION DRAFT ---
   const [regStep, setRegStep] = useState(1);
@@ -212,12 +213,15 @@ export default function App() {
       setMatches(VM_SCHEDULE.map(m => {
         const [id, date, grp, t1, t2, arena, city, country, tv] = m.split('|');
         const dbM = dbMatches.find(x => x.id === parseInt(id));
-        return { id: parseInt(id), date, group: grp, team1: t1, team2: t2, arena, city, country, tv, goals1: dbM?.goals1 ?? null, goals2: dbM?.goals2 ?? null, status: dbM?.status ?? 'upcoming' };
+        return { id: parseInt(id), date, group: grp, team1: t1, team2: t2, arena, city, country, tv, goals1: dbM?.goals1 ?? null, goals2: dbM?.goals2 ?? null, status: dbM?.status ?? 'upcoming', minute: dbM?.minute ?? null };
       }));
     });
     const unsubChat = onSnapshot(query(collection(db, "chat"), orderBy("createdAt", "asc")), (snap) => setChatMessages(snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))));
     const unsubConfig = onSnapshot(doc(db, "settings", "appConfig"), (snap) => {
-      if(snap.exists()) setDeadline(snap.data().deadline?.toDate());
+      if(snap.exists()) {
+        setDeadline(snap.data().deadline?.toDate());
+        if (snap.data().adminFee != null) setAdminFee(snap.data().adminFee);
+      }
     });
     const unsubHof = onSnapshot(query(collection(db, "hallOfFame"), orderBy("year", "desc")), (snap) => {
       setHallOfFame(snap.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -234,7 +238,7 @@ export default function App() {
     localStorage.setItem('vmt_draft_v3', JSON.stringify({ name: regName, email: regEmail, goals: regGoals, picks: regPicks, step: regStep }));
   }, [regName, regEmail, regGoals, regPicks, regStep]);
 
-  const clearDraft = () => { if(window.confirm('Rensa allt och bÃ¶rja om?')) { localStorage.removeItem('vmt_draft_v3'); window.location.reload(); } };
+  const clearDraft = () => { if(window.confirm('Rensa allt och börja om?')) { localStorage.removeItem('vmt_draft_v3'); window.location.reload(); } };
 
   const checkExistingUser = () => {
     const existing = tips.find(t => t.email.toLowerCase() === regEmail.toLowerCase().trim());
@@ -242,7 +246,7 @@ export default function App() {
        setRegName(existing.name);
        setRegGoals(existing.goals);
        setRegPicks(existing.predictions || {});
-       alert("VÃ¤lkommen tillbaka! Ditt tidigare tips har laddats in.");
+       alert("Välkommen tillbaka! Ditt tidigare tips har laddats in.");
     }
     setRegStep(2);
   };
@@ -366,23 +370,25 @@ export default function App() {
   }, [activePlayers, matches, folketsTips]);
 
   // --- PRISPOTT CALCULATION ---
-  const adminCost = 0; // Uppdateras från Firebase om administrativKostnad finns i appConfig
   const prizePool = useMemo(() => {
     const n = activePlayers.length;
-    const total = n * 100 - adminCost;
-    if (total <= 0) return { total: 0, first: 0, second: 0, third: 0 };
-    const third = 100;
-    if (n >= 20) {
-      const remaining = total - third;
-      const first = Math.round((remaining * 0.70) / 100) * 100;
-      const second = Math.round((remaining * 0.30) / 100) * 100;
-      return { total, first, second, third };
+    const totalPool = n * 100;
+    const netPool = Math.max(0, totalPool - adminFee);
+    if (netPool === 0) return { totalPool, netPool, first: 0, second: 0, third: 0 };
+    if (n > 20) {
+      const third = 100;
+      const rem = netPool - third;
+      const secondRaw = Math.round((rem * 0.30) / 100) * 100;
+      const second = secondRaw;
+      const first = netPool - second - third; // first gets remainder so sum is exact
+      return { totalPool, netPool, first: Math.max(0, first), second, third };
     } else {
-      const first = Math.round((total * 0.60) / 100) * 100;
-      const second = Math.round((total * 0.30) / 100) * 100;
-      return { total, first, second, third };
+      const secondRaw = Math.round((netPool * 0.30) / 100) * 100;
+      const second = secondRaw;
+      const first = netPool - second; // first takes the rest, third = 0
+      return { totalPool, netPool, first: Math.max(0, first), second, third: 0 };
     }
-  }, [activePlayers.length, adminCost]);
+  }, [activePlayers.length, adminFee]);
 
   // --- HANDLERS ---
   const handleLogin = (e) => {
@@ -396,15 +402,15 @@ export default function App() {
     }
     const user = tips.find(t => t.email.toLowerCase() === loginEmail.toLowerCase().trim());
     if (!user) return setAuthError("E-post ej hittad.");
-    if (user.isAdmin && loginPassword !== user.password) return setAuthError("Fel lÃ¶senord.");
-    if (!user.isApproved && !user.isAdmin) return setAuthError("VÃ¤ntar pÃ¥ godkÃ¤nnande.");
+    if (user.isAdmin && loginPassword !== user.password) return setAuthError("Fel lösenord.");
+    if (!user.isApproved && !user.isAdmin) return setAuthError("Väntar på godkännande.");
     setCurrentUser(user); if(user.isAdmin) setActiveTab('admin');
   };
 
   const submitTips = async () => {
     if(isDeadlinePassed) return alert("Deadline har passerat!");
     await setDoc(doc(db, "tips", regEmail.toLowerCase()), { name: regName, email: regEmail.toLowerCase(), goals: parseInt(regGoals), predictions: regPicks, isApproved: false, isAdmin: false, groups: ["Alla"] }, { merge: true });
-    alert("Tips sparat/uppdaterat! Emil godkÃ¤nner nÃ¤r betalning syns.");
+    alert("Tips sparat/uppdaterat! Emil godkänner när betalning syns.");
     localStorage.removeItem('vmt_draft_v3'); setShowRegister(false);
   };
 
@@ -417,7 +423,7 @@ export default function App() {
       if (newChatMsg.toLowerCase().includes(`@${firstName}`) || newChatMsg.toLowerCase().includes(`@${p.name.toLowerCase()}`)) {
         if (p.id !== currentUser.id) {
           const notifs = p.notifications || [];
-          notifs.unshift({ id: Date.now().toString() + Math.random(), type: 'mention', text: `${currentUser.name} har nÃ¤mnt dig i Snackis`, isRead: false, createdAt: new Date().toISOString() });
+          notifs.unshift({ id: Date.now().toString() + Math.random(), type: 'mention', text: `${currentUser.name} har nämnt dig i Snackis`, isRead: false, createdAt: new Date().toISOString() });
           updateDoc(doc(db, "tips", p.id), { notifications: notifs });
         }
       }
@@ -508,7 +514,7 @@ export default function App() {
                     ))}
                   </div>
                   <button onClick={submitTips} disabled={Object.keys(regPicks).length < 72 || isDeadlinePassed} className="w-full py-5 bg-indigo-600 disabled:opacity-30 rounded-2xl font-black shadow-[0_10px_20px_rgba(79,70,229,0.3)] mt-2">
-                    {isDeadlinePassed ? 'DEADLINE PASSERAD' : 'SKICKA IN ANMÃ„LAN'}
+                    {isDeadlinePassed ? 'DEADLINE PASSERAD' : 'SKICKA IN ANMÄLAN'}
                   </button>
                </div>
              )}
@@ -569,7 +575,7 @@ export default function App() {
              {/* PRISPOTT */}
              <div className="bg-vmdark text-white rounded-[2rem] shadow-xl overflow-hidden">
                <button onClick={() => setIsPrizeExpanded(!isPrizeExpanded)} className="w-full p-6 flex justify-between items-center">
-                 <h3 className="font-black text-xs uppercase tracking-widest text-vmgold flex items-center gap-2"><Trophy size={14}/> Prispott &mdash; {prizePool.total} kr totalt</h3>
+                 <h3 className="font-black text-xs uppercase tracking-widest text-vmgold flex items-center gap-2"><Trophy size={14}/> Prispott &mdash; {prizePool.netPool} kr netto ({prizePool.totalPool} kr - {adminFee} kr)</h3>
                  {isPrizeExpanded ? <ChevronUp size={16} className="text-vmgold"/> : <ChevronDown size={16} className="text-vmgold"/>}
                </button>
                {isPrizeExpanded && (
@@ -790,17 +796,25 @@ export default function App() {
                      ))}
                    </div>
                 )}
-                <input id="chat-input" value={newChatMsg} onChange={e => {
-                  const val = e.target.value;
-                  setNewChatMsg(val);
-                  const lastAt = val.lastIndexOf('@');
-                  if (lastAt !== -1 && !val.substring(lastAt).includes(' ')) {
-                    setShowMentions(true);
-                    setMentionSearch(val.substring(lastAt + 1));
-                  } else {
-                    setShowMentions(false);
-                  }
-                }} placeholder="Skriv nåt till gruppen..." className="w-full bg-slate-100 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm" />
+                <div className="relative w-full">
+                  <div aria-hidden="true" className="absolute inset-0 p-4 rounded-2xl text-sm pointer-events-none whitespace-pre-wrap break-words overflow-hidden text-transparent">
+                    {newChatMsg.split(/(@[a-zA-ZåäöÅÄÖ\w-]+(?:\s[a-zA-ZåäöÅÄÖ\w-]+)?)/g).map((part, i) => {
+                      const isTag = part.startsWith('@') && activePlayers.some(p => part.substring(1).toLowerCase() === p.name.toLowerCase() || part.substring(1).toLowerCase() === p.name.split(' ')[0].toLowerCase());
+                      return <span key={i} style={isTag ? {color:'#3b82f6', fontWeight:700, textShadow:'0 0 0 #3b82f6'} : {color:'transparent'}}>{part}</span>;
+                    })}
+                  </div>
+                  <input id="chat-input" value={newChatMsg} onChange={e => {
+                    const val = e.target.value;
+                    setNewChatMsg(val);
+                    const lastAt = val.lastIndexOf('@');
+                    if (lastAt !== -1 && !val.substring(lastAt).includes(' ')) {
+                      setShowMentions(true);
+                      setMentionSearch(val.substring(lastAt + 1));
+                    } else {
+                      setShowMentions(false);
+                    }
+                  }} placeholder="Skriv nåt till gruppen..." className="relative w-full bg-slate-100 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm" style={{background:'transparent', caretColor:'#0f172a'}} />
+                </div>
               </div>
               <button className="bg-indigo-600 text-white px-6 rounded-2xl shadow-lg shadow-indigo-600/20 active:scale-95 transition-transform"><Send size={20}/></button>
             </form>
@@ -845,7 +859,13 @@ export default function App() {
               <h2 className="text-2xl font-black mb-6 flex items-center gap-3"><ShieldCheck className="text-emerald-500" size={28}/> Hantera Deltagare</h2>
               <div className="mb-6 p-4 bg-slate-50 rounded-2xl border flex items-center justify-between">
                  <div><h3 className="font-black text-sm uppercase">VM-Deadline</h3><p className="text-[10px] text-slate-400">{deadline ? deadline.toLocaleString() : 'Ej satt'}</p></div>
+                 <div className="flex gap-2 items-center">
                  <input type="datetime-local" onChange={e => setDoc(doc(db, "settings", "appConfig"), { deadline: new Date(e.target.value) }, { merge: true })} className="bg-white border p-2 rounded-xl text-xs font-bold outline-none"/>
+                 <div className="flex items-center gap-2">
+                   <span className="text-[10px] font-black text-slate-400 uppercase">Gravering (kr)</span>
+                   <input type="number" min="0" step="50" defaultValue={adminFee} onBlur={e => { const v = parseInt(e.target.value) || 0; setAdminFee(v); setDoc(doc(db, "settings", "appConfig"), { adminFee: v }, { merge: true }); }} className="w-20 bg-white border p-2 rounded-xl text-xs font-bold outline-none"/>
+                 </div>
+               </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 {tips.filter(t => !t.isAdmin).sort((a,b) => a.name.localeCompare(b.name)).map(t => (
