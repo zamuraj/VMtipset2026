@@ -69,6 +69,18 @@ const initialMatches = VM_SCHEDULE.map(m => {
 
 const ALL_GROUPS = ['Alla', 'Säljarna', 'Projektledare', 'Ledningen', 'Dalabyggsam', 'Gubbarna'];
 
+const Logo = ({ className = "" }) => (
+    <div className={`flex items-center gap-3 ${className}`}>
+        <div className="relative">
+            <div className="absolute inset-0 bg-vmgold/30 blur-xl rounded-full" />
+            <Trophy className="relative w-8 h-8 text-vmgold drop-shadow-[0_0_10px_rgba(251,191,36,0.5)]" />
+        </div>
+        <h1 className="text-2xl font-black italic tracking-tighter text-white uppercase">
+            VM-TIPSET <span className="text-vmgold">2026</span>
+        </h1>
+    </div>
+);
+
 export default function App() {
     const [currentUser, setCurrentUser] = useState(null);
     const [loginEmail, setLoginEmail] = useState('');
@@ -196,9 +208,11 @@ export default function App() {
 
     if (!currentUser) return (
         <div className="min-h-screen bg-vmdark text-white flex items-center justify-center p-4">
-            <div className="w-full max-w-md bg-white/10 backdrop-blur-xl p-8 rounded-3xl border border-white/20 shadow-2xl">
-                <Trophy className="w-16 h-16 text-vmgold mx-auto mb-6" />
-                <h1 className="text-4xl font-black text-center italic mb-8 tracking-tighter">VM-TIPSET 2026</h1>
+            <div className="w-full max-w-md bg-white/10 backdrop-blur-2xl p-10 rounded-[2.5rem] border border-white/20 shadow-2xl relative overflow-hidden">
+                <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-600/20 blur-[100px] rounded-full" />
+                <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-vmgold/10 blur-[100px] rounded-full" />
+                
+                <Logo className="justify-center mb-10 scale-125" />
 
                 {!showRegister ? (
                     <form onSubmit={handleLogin} className="space-y-4 animate-in fade-in duration-300">
@@ -217,7 +231,7 @@ export default function App() {
                         )}
 
                         {authError && <div className="text-red-400 text-sm font-bold flex items-center bg-red-500/10 p-3 rounded-lg border border-red-500/20"><AlertCircle size={16} className="mr-2 shrink-0" />{authError}</div>}
-                        <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4 rounded-xl shadow-lg transition-all transform hover:scale-[1.02]">ÖPPNA TIPSET</button>
+                        <button type="submit" className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-black py-4 rounded-xl shadow-lg transition-all transform hover:scale-[1.02] uppercase tracking-wider">ÖPPNA TIPSET</button>
                     </form>
                 ) : (
                     <div className="text-center space-y-4">
@@ -243,12 +257,12 @@ export default function App() {
 
     return (
         <div className="min-h-screen bg-slate-50 text-slate-900 pb-20">
-            <header className="bg-vmdark text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-lg">
-                <div className="flex items-center gap-2"><Trophy size={20} className="text-vmgold" /><h1 className="font-black italic">VM-TIPSET 2026</h1></div>
+            <header className="bg-vmdark/95 backdrop-blur-md text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-2xl border-b border-white/5">
+                <Logo className="scale-90 origin-left" />
                 <div className="flex items-center gap-3">
                     <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 bg-white/5 rounded-full"><Bell size={20} />{notifications.some(n => n.unread) && <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-vmdark" />}</button>
                     {showNotifications && (
-                        <div className="absolute right-4 top-16 w-72 bg-white rounded-2xl shadow-2xl text-slate-800 border z-50 overflow-hidden">
+                        <div className="absolute right-4 top-16 w-72 bg-white rounded-[2rem] shadow-2xl text-slate-800 border z-50 overflow-hidden">
                             {notifications.map(n => (<div key={n.id} onClick={() => { if (n.action) setActiveTab(n.action); setShowNotifications(false); }} className="p-4 border-b hover:bg-slate-50 cursor-pointer text-sm font-medium">{n.text}</div>))}
                             {notifications.length === 0 && <div className="p-4 text-center text-slate-400">Inga notiser.</div>}
                         </div>
@@ -257,7 +271,7 @@ export default function App() {
                 </div>
             </header>
 
-            <nav className="fixed bottom-0 left-0 right-0 bg-white border-t z-40 flex justify-around p-1 sm:sticky sm:top-[72px] sm:max-w-5xl sm:mx-auto sm:my-4 sm:rounded-2xl sm:border sm:shadow-lg">
+            <nav className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-t z-40 flex justify-around p-2 sm:sticky sm:top-[72px] sm:max-w-5xl sm:mx-auto sm:my-6 sm:rounded-[2rem] sm:border sm:shadow-2xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
                 <NavItem id="leaderboard" icon={Trophy} label="Ställning" />
                 <NavItem id="h2h" icon={Swords} label="H2H" />
                 <NavItem id="chat" icon={MessageSquare} label="Snackis" />
@@ -266,14 +280,15 @@ export default function App() {
                 {currentUser.isAdmin && <NavItem id="admin" icon={Settings} label="Admin" />}
             </nav>
 
-            <main className="max-w-5xl mx-auto p-4 space-y-6">
-                <div className="bg-vmdark rounded-2xl p-4 text-white border border-slate-800">
+            <main className="max-w-5xl mx-auto p-4 space-y-8">
+                <div className="bg-gradient-to-br from-vmdark to-slate-900 rounded-[2rem] p-6 text-white border border-white/10 shadow-xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-vmgold/10 blur-3xl -mr-16 -mt-16 rounded-full" />
                     <button onClick={() => setIsPrizePoolExpanded(!isPrizePoolExpanded)} className="w-full flex justify-between items-center outline-none">
                         <div className="flex items-center gap-4"><Banknote className="text-emerald-400" /><div><span className="text-[10px] font-bold text-slate-500 uppercase block">Prispott</span><span className="font-black">{prizePool.total} kr</span></div></div>
-                        <div className="bg-blue-900/40 px-3 py-1 rounded-2xl flex items-center gap-2"><Goal size={16} className="text-blue-400" /><span className="font-black text-sm">{goalsSoFar} mål</span></div>
+                        <div className="bg-blue-900/40 px-3 py-1 rounded-[2rem] flex items-center gap-2"><Goal size={16} className="text-blue-400" /><span className="font-black text-sm">{goalsSoFar} mål</span></div>
                         {isPrizePoolExpanded ? <ChevronUp /> : <ChevronDown />}
                     </button>
-                    {isPrizePoolExpanded && <div className="mt-4 pt-4 border-t border-white/5 flex justify-center gap-8"><div className="text-center"><span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">1:a Pris</span><span className="text-xl font-black text-vmgold">{prizePool.first} kr</span></div><div className="text-center"><span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">2:a Pris</span><span className="text-xl font-black text-slate-200">{prizePool.second} kr</span></div><div className="text-center"><span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">3:e Pris</span><span className="text-xl font-black text-orange-400">{prizePool.third} kr</span></div></div>}
+                    {isPrizePoolExpanded && <div className="mt-4 pt-4 border-t border-white/5 flex justify-center gap-8"><div className="text-center"><span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">1:a Pris</span><span className="text-xl font-black text-vmgold drop-shadow-[0_0_8px_rgba(251,191,36,0.4)]">{prizePool.first} kr</span></div><div className="text-center"><span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">2:a Pris</span><span className="text-xl font-black text-slate-200">{prizePool.second} kr</span></div><div className="text-center"><span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">3:e Pris</span><span className="text-xl font-black text-orange-400">{prizePool.third} kr</span></div></div>}
                 </div>
 
                 {activeTab === 'leaderboard' && (
@@ -291,13 +306,37 @@ export default function App() {
                                 ))}</tbody>
                             </table>
                         </div>
-                        <div className="bg-white rounded-3xl border overflow-hidden shadow-sm overflow-x-auto p-4">
-                            <h3 className="font-black text-sm mb-4 uppercase tracking-widest text-slate-400 px-2">Tippningsmatris</h3>
-                            <table className="w-full text-[10px] border-collapse whitespace-nowrap">
-                                <thead><tr className="bg-slate-50 border-b"><th className="p-2 sticky left-0 bg-slate-50">Match</th>{activePlayers.map(u => <th key={u.id} className="p-2 text-center">{u.name.split(' ')[0]}</th>)}</tr></thead>
-                                <tbody>{matches.slice(0, 15).map(m => (
-                                    <tr key={m.id} className="hover:bg-slate-50"><td className="p-2 sticky left-0 bg-white border-r font-bold">{TEAMS[m.team1]?.flag} {TEAMS[m.team2]?.flag} {m.team1.slice(0, 3)}-{m.team2.slice(0, 3)}</td>{activePlayers.map(u => <td key={u.id} className="p-2 text-center border-r">{u.predictions[m.id] || '-'}</td>)}</tr>
-                                ))}</tbody>
+                        <div className="bg-white rounded-[2rem] border overflow-hidden shadow-xl overflow-x-auto p-6 border-slate-100">
+                            <h3 className="font-black text-base mb-6 uppercase tracking-widest text-slate-400 px-2 flex items-center gap-2">
+                                <Grid3X3 size={18} className="text-indigo-600" /> Tippningsmatris
+                            </h3>
+                            <table className="w-full text-sm border-collapse whitespace-nowrap">
+                                <thead>
+                                    <tr className="bg-slate-50 border-b">
+                                        <th className="p-4 sticky left-0 bg-slate-50 z-10 text-left min-w-[200px] font-black uppercase text-xs text-slate-400">Match</th>
+                                        {activePlayers.map(u => <th key={u.id} className="p-4 text-center font-black text-xs text-slate-500 uppercase border-l border-slate-100">{u.name.split(' ')[0]}</th>)}
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50">
+                                    {matches.slice(0, 15).map(m => (
+                                        <tr key={m.id} className="hover:bg-indigo-50/30 transition-colors">
+                                            <td className="p-4 sticky left-0 bg-white border-r shadow-[5px_0_10px_rgba(0,0,0,0.02)] z-10">
+                                                <div className="flex items-center gap-2 font-bold text-slate-700">
+                                                    <span className="w-6 text-center">{TEAMS[m.team1]?.flag}</span>
+                                                    <span className="w-10 uppercase tracking-tighter">{m.team1.slice(0, 3)}</span>
+                                                    <span className="text-slate-300 font-light">-</span>
+                                                    <span className="w-10 text-right uppercase tracking-tighter">{m.team2.slice(0, 3)}</span>
+                                                    <span className="w-6 text-center">{TEAMS[m.team2]?.flag}</span>
+                                                </div>
+                                            </td>
+                                            {activePlayers.map(u => (
+                                                <td key={u.id} className={`p-4 text-center border-l border-slate-50 font-black ${u.predictions[m.id] ? 'text-indigo-600' : 'text-slate-200'}`}>
+                                                    {u.predictions[m.id] || '-'}
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    ))}
+                                </tbody>
                             </table>
                         </div>
                     </div>
@@ -310,7 +349,7 @@ export default function App() {
                             {chatMessages.map(m => (
                                 <div key={m.id} className={`flex flex-col ${m.user === currentUser.name ? 'items-end' : 'items-start'}`}>
                                     <span className="text-[9px] font-black text-slate-400 mb-1 px-1">{m.user} • {m.time}</span>
-                                    <div className={`px-4 py-2 rounded-2xl max-w-[85%] text-sm font-medium shadow-sm ${m.user === currentUser.name ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white border text-slate-800 rounded-tl-none'}`}>
+                                    <div className={`px-4 py-2 rounded-[2rem] max-w-[85%] text-sm font-medium shadow-sm ${m.user === currentUser.name ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white border text-slate-800 rounded-tl-none'}`}>
                                         {m.text.split(/(@\w+)/g).map((part, i) => part.startsWith('@') ? <span key={i} className="font-black text-vmgold">{part}</span> : part)}
                                     </div>
                                 </div>
@@ -329,7 +368,7 @@ export default function App() {
                         </div>
                         <div className="space-y-2">
                             {h2hMatches.slice(0, 15).map(m => (
-                                <div key={m.id} className={`bg-white rounded-2xl p-4 flex items-center justify-between border relative overflow-hidden ${m.state === 'disagreed' ? 'border-amber-400' : 'border-slate-100'}`}>
+                                <div key={m.id} className={`bg-white rounded-[2rem] p-4 flex items-center justify-between border relative overflow-hidden ${m.state === 'disagreed' ? 'border-amber-400' : 'border-slate-100'}`}>
                                     <div className="absolute left-0 top-0 bottom-0 w-1 opacity-50" style={{ backgroundColor: TEAMS[m.team1]?.primary }} />
                                     <div className="absolute right-0 top-0 bottom-0 w-1 opacity-50" style={{ backgroundColor: TEAMS[m.team2]?.primary }} />
                                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-black ${m.state.includes('u1_win') || m.state === 'both_win' ? 'bg-green-500 text-white' : 'bg-slate-100'}`}>{m.u1Pick || '-'}</div>
@@ -344,10 +383,10 @@ export default function App() {
                 {activeTab === 'matches' && (
                     <div className="grid gap-4 sm:grid-cols-2">
                         {matches.map(m => (
-                            <div key={m.id} className="bg-white rounded-2xl border p-6 shadow-sm relative overflow-hidden group">
+                            <div key={m.id} className="bg-white rounded-[2rem] border p-6 shadow-sm relative overflow-hidden group">
                                 <div className="absolute top-0 left-0 w-full h-1 flex"><div className="flex-1" style={{ backgroundColor: TEAMS[m.team1]?.primary }} /><div className="flex-1" style={{ backgroundColor: TEAMS[m.team2]?.primary }} /></div>
                                 <div className="flex justify-between items-center mb-4"><span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{m.date} | Grp {m.group}</span>{m.status === 'live' ? <span className="bg-red-600 text-white px-3 py-1 rounded-full text-[10px] font-black animate-pulse flex items-center gap-1"><PlayCircle size={14} /> LIVE {m.minute}</span> : m.status === 'finished' ? <span className="bg-vmdark text-white px-3 py-1 rounded-full text-[10px] font-black uppercase">Slut</span> : <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100 uppercase">Kommande</span>}</div>
-                                <div className="flex justify-between items-center text-center"><div className="flex-1"><span className="text-4xl block mb-1">{TEAMS[m.team1]?.flag}</span><span className="font-black text-xs">{m.team1}</span></div><div className="px-6">{m.status !== 'upcoming' ? <div className="text-3xl font-black bg-slate-100 px-4 py-2 rounded-2xl border-2">{m.goals1}-{m.goals2}</div> : <div className="text-xl font-black text-slate-200 italic uppercase">VS</div>}</div><div className="flex-1"><span className="text-4xl block mb-1">{TEAMS[m.team2]?.flag}</span><span className="font-black text-xs">{m.team2}</span></div></div>
+                                <div className="flex justify-between items-center text-center"><div className="flex-1"><span className="text-4xl block mb-1">{TEAMS[m.team1]?.flag}</span><span className="font-black text-xs">{m.team1}</span></div><div className="px-6">{m.status !== 'upcoming' ? <div className="text-3xl font-black bg-slate-100 px-4 py-2 rounded-[2rem] border-2">{m.goals1}-{m.goals2}</div> : <div className="text-xl font-black text-slate-200 italic uppercase">VS</div>}</div><div className="flex-1"><span className="text-4xl block mb-1">{TEAMS[m.team2]?.flag}</span><span className="font-black text-xs">{m.team2}</span></div></div>
                                 <div className="mt-4 pt-3 border-t border-slate-50 text-[10px] font-bold text-slate-300 text-center uppercase tracking-widest flex items-center justify-center gap-1"><MapPin size={10} /> {m.venue}</div>
                             </div>
                         ))}
@@ -370,7 +409,7 @@ export default function App() {
                                         <div style={{ width: `${m.pct['X']}%`, backgroundColor: '#cbd5e1' }} className="flex items-center justify-center text-slate-700 text-[10px] font-black border-x-2 border-white/20">X ({m.pct['X']}%)</div>
                                         <div style={{ width: `${m.pct['2']}%`, backgroundColor: TEAMS[m.team2]?.primary }} className="flex items-center justify-center text-white text-[10px] font-black shadow-lg">2 ({m.pct['2']}%)</div>
                                     </div>
-                                    <div className="ml-2 bg-indigo-50/50 p-4 rounded-2xl text-xs font-bold text-slate-600 leading-relaxed flex gap-3"><AlertCircle size={18} className="text-indigo-600 shrink-0 mt-0.5" />{m.comm}</div>
+                                    <div className="ml-2 bg-indigo-50/50 p-4 rounded-[2rem] text-xs font-bold text-slate-600 leading-relaxed flex gap-3"><AlertCircle size={18} className="text-indigo-600 shrink-0 mt-0.5" />{m.comm}</div>
                                 </div>
                             ))}
                         </div>
