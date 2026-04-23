@@ -1,9 +1,9 @@
-import React, { useState, useMemo, useEffect } from 'react';
+﻿import React, { useState, useMemo, useEffect } from 'react';
 import { db } from './firebase';
 import { collection, onSnapshot, doc, setDoc, addDoc, query, orderBy, serverTimestamp, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { 
   Trophy, BarChart3, Settings, CalendarDays, Check, 
-  AlertCircle, Clock, Grid3X3, User, X, Lock, 
+  AlertCircle, Clock, Grid3X3, User, X, Lock, LogOut,
   Swords, Bell, PlayCircle, Banknote, MessageSquare, Send, Goal, ShieldCheck, ChevronDown, ChevronUp, MapPin, ListOrdered, Trash2, Tv, Users, Activity
 } from 'lucide-react';
 
@@ -31,7 +31,7 @@ const TEAMS = {
   'Uzbekistan': { flag: 'uz', primary: '#0099B5' }, 
   'Uruguay': { flag: 'uy', primary: '#0038A8' }, 
   'Kamerun': { flag: 'cm', primary: '#007A5E' }, 
-  'Nederländerna': { flag: 'nl', primary: '#F36C21' }, 
+  'NederlÃ¤nderna': { flag: 'nl', primary: '#F36C21' }, 
   'Australien': { flag: 'au', primary: '#00008B' }, 
   'Argentina': { flag: 'ar', primary: '#75AADB' }, 
   'Haiti': { flag: 'ht', primary: '#00209F' }, 
@@ -49,7 +49,7 @@ const TEAMS = {
   'Schweiz': { flag: 'ch', primary: '#D52B1E' }, 
   'Skottland': { flag: 'gb-sct', primary: '#004B84' }, 
   'Turkiet': { flag: 'tr', primary: '#E30A17' }, 
-  'Curaçao': { flag: 'cw', primary: '#002B7F' }, 
+  'CuraÃ§ao': { flag: 'cw', primary: '#002B7F' }, 
   'Elfenbenskusten': { flag: 'ci', primary: '#FF8200' }, 
   'Tunisien': { flag: 'tn', primary: '#E70013' }, 
   'Kap Verde': { flag: 'cv', primary: '#003893' }, 
@@ -59,7 +59,7 @@ const TEAMS = {
   'Nya Zeeland': { flag: 'nz', primary: '#000000' }, 
   'Irak': { flag: 'iq', primary: '#007A33' }, 
   'Algeriet': { flag: 'dz', primary: '#006233' }, 
-  'Österrike': { flag: 'at', primary: '#EF3340' }, 
+  'Ã–sterrike': { flag: 'at', primary: '#EF3340' }, 
   'DR Kongo': { flag: 'cd', primary: '#007FFF' }, 
   'Colombia': { flag: 'co', primary: '#FCD116' }, 
   'Kroatien': { flag: 'hr', primary: '#FF0000' }, 
@@ -75,8 +75,8 @@ const VM_SCHEDULE = [
   "6|14 jun 00:00|C|Brasilien|Marocko|MetLife|New Jersey|USA|TV4",
   "7|14 jun 03:00|C|Haiti|Skottland|Gillette|Boston|USA|SVT",
   "8|14 jun 06:00|D|Australien|Turkiet|BC Place|Vancouver|Kanada|TV4",
-  "9|14 jun 19:00|E|Tyskland|Curaçao|NRG|Houston|USA|SVT",
-  "10|14 jun 22:00|F|Nederländerna|Japan|AT&T|Dallas|USA|TV4",
+  "9|14 jun 19:00|E|Tyskland|CuraÃ§ao|NRG|Houston|USA|SVT",
+  "10|14 jun 22:00|F|NederlÃ¤nderna|Japan|AT&T|Dallas|USA|TV4",
   "11|15 jun 01:00|E|Elfenbenskusten|Ecuador|Lincoln|Philadelphia|USA|SVT",
   "12|15 jun 04:00|F|Sverige|Tunisien|BBVA|Monterrey|Mexiko|TV4",
   "13|15 jun 18:00|H|Spanien|Kap Verde|Mercedes|Atlanta|USA|SVT",
@@ -86,7 +86,7 @@ const VM_SCHEDULE = [
   "17|16 jun 21:00|I|Frankrike|Senegal|MetLife|New Jersey|USA|SVT",
   "18|17 jun 00:00|I|Irak|Norge|Gillette|Boston|USA|TV4",
   "19|17 jun 03:00|J|Argentina|Algeriet|Arrowhead|Kansas City|USA|SVT",
-  "20|17 jun 06:00|J|Österrike|Jordanien|Levi's|San Francisco|USA|TV4",
+  "20|17 jun 06:00|J|Ã–sterrike|Jordanien|Levi's|San Francisco|USA|TV4",
   "21|17 jun 19:00|K|Portugal|DR Kongo|NRG|Houston|USA|SVT",
   "22|17 jun 22:00|L|England|Kroatien|AT&T|Dallas|USA|TV4",
   "23|18 jun 01:00|L|Ghana|Panama|BMO Field|Toronto|Kanada|SVT",
@@ -99,15 +99,15 @@ const VM_SCHEDULE = [
   "30|20 jun 00:00|C|Skottland|Marocko|Gillette|Boston|USA|TV4",
   "31|20 jun 03:00|C|Brasilien|Haiti|Lincoln|Philadelphia|USA|SVT",
   "32|20 jun 06:00|D|Turkiet|Paraguay|Levi's|San Francisco|USA|TV4",
-  "33|20 jun 19:00|F|Nederländerna|Sverige|NRG|Houston|USA|SVT",
+  "33|20 jun 19:00|F|NederlÃ¤nderna|Sverige|NRG|Houston|USA|SVT",
   "34|20 jun 22:00|E|Tyskland|Elfenbenskusten|BMO Field|Toronto|Kanada|TV4",
-  "35|21 jun 02:00|E|Ecuador|Curaçao|Arrowhead|Kansas City|USA|SVT",
+  "35|21 jun 02:00|E|Ecuador|CuraÃ§ao|Arrowhead|Kansas City|USA|SVT",
   "36|21 jun 06:00|F|Tunisien|Japan|BBVA|Monterrey|Mexiko|TV4",
   "37|21 jun 18:00|H|Spanien|Saudiarabien|Mercedes|Atlanta|USA|SVT",
   "38|21 jun 21:00|G|Belgien|Iran|SoFi|Los Angeles|USA|TV4",
   "39|22 jun 00:00|H|Uruguay|Kap Verde|Hard Rock|Miami|USA|SVT",
   "40|22 jun 03:00|G|Nya Zeeland|Egypten|BC Place|Vancouver|Kanada|TV4",
-  "41|22 jun 19:00|J|Argentina|Österrike|Arrowhead|Kansas City|USA|SVT",
+  "41|22 jun 19:00|J|Argentina|Ã–sterrike|Arrowhead|Kansas City|USA|SVT",
   "42|22 jun 23:00|I|Frankrike|Irak|Lincoln|Philadelphia|USA|TV4",
   "43|23 jun 02:00|I|Norge|Senegal|MetLife|New Jersey|USA|SVT",
   "44|23 jun 05:00|J|Jordanien|Algeriet|Levi's|San Francisco|USA|TV4",
@@ -123,17 +123,17 @@ const VM_SCHEDULE = [
   "54|25 jun 21:00|C|Skottland|Brasilien|MetLife|New Jersey|USA|TV4",
   "55|26 jun 00:00|D|Paraguay|Australien|Lumen|Seattle|USA|SVT",
   "56|26 jun 03:00|D|Turkiet|USA|SoFi|Los Angeles|USA|TV4",
-  "57|26 jun 18:00|E|Curaçao|Elfenbenskusten|Mercedes|Atlanta|USA|SVT",
+  "57|26 jun 18:00|E|CuraÃ§ao|Elfenbenskusten|Mercedes|Atlanta|USA|SVT",
   "58|26 jun 21:00|E|Ecuador|Tyskland|AT&T|Dallas|USA|TV4",
   "59|27 jun 00:00|F|Sverige|Japan|Azteca|Mexico City|Mexiko|SVT",
-  "60|27 jun 03:00|F|Tunisien|Nederländerna|Arrowhead|Kansas City|USA|TV4",
+  "60|27 jun 03:00|F|Tunisien|NederlÃ¤nderna|Arrowhead|Kansas City|USA|TV4",
   "61|27 jun 18:00|G|Egypten|Iran|Lincoln|Philadelphia|USA|SVT",
   "62|27 jun 21:00|G|Nya Zeeland|Belgien|SoFi|Los Angeles|USA|TV4",
   "63|28 jun 00:00|H|Kap Verde|Saudiarabien|Lumen|Seattle|USA|SVT",
   "64|28 jun 03:00|H|Uruguay|Spanien|Hard Rock|Miami|USA|TV4",
   "65|28 jun 18:00|I|Senegal|Irak|Mercedes|Atlanta|USA|SVT",
   "66|28 jun 21:00|I|Norge|Frankrike|MetLife|New Jersey|USA|TV4",
-  "67|29 jun 00:00|J|Algeriet|Österrike|Gillette|Boston|USA|SVT",
+  "67|29 jun 00:00|J|Algeriet|Ã–sterrike|Gillette|Boston|USA|SVT",
   "68|29 jun 03:00|J|Jordanien|Argentina|Arrowhead|Kansas City|USA|TV4",
   "69|29 jun 18:00|K|DR Kongo|Uzbekistan|Azteca|Mexico City|Mexiko|SVT",
   "70|29 jun 21:00|K|Colombia|Portugal|NRG|Houston|USA|TV4",
@@ -179,7 +179,7 @@ export default function App() {
   const [showRegister, setShowRegister] = useState(false);
   const [activeTab, setActiveTab] = useState('leaderboard');
   const [selectedUser, setSelectedUser] = useState(null);
-  const [showFolketsTips, setShowFolketsTips] = useState(false);
+  const [folketsTipsMode, setFolketsTipsMode] = useState(0); // 0=verkliga, 1=folkets, 2=kombination
   const [h2hUser1, setH2hUser1] = useState('');
   const [h2hUser2, setH2hUser2] = useState('');
   const [showMentions, setShowMentions] = useState(false);
@@ -227,7 +227,7 @@ export default function App() {
     localStorage.setItem('vmt_draft_v3', JSON.stringify({ name: regName, email: regEmail, goals: regGoals, picks: regPicks, step: regStep }));
   }, [regName, regEmail, regGoals, regPicks, regStep]);
 
-  const clearDraft = () => { if(window.confirm('Rensa allt och börja om?')) { localStorage.removeItem('vmt_draft_v3'); window.location.reload(); } };
+  const clearDraft = () => { if(window.confirm('Rensa allt och bÃ¶rja om?')) { localStorage.removeItem('vmt_draft_v3'); window.location.reload(); } };
 
   const checkExistingUser = () => {
     const existing = tips.find(t => t.email.toLowerCase() === regEmail.toLowerCase().trim());
@@ -235,7 +235,7 @@ export default function App() {
        setRegName(existing.name);
        setRegGoals(existing.goals);
        setRegPicks(existing.predictions || {});
-       alert("Välkommen tillbaka! Ditt tidigare tips har laddats in.");
+       alert("VÃ¤lkommen tillbaka! Ditt tidigare tips har laddats in.");
     }
     setRegStep(2);
   };
@@ -255,7 +255,7 @@ export default function App() {
         const userRank = leaderboard.find(u => u.id === activeUser.id)?.rank;
         if (userRank) {
            const notifs = activeUser.notifications || [];
-           notifs.unshift({ id: Date.now().toString(), type: 'rank', text: `Dagens uppdatering: Du ligger just nu på plats #${userRank}`, isRead: false, createdAt: new Date().toISOString() });
+           notifs.unshift({ id: Date.now().toString(), type: 'rank', text: `Dagens uppdatering: Du ligger just nu pÃ¥ plats #${userRank}`, isRead: false, createdAt: new Date().toISOString() });
            updateDoc(doc(db, "tips", activeUser.id), { notifications: notifs, lastLoginDate: today });
         }
       }
@@ -287,11 +287,14 @@ export default function App() {
     matches.forEach(m => {
       if (stats[m.team1]) stats[m.team1].group = m.group; if (stats[m.team2]) stats[m.team2].group = m.group;
       let g1, g2, isPlayed = false;
-      if (showFolketsTips) {
+      if (folketsTipsMode === 1) {
           const p = folketsTips[m.id];
           if (p === '1') { g1 = 1; g2 = 0; isPlayed = true; }
           else if (p === '2') { g1 = 0; g2 = 1; isPlayed = true; }
           else if (p === 'X') { g1 = 0; g2 = 0; isPlayed = true; }
+      } else if (folketsTipsMode === 2) {
+          if (m.status === 'finished') { g1 = m.goals1 || 0; g2 = m.goals2 || 0; isPlayed = true; }
+          else { const p = folketsTips[m.id]; if (p === '1') { g1=1; g2=0; isPlayed=true; } else if (p === '2') { g1=0; g2=1; isPlayed=true; } else if (p === 'X') { g1=0; g2=0; isPlayed=true; } }
       } else if (m.status === 'finished') {
           g1 = m.goals1 || 0; g2 = m.goals2 || 0; isPlayed = true;
       }
@@ -302,7 +305,7 @@ export default function App() {
       }
     });
     return stats;
-  }, [matches, showFolketsTips, folketsTips]);
+  }, [matches, folketsTipsMode, folketsTips]);
 
   const leaderboard = useMemo(() => {
     return activePlayers.map(u => {
@@ -324,15 +327,15 @@ export default function App() {
     }
     const user = tips.find(t => t.email.toLowerCase() === loginEmail.toLowerCase().trim());
     if (!user) return setAuthError("E-post ej hittad.");
-    if (user.isAdmin && loginPassword !== user.password) return setAuthError("Fel lösenord.");
-    if (!user.isApproved && !user.isAdmin) return setAuthError("Väntar på godkännande.");
+    if (user.isAdmin && loginPassword !== user.password) return setAuthError("Fel lÃ¶senord.");
+    if (!user.isApproved && !user.isAdmin) return setAuthError("VÃ¤ntar pÃ¥ godkÃ¤nnande.");
     setCurrentUser(user); if(user.isAdmin) setActiveTab('admin');
   };
 
   const submitTips = async () => {
     if(isDeadlinePassed) return alert("Deadline har passerat!");
     await setDoc(doc(db, "tips", regEmail.toLowerCase()), { name: regName, email: regEmail.toLowerCase(), goals: parseInt(regGoals), predictions: regPicks, isApproved: false, isAdmin: false, groups: ["Alla"] }, { merge: true });
-    alert("Tips sparat/uppdaterat! Emil godkänner när betalning syns.");
+    alert("Tips sparat/uppdaterat! Emil godkÃ¤nner nÃ¤r betalning syns.");
     localStorage.removeItem('vmt_draft_v3'); setShowRegister(false);
   };
 
@@ -345,7 +348,7 @@ export default function App() {
       if (newChatMsg.toLowerCase().includes(`@${firstName}`) || newChatMsg.toLowerCase().includes(`@${p.name.toLowerCase()}`)) {
         if (p.id !== currentUser.id) {
           const notifs = p.notifications || [];
-          notifs.unshift({ id: Date.now().toString() + Math.random(), type: 'mention', text: `${currentUser.name} har nämnt dig i Snackis`, isRead: false, createdAt: new Date().toISOString() });
+          notifs.unshift({ id: Date.now().toString() + Math.random(), type: 'mention', text: `${currentUser.name} har nÃ¤mnt dig i Snackis`, isRead: false, createdAt: new Date().toISOString() });
           updateDoc(doc(db, "tips", p.id), { notifications: notifs });
         }
       }
@@ -358,6 +361,11 @@ export default function App() {
     await setDoc(doc(db, "matches", id.toString()), data, { merge: true });
   };
 
+  const navigateTab = (tab) => {
+    setActiveTab(tab);
+    window.scrollTo(0, 0);
+  };
+
   // --- UI RENDERING ---
   if (!currentUser) return (
     <div className="min-h-screen bg-vmdark text-white flex items-center justify-center p-4 relative overflow-hidden">
@@ -367,11 +375,11 @@ export default function App() {
         {!showRegister ? (
           <form onSubmit={handleLogin} className="mt-10 space-y-4">
             <input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} placeholder="Din e-post" className="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none" required />
-            {loginEmail.toLowerCase() === 'zettergren.emil@gmail.com' && <input type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} placeholder="Lösenord" className="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none" required />}
+            {loginEmail.toLowerCase() === 'zettergren.emil@gmail.com' && <input type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} placeholder="LÃ¶senord" className="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none" required />}
             {authError && <p className="text-red-400 text-xs font-bold text-center">{authError}</p>}
             <button type="submit" className="w-full py-4 bg-indigo-600 rounded-xl font-black shadow-lg">LOGGA IN</button>
-            {!isDeadlinePassed && <button type="button" onClick={() => setShowRegister(true)} className="w-full text-emerald-400 font-bold text-sm">LÄMNA NYTT TIPS {Object.keys(regPicks).length > 0 && " (Utkast finns)"}</button>}
-            {isDeadlinePassed && <p className="text-center text-xs text-slate-500 font-bold italic">Anmälan stängd</p>}
+            {!isDeadlinePassed && <button type="button" onClick={() => setShowRegister(true)} className="w-full text-emerald-400 font-bold text-sm">LÃ„MNA NYTT TIPS {Object.keys(regPicks).length > 0 && " (Utkast finns)"}</button>}
+            {isDeadlinePassed && <p className="text-center text-xs text-slate-500 font-bold italic">AnmÃ¤lan stÃ¤ngd</p>}
           </form>
         ) : (
           <div className="mt-8 space-y-4 animate-in slide-in-from-right-4 duration-300">
@@ -380,15 +388,15 @@ export default function App() {
                 <div className="flex justify-between items-center mb-2"><h2 className="font-bold">1. Dina Uppgifter</h2><button onClick={() => setShowRegister(false)}><X/></button></div>
                 <input type="text" value={regName} onChange={e=>setRegName(e.target.value)} placeholder="Namn" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
                 <input type="email" value={regEmail} onChange={e=>setRegEmail(e.target.value)} placeholder="E-post" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
-                <input type="number" value={regGoals} onChange={e=>setRegGoals(e.target.value)} placeholder="Mål totalt i hela VM?" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
+                <input type="number" value={regGoals} onChange={e=>setRegGoals(e.target.value)} placeholder="MÃ¥l totalt i hela VM?" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
                 <div className="flex gap-2">
                    {Object.keys(regPicks).length > 0 && <button onClick={clearDraft} className="p-4 bg-red-500/20 text-red-400 rounded-2xl"><Trash2/></button>}
-                   <button onClick={checkExistingUser} className="flex-1 py-4 bg-emerald-600 rounded-xl font-bold">NÄSTA: FYLL I TIPS</button>
+                   <button onClick={checkExistingUser} className="flex-1 py-4 bg-emerald-600 rounded-xl font-bold">NÃ„STA: FYLL I TIPS</button>
                 </div>
                </>
              ) : (
                <div className="space-y-4">
-                  <div className="flex justify-between items-center"><button onClick={() => setRegStep(1)} className="text-xs text-slate-400">← Bakåt</button><span className="text-vmgold text-xs font-black">{Object.keys(regPicks).length}/72 tippade</span></div>
+                  <div className="flex justify-between items-center"><button onClick={() => setRegStep(1)} className="text-xs text-slate-400">â† BakÃ¥t</button><span className="text-vmgold text-xs font-black">{Object.keys(regPicks).length}/72 tippade</span></div>
                   <div className="max-h-[50vh] overflow-y-auto space-y-3 pr-2 no-scrollbar">
                     {initialMatchesList.map(m => (
                       <div key={m.id} className="bg-black/30 p-5 rounded-[2rem] border border-white/5 space-y-4">
@@ -431,7 +439,7 @@ export default function App() {
                     ))}
                   </div>
                   <button onClick={submitTips} disabled={Object.keys(regPicks).length < 72 || isDeadlinePassed} className="w-full py-5 bg-indigo-600 disabled:opacity-30 rounded-2xl font-black shadow-[0_10px_20px_rgba(79,70,229,0.3)] mt-2">
-                    {isDeadlinePassed ? 'DEADLINE PASSERAD' : 'SKICKA IN ANMÄLAN'}
+                    {isDeadlinePassed ? 'DEADLINE PASSERAD' : 'SKICKA IN ANMÃ„LAN'}
                   </button>
                </div>
              )}
@@ -458,11 +466,12 @@ export default function App() {
               <div className="max-h-64 overflow-y-auto no-scrollbar">
                 {activeUser?.notifications?.length > 0 ? activeUser.notifications.map((n, i) => (
                   <div key={n.id || i} onClick={() => {
-                     if (!n.isRead) {
-                       const newNotifs = [...activeUser.notifications];
-                       newNotifs[i].isRead = true;
-                       updateDoc(doc(db, "tips", activeUser.id), { notifications: newNotifs });
-                     }
+                     const newNotifs = [...(activeUser.notifications)];
+                     newNotifs[i].isRead = true;
+                     updateDoc(doc(db, "tips", activeUser.id), { notifications: newNotifs });
+                     setShowNotifications(false);
+                     if (n.type === 'rank') navigateTab('leaderboard');
+                     if (n.type === 'mention') navigateTab('chat');
                   }} className={`p-4 border-b cursor-pointer transition-colors flex items-start gap-3 ${n.isRead ? 'opacity-60 bg-white hover:bg-slate-50' : 'bg-indigo-50/30 hover:bg-indigo-50/50'}`}>
                     {!n.isRead && <div className="w-2 h-2 rounded-full bg-indigo-500 mt-1.5 shrink-0"></div>}
                     <div className={`text-sm ${n.isRead ? 'font-medium text-slate-600' : 'font-bold text-slate-900'}`}>{n.text}</div>
@@ -471,25 +480,41 @@ export default function App() {
               </div>
             </div>
           )}
-          <button onClick={() => setCurrentUser(null)} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors"><X size={20}/></button>
+          <button onClick={() => setCurrentUser(null)} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors" title="Logga ut"><LogOut size={20}/></button>
         </div>
       </header>
 
       <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t z-40 flex justify-around p-1 sm:sticky sm:top-[72px] sm:max-w-5xl sm:mx-auto sm:my-4 sm:rounded-3xl sm:border shadow-xl">
-        <button onClick={() => setActiveTab('leaderboard')} className={`p-4 transition-colors ${activeTab==='leaderboard'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><Trophy/></button>
-        <button onClick={() => setActiveTab('groups')} className={`p-4 transition-colors ${activeTab==='groups'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><ListOrdered/></button>
-        <button onClick={() => setActiveTab('h2h')} className={`p-4 transition-colors ${activeTab==='h2h'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><Swords/></button>
-        <button onClick={() => setActiveTab('chat')} className={`p-4 transition-colors ${activeTab==='chat'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><MessageSquare/></button>
-        <button onClick={() => setActiveTab('matches')} className={`p-4 transition-colors ${activeTab==='matches'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><CalendarDays/></button>
-        {currentUser.isAdmin && <button onClick={() => setActiveTab('admin')} className={`p-4 transition-colors ${activeTab==='admin'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><Settings/></button>}
+        <button onClick={() => navigateTab('leaderboard')} className={`p-4 transition-colors ${activeTab==='leaderboard'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><Trophy/></button>
+        <button onClick={() => navigateTab('groups')} className={`p-4 transition-colors ${activeTab==='groups'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><ListOrdered/></button>
+        <button onClick={() => navigateTab('h2h')} className={`p-4 transition-colors ${activeTab==='h2h'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><Swords/></button>
+        <button onClick={() => navigateTab('chat')} className={`p-4 transition-colors ${activeTab==='chat'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><MessageSquare/></button>
+        <button onClick={() => navigateTab('matches')} className={`p-4 transition-colors ${activeTab==='matches'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><CalendarDays/></button>
+        {currentUser.isAdmin && <button onClick={() => navigateTab('admin')} className={`p-4 transition-colors ${activeTab==='admin'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><Settings/></button>}
       </nav>
 
       <main className="max-w-5xl mx-auto p-4 space-y-6">
         {activeTab === 'leaderboard' && (
           <div className="space-y-6 animate-in fade-in duration-300">
+             {/* PRISPOTT */}
+             <div className="bg-vmdark text-white rounded-[2rem] p-6 shadow-xl">
+               <h3 className="font-black text-xs uppercase tracking-widest text-vmgold mb-4 flex items-center gap-2"><Trophy size={14}/> Prispott</h3>
+               <div className="grid grid-cols-3 gap-3">
+                 {[{place:'1:a', prize:'600 kr', icon:'ðŸ¥‡'},{place:'2:a', prize:'300 kr', icon:'ðŸ¥ˆ'},{place:'3:e', prize:'100 kr', icon:'ðŸ¥‰'}].map(({place, prize, icon}, i) => {
+                   const rankUser = leaderboard[i];
+                   return (
+                     <div key={place} className="bg-white/5 rounded-2xl p-3 text-center">
+                       <div className="text-2xl">{icon}</div>
+                       <div className="font-black text-sm mt-1">{prize}</div>
+                       <div className="text-[10px] text-slate-400 font-bold mt-1 truncate">{rankUser?.name?.split(' ')[0] || '?'}</div>
+                     </div>
+                   );
+                 })}
+               </div>
+             </div>
              <div className="bg-white/90 backdrop-blur-md rounded-[2rem] border overflow-hidden shadow-sm">
                 <table className="w-full text-left">
-                  <thead className="bg-slate-50 border-b text-[10px] font-black uppercase text-slate-400"><tr><th className="p-5">Rank</th><th className="p-5">Namn</th><th className="p-5 text-center">P</th></tr></thead>
+                   <thead className="bg-slate-50 border-b text-[10px] font-black uppercase text-slate-400"><tr><th className="p-5">Rank</th><th className="p-5">Namn</th><th className="p-5 text-center">P</th></tr></thead>
                   <tbody className="divide-y">{leaderboard.map(u => (
                     <tr key={u.id} className="hover:bg-indigo-50/50 transition-colors">
                       <td className="p-5 font-black">#{u.rank}</td>
@@ -503,7 +528,7 @@ export default function App() {
                 <h3 className="font-black text-xs uppercase mb-6 text-slate-400 flex items-center gap-2"><Grid3X3 size={16}/> Tippningsmatris</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm border-collapse whitespace-nowrap min-w-max">
-                     <thead><tr className="bg-slate-50 border-b font-black text-xs uppercase text-slate-500"><th className="p-4 sticky left-0 z-10 bg-slate-50 border-r text-left w-48">Match</th><th className="p-4 text-center border-r w-12 text-[10px]">Res</th>{activePlayers.map(u => <th key={u.id} className="p-4 text-center border-r px-4">{u.name.split(' ')[0]}</th>)}</tr></thead>
+                      <thead className="sticky top-0 z-20"><tr className="bg-slate-50 border-b font-black text-xs uppercase text-slate-500"><th className="p-4 sticky left-0 z-30 bg-slate-50 border-r text-left w-48">Match</th><th className="p-4 text-center border-r w-12 text-[10px] bg-slate-50">Res</th>{activePlayers.map(u => <th key={u.id} className="p-4 text-center border-r px-4 bg-slate-50">{u.name.split(' ')[0]}</th>)}</tr></thead>
                      <tbody>{matches.slice(0, 72).map(m => (
                        <tr key={m.id} className="border-b hover:bg-slate-50 transition-colors">
                           <td className="p-4 sticky left-0 z-10 bg-white border-r font-black flex items-center gap-3 shadow-[2px_0_5px_rgba(0,0,0,0.02)]">
@@ -540,11 +565,15 @@ export default function App() {
 
         {activeTab === 'groups' && (
           <div className="space-y-6 animate-in fade-in duration-300">
-             <div className="flex justify-between items-center mb-2 px-2">
-                <h2 className="font-black text-xl">Gruppspel</h2>
-                <button onClick={() => setShowFolketsTips(!showFolketsTips)} className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 ${showFolketsTips ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white border text-slate-500 hover:bg-slate-50'}`}>
-                  <Users size={14}/> {showFolketsTips ? 'Folkets Tips Aktivt' : 'Visa Folkets Tips'}
-                </button>
+             <div className="sticky top-[72px] z-30 bg-slate-50/95 backdrop-blur-sm py-2 px-2 -mx-2 flex justify-between items-center">
+               <h2 className="font-black text-xl">Gruppspel</h2>
+               <div className="flex rounded-xl border bg-white overflow-hidden shadow-sm">
+                 {[{label:'Verkliga', val:0},{label:'Folkets', val:1},{label:'Kombo', val:2}].map(({label, val}) => (
+                   <button key={val} onClick={() => setFolketsTipsMode(val)} className={`px-3 py-2 text-xs font-black transition-all flex items-center gap-1 ${folketsTipsMode === val ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-50'}`}>
+                     {val === 1 && <Users size={10}/>} {label}
+                   </button>
+                 ))}
+               </div>
              </div>
              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                {TOURNAMENT_GROUPS.map(grp => (
@@ -573,39 +602,49 @@ export default function App() {
         {activeTab === 'h2h' && (
           <div className="bg-white/90 backdrop-blur-md rounded-[2rem] border p-6 shadow-sm min-h-[60vh] animate-in fade-in duration-300">
             <h2 className="font-black text-xl mb-6 flex items-center gap-2"><Swords className="text-indigo-600"/> Head 2 Head</h2>
-            <div className="flex gap-4 mb-8">
+            <div className="flex gap-4 mb-4">
               <select className="flex-1 p-3 bg-slate-50 border rounded-xl font-bold outline-none focus:border-indigo-400 transition-colors" value={h2hUser1} onChange={e => setH2hUser1(e.target.value)}>
-                <option value="">Välj Spelare 1...</option>
+                <option value="">VÃ¤lj Spelare 1...</option>
                 {activePlayers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
               </select>
               <div className="flex items-center font-black text-slate-300">VS</div>
               <select className="flex-1 p-3 bg-slate-50 border rounded-xl font-bold outline-none focus:border-indigo-400 transition-colors" value={h2hUser2} onChange={e => setH2hUser2(e.target.value)}>
-                <option value="">Välj Spelare 2...</option>
+                <option value="">VÃ¤lj Spelare 2...</option>
                 {activePlayers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
               </select>
             </div>
-            {h2hUser1 && h2hUser2 && (
-              <div className="space-y-2">
-                {matches.map(m => {
-                  const u1 = activePlayers.find(u => u.id === h2hUser1);
-                  const u2 = activePlayers.find(u => u.id === h2hUser2);
-                  const p1 = u1?.predictions?.[m.id];
-                  const p2 = u2?.predictions?.[m.id];
-                  const diff = p1 && p2 && p1 !== p2;
-                  return (
-                    <div key={m.id} className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${diff ? 'bg-amber-50 border-amber-200 shadow-sm' : 'bg-white'}`}>
-                      <div className={`w-8 font-black text-center ${diff ? 'text-amber-600' : 'text-slate-600'}`}>{p1 || '-'}</div>
-                      <div className="flex items-center gap-3 flex-1 justify-center opacity-80">
-                        <span className="text-xs font-bold text-right w-20">{m.team1}</span>
-                        <span className="text-[10px] text-slate-300">vs</span>
-                        <span className="text-xs font-bold w-20">{m.team2}</span>
-                      </div>
-                      <div className={`w-8 font-black text-center ${diff ? 'text-amber-600' : 'text-slate-600'}`}>{p2 || '-'}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            {h2hUser1 && h2hUser2 && (() => {
+              const u1 = activePlayers.find(u => u.id === h2hUser1);
+              const u2 = activePlayers.find(u => u.id === h2hUser2);
+              const u1pts = matches.filter(m => get1X2(m.goals1,m.goals2) === u1?.predictions?.[m.id]).length;
+              const u2pts = matches.filter(m => get1X2(m.goals1,m.goals2) === u2?.predictions?.[m.id]).length;
+              return (
+                <>
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="bg-indigo-50 rounded-2xl p-4 text-center"><div className="font-black text-lg">{u1?.name?.split(' ')[0]}</div><div className="text-indigo-600 font-black text-2xl">{u1pts}</div><div className="text-xs text-slate-400 font-bold">rÃ¤tta tips</div></div>
+                    <div className="bg-emerald-50 rounded-2xl p-4 text-center"><div className="font-black text-lg">{u2?.name?.split(' ')[0]}</div><div className="text-emerald-600 font-black text-2xl">{u2pts}</div><div className="text-xs text-slate-400 font-bold">rÃ¤tta tips</div></div>
+                  </div>
+                  <div className="space-y-2">
+                    {matches.map(m => {
+                      const p1 = u1?.predictions?.[m.id];
+                      const p2 = u2?.predictions?.[m.id];
+                      const diff = p1 && p2 && p1 !== p2;
+                      return (
+                        <div key={m.id} className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${diff ? 'bg-amber-50 border-amber-200 shadow-sm' : 'bg-white'}`}>
+                          <div className={`w-8 font-black text-center ${diff ? 'text-amber-600' : 'text-slate-600'}`}>{p1 || '-'}</div>
+                          <div className="flex items-center gap-3 flex-1 justify-center opacity-80">
+                            <span className="text-xs font-bold text-right w-20">{m.team1}</span>
+                            <span className="text-[10px] text-slate-300">vs</span>
+                            <span className="text-xs font-bold w-20">{m.team2}</span>
+                          </div>
+                          <div className={`w-8 font-black text-center ${diff ? 'text-amber-600' : 'text-slate-600'}`}>{p2 || '-'}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              );
+            })()}
           </div>
         )}
 
@@ -633,7 +672,7 @@ export default function App() {
           <div className="bg-white/90 backdrop-blur-md rounded-[2rem] border h-[65vh] flex flex-col overflow-hidden shadow-xl animate-in fade-in duration-300">
             <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/50 flex flex-col no-scrollbar">
               {chatMessages.map(m => {
-                const parts = m.text.split(/(@[a-zA-ZåäöÅÄÖ0-9_-]+(?: [a-zA-ZåäöÅÄÖ0-9_-]+)?)/g);
+                const parts = m.text.split(/(@[a-zA-ZÃ¥Ã¤Ã¶Ã…Ã„Ã–0-9_-]+(?: [a-zA-ZÃ¥Ã¤Ã¶Ã…Ã„Ã–0-9_-]+)?)/g);
                 const renderedText = parts.map((part, i) => {
                   if (part.startsWith('@')) {
                     const namePart = part.substring(1).toLowerCase();
@@ -677,7 +716,7 @@ export default function App() {
                   } else {
                     setShowMentions(false);
                   }
-                }} placeholder="Skriv nåt till gruppen..." className="w-full bg-slate-100 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm" />
+                }} placeholder="Skriv nÃ¥t till gruppen..." className="w-full bg-slate-100 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm" />
               </div>
               <button className="bg-indigo-600 text-white px-6 rounded-2xl shadow-lg shadow-indigo-600/20 active:scale-95 transition-transform"><Send size={20}/></button>
             </form>
@@ -735,7 +774,7 @@ export default function App() {
         )}
       </main>
 
-      {/* ANVÄNDAR-MODAL (SPORT-ID) */}
+      {/* ANVÃ„NDAR-MODAL (SPORT-ID) */}
       {selectedUser && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
@@ -743,10 +782,10 @@ export default function App() {
               <button onClick={() => setSelectedUser(null)} className="absolute top-4 right-4 p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors"><X size={16}/></button>
               <div className="w-24 h-24 bg-vmgold rounded-full flex items-center justify-center text-vmdark font-black text-4xl mb-4 shadow-[0_0_20px_rgba(251,191,36,0.3)]">{selectedUser.name.charAt(0)}</div>
               <h2 className="text-2xl font-black">{selectedUser.name}</h2>
-              <p className="text-indigo-300 text-sm font-bold mt-1 uppercase tracking-widest flex items-center gap-2"><Goal size={14}/> Målgissning: {selectedUser.goals}</p>
+              <p className="text-indigo-300 text-sm font-bold mt-1 uppercase tracking-widest flex items-center gap-2"><Goal size={14}/> MÃ¥lgissning: {selectedUser.goals}</p>
             </div>
             <div className="p-6 overflow-y-auto bg-slate-50 flex-1 no-scrollbar">
-              <h3 className="font-black text-xs uppercase text-slate-400 mb-4 tracking-widest">Inlämnat Tips</h3>
+              <h3 className="font-black text-xs uppercase text-slate-400 mb-4 tracking-widest">InlÃ¤mnat Tips</h3>
               <div className="space-y-2">
                 {matches.map(m => {
                    const pick = selectedUser.predictions?.[m.id];
