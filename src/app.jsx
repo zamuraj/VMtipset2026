@@ -1,10 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { db } from './firebase';
-import { collection, onSnapshot, doc, setDoc, addDoc, query, orderBy, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, setDoc, addDoc, query, orderBy, serverTimestamp, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { 
   Trophy, BarChart3, Settings, CalendarDays, Check, 
   AlertCircle, Clock, Grid3X3, User, X, Lock, 
-  Swords, Bell, PlayCircle, Banknote, MessageSquare, Send, Goal, ShieldCheck, ChevronDown, ChevronUp, MapPin, ListOrdered, Trash2
+  Swords, Bell, PlayCircle, Banknote, MessageSquare, Send, Goal, ShieldCheck, ChevronDown, ChevronUp, MapPin, ListOrdered, Trash2, Tv
 } from 'lucide-react';
 
 // --- DATA: LAG & SCHEMA ---
@@ -66,11 +66,84 @@ const TEAMS = {
   'Ghana': { flag: 'gh', primary: '#FCD116' } 
 };
 
-const VM_SCHEDULE = [ "1|11 jun 21:00|A|Mexiko|Sydafrika|Mexico City", "2|12 jun 00:00|B|Kanada|Slovakien|Toronto", "3|12 jun 15:00|A|Sydkorea|Tjeckien|Guadalajara", "4|13 jun 00:00|D|USA|Paraguay|Los Angeles", "5|13 jun 21:00|B|Qatar|Schweiz|San Francisco", "6|14 jun 00:00|C|Brasilien|Marocko|New Jersey", "7|14 jun 03:00|C|Haiti|Skottland|Boston", "8|14 jun 06:00|D|Australien|Turkiet|Vancouver", "9|14 jun 19:00|E|Tyskland|Curaçao|Houston", "10|14 jun 22:00|F|Nederländerna|Japan|Dallas", "11|15 jun 01:00|E|Elfenbenskusten|Ecuador|Philadelphia", "12|15 jun 04:00|F|Sverige|Tunisien|Monterrey", "13|15 jun 18:00|H|Spanien|Kap Verde|Atlanta", "14|15 jun 21:00|G|Belgien|Egypten|Seattle", "15|16 jun 00:00|H|Saudiarabien|Uruguay|Miami", "16|16 jun 03:00|G|Iran|Nya Zeeland|SoFi Stadium", "17|16 jun 21:00|I|Frankrike|Senegal|MetLife Stadium", "18|17 jun 00:00|I|Irak|Norge|Gillette Stadium", "19|17 jun 03:00|J|Argentina|Algeriet|Kansas City", "20|17 jun 06:00|J|Österrike|Jordanien|Levi's Stadium", "21|17 jun 19:00|K|Portugal|DR Kongo|NRG Stadium", "22|17 jun 22:00|L|England|Kroatien|AT&T Stadium", "23|18 jun 01:00|L|Ghana|Panama|BMO Field", "24|18 jun 04:00|K|Uzbekistan|Colombia|Mexico City", "25|18 jun 18:00|A|Tjeckien|Sydafrika|Atlanta", "26|18 jun 21:00|B|Schweiz|Bosnien|San Francisco", "27|19 jun 00:00|B|Kanada|Qatar|BC Place", "28|19 jun 03:00|A|Mexiko|Sydkorea|Akron Stadium", "29|19 jun 21:00|D|USA|Australien|Lumen Field", "30|20 jun 00:00|C|Skottland|Marocko|Gillette Stadium", "31|20 jun 03:00|C|Brasilien|Haiti|Lincoln Financial", "32|20 jun 06:00|D|Turkiet|Paraguay|Levi's Stadium", "33|20 jun 19:00|F|Nederländerna|Sverige|NRG Stadium", "34|20 jun 22:00|E|Tyskland|Elfenbenskusten|BMO Field", "35|21 jun 02:00|E|Ecuador|Curaçao|Arrowhead Stadium", "36|21 jun 06:00|F|Tunisien|Japan|BBVA Bancomer", "37|21 jun 18:00|H|Spanien|Saudiarabien|Atlanta", "38|21 jun 21:00|G|Belgien|Iran|SoFi Stadium", "39|22 jun 00:00|H|Uruguay|Kap Verde|Hard Rock Stadium", "40|22 jun 03:00|G|Nya Zeeland|Egypten|BC Place", "41|22 jun 19:00|J|Argentina|Österrike|Arrowhead Stadium", "42|22 jun 23:00|I|Frankrike|Irak|Lincoln Financial", "43|23 jun 02:00|I|Norge|Senegal|MetLife Stadium", "44|23 jun 05:00|J|Jordanien|Algeriet|Levi's Stadium", "45|23 jun 19:00|K|Portugal|Uzbekistan|NRG Stadium", "46|23 jun 22:00|L|England|Ghana|Gillette Stadium", "47|24 jun 01:00|L|Panama|Kroatien|Gillette Stadium", "48|24 jun 04:00|K|Colombia|DR Kongo|Akron Stadium" ];
+const VM_SCHEDULE = [
+  "1|11 jun 21:00|A|Mexiko|Sydafrika|Azteca|Mexico City|Mexiko|SVT",
+  "2|12 jun 00:00|B|Kanada|Slovakien|BMO Field|Toronto|Kanada|TV4",
+  "3|12 jun 15:00|A|Sydkorea|Tjeckien|Akron|Guadalajara|Mexiko|SVT",
+  "4|13 jun 00:00|D|USA|Paraguay|SoFi|Los Angeles|USA|TV4",
+  "5|13 jun 21:00|B|Qatar|Schweiz|Levi's|San Francisco|USA|SVT",
+  "6|14 jun 00:00|C|Brasilien|Marocko|MetLife|New Jersey|USA|TV4",
+  "7|14 jun 03:00|C|Haiti|Skottland|Gillette|Boston|USA|SVT",
+  "8|14 jun 06:00|D|Australien|Turkiet|BC Place|Vancouver|Kanada|TV4",
+  "9|14 jun 19:00|E|Tyskland|Curaçao|NRG|Houston|USA|SVT",
+  "10|14 jun 22:00|F|Nederländerna|Japan|AT&T|Dallas|USA|TV4",
+  "11|15 jun 01:00|E|Elfenbenskusten|Ecuador|Lincoln|Philadelphia|USA|SVT",
+  "12|15 jun 04:00|F|Sverige|Tunisien|BBVA|Monterrey|Mexiko|TV4",
+  "13|15 jun 18:00|H|Spanien|Kap Verde|Mercedes|Atlanta|USA|SVT",
+  "14|15 jun 21:00|G|Belgien|Egypten|Lumen|Seattle|USA|TV4",
+  "15|16 jun 00:00|H|Saudiarabien|Uruguay|Hard Rock|Miami|USA|SVT",
+  "16|16 jun 03:00|G|Iran|Nya Zeeland|SoFi|Los Angeles|USA|TV4",
+  "17|16 jun 21:00|I|Frankrike|Senegal|MetLife|New Jersey|USA|SVT",
+  "18|17 jun 00:00|I|Irak|Norge|Gillette|Boston|USA|TV4",
+  "19|17 jun 03:00|J|Argentina|Algeriet|Arrowhead|Kansas City|USA|SVT",
+  "20|17 jun 06:00|J|Österrike|Jordanien|Levi's|San Francisco|USA|TV4",
+  "21|17 jun 19:00|K|Portugal|DR Kongo|NRG|Houston|USA|SVT",
+  "22|17 jun 22:00|L|England|Kroatien|AT&T|Dallas|USA|TV4",
+  "23|18 jun 01:00|L|Ghana|Panama|BMO Field|Toronto|Kanada|SVT",
+  "24|18 jun 04:00|K|Uzbekistan|Colombia|Azteca|Mexico City|Mexiko|TV4",
+  "25|18 jun 18:00|A|Tjeckien|Sydafrika|Mercedes|Atlanta|USA|SVT",
+  "26|18 jun 21:00|B|Schweiz|Bosnien|SoFi|Los Angeles|USA|TV4",
+  "27|19 jun 00:00|B|Kanada|Qatar|BC Place|Vancouver|Kanada|SVT",
+  "28|19 jun 03:00|A|Mexiko|Sydkorea|Akron|Guadalajara|Mexiko|TV4",
+  "29|19 jun 21:00|D|USA|Australien|Lumen|Seattle|USA|SVT",
+  "30|20 jun 00:00|C|Skottland|Marocko|Gillette|Boston|USA|TV4",
+  "31|20 jun 03:00|C|Brasilien|Haiti|Lincoln|Philadelphia|USA|SVT",
+  "32|20 jun 06:00|D|Turkiet|Paraguay|Levi's|San Francisco|USA|TV4",
+  "33|20 jun 19:00|F|Nederländerna|Sverige|NRG|Houston|USA|SVT",
+  "34|20 jun 22:00|E|Tyskland|Elfenbenskusten|BMO Field|Toronto|Kanada|TV4",
+  "35|21 jun 02:00|E|Ecuador|Curaçao|Arrowhead|Kansas City|USA|SVT",
+  "36|21 jun 06:00|F|Tunisien|Japan|BBVA|Monterrey|Mexiko|TV4",
+  "37|21 jun 18:00|H|Spanien|Saudiarabien|Mercedes|Atlanta|USA|SVT",
+  "38|21 jun 21:00|G|Belgien|Iran|SoFi|Los Angeles|USA|TV4",
+  "39|22 jun 00:00|H|Uruguay|Kap Verde|Hard Rock|Miami|USA|SVT",
+  "40|22 jun 03:00|G|Nya Zeeland|Egypten|BC Place|Vancouver|Kanada|TV4",
+  "41|22 jun 19:00|J|Argentina|Österrike|Arrowhead|Kansas City|USA|SVT",
+  "42|22 jun 23:00|I|Frankrike|Irak|Lincoln|Philadelphia|USA|TV4",
+  "43|23 jun 02:00|I|Norge|Senegal|MetLife|New Jersey|USA|SVT",
+  "44|23 jun 05:00|J|Jordanien|Algeriet|Levi's|San Francisco|USA|TV4",
+  "45|23 jun 19:00|K|Portugal|Uzbekistan|NRG|Houston|USA|SVT",
+  "46|23 jun 22:00|L|England|Ghana|Gillette|Boston|USA|TV4",
+  "47|24 jun 01:00|L|Panama|Kroatien|Gillette|Boston|USA|SVT",
+  "48|24 jun 04:00|K|Colombia|DR Kongo|Akron|Guadalajara|Mexiko|TV4",
+  "49|24 jun 18:00|A|Sydafrika|Sydkorea|Mercedes|Atlanta|USA|SVT",
+  "50|24 jun 21:00|A|Tjeckien|Mexiko|Azteca|Mexico City|Mexiko|TV4",
+  "51|25 jun 00:00|B|Slovakien|Qatar|BMO Field|Toronto|Kanada|SVT",
+  "52|25 jun 03:00|B|Schweiz|Kanada|BC Place|Vancouver|Kanada|TV4",
+  "53|25 jun 18:00|C|Marocko|Haiti|Hard Rock|Miami|USA|SVT",
+  "54|25 jun 21:00|C|Skottland|Brasilien|MetLife|New Jersey|USA|TV4",
+  "55|26 jun 00:00|D|Paraguay|Australien|Lumen|Seattle|USA|SVT",
+  "56|26 jun 03:00|D|Turkiet|USA|SoFi|Los Angeles|USA|TV4",
+  "57|26 jun 18:00|E|Curaçao|Elfenbenskusten|Mercedes|Atlanta|USA|SVT",
+  "58|26 jun 21:00|E|Ecuador|Tyskland|AT&T|Dallas|USA|TV4",
+  "59|27 jun 00:00|F|Sverige|Japan|Azteca|Mexico City|Mexiko|SVT",
+  "60|27 jun 03:00|F|Tunisien|Nederländerna|Arrowhead|Kansas City|USA|TV4",
+  "61|27 jun 18:00|G|Egypten|Iran|Lincoln|Philadelphia|USA|SVT",
+  "62|27 jun 21:00|G|Nya Zeeland|Belgien|SoFi|Los Angeles|USA|TV4",
+  "63|28 jun 00:00|H|Kap Verde|Saudiarabien|Lumen|Seattle|USA|SVT",
+  "64|28 jun 03:00|H|Uruguay|Spanien|Hard Rock|Miami|USA|TV4",
+  "65|28 jun 18:00|I|Senegal|Irak|Mercedes|Atlanta|USA|SVT",
+  "66|28 jun 21:00|I|Norge|Frankrike|MetLife|New Jersey|USA|TV4",
+  "67|29 jun 00:00|J|Algeriet|Österrike|Gillette|Boston|USA|SVT",
+  "68|29 jun 03:00|J|Jordanien|Argentina|Arrowhead|Kansas City|USA|TV4",
+  "69|29 jun 18:00|K|DR Kongo|Uzbekistan|Azteca|Mexico City|Mexiko|SVT",
+  "70|29 jun 21:00|K|Colombia|Portugal|NRG|Houston|USA|TV4",
+  "71|30 jun 00:00|L|Kroatien|Ghana|AT&T|Dallas|USA|SVT",
+  "72|30 jun 03:00|L|Panama|England|BMO Field|Toronto|Kanada|TV4"
+];
 
 const initialMatchesList = VM_SCHEDULE.map(m => {
-  const [id, date, grp, t1, t2, ven] = m.split('|');
-  return { id: parseInt(id), date, group: grp, team1: t1, team2: t2, venue: ven };
+  const [id, date, grp, t1, t2, arena, city, country, tv] = m.split('|');
+  return { id: parseInt(id), date, group: grp, team1: t1, team2: t2, arena, city, country, tv };
 });
 
 const TOURNAMENT_GROUPS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
@@ -105,6 +178,7 @@ export default function App() {
   const [matches, setMatches] = useState([]);
   const [chatMessages, setChatMessages] = useState([]);
   const [newChatMsg, setNewChatMsg] = useState('');
+  const [deadline, setDeadline] = useState(null);
 
   // --- REGISTRATION DRAFT ---
   const [regStep, setRegStep] = useState(1);
@@ -119,13 +193,16 @@ export default function App() {
     const unsubMatches = onSnapshot(collection(db, "matches"), (snap) => {
       const dbMatches = snap.docs.map(doc => ({ id: parseInt(doc.id), ...doc.data() }));
       setMatches(VM_SCHEDULE.map(m => {
-        const [id, date, grp, t1, t2, ven] = m.split('|');
+        const [id, date, grp, t1, t2, arena, city, country, tv] = m.split('|');
         const dbM = dbMatches.find(x => x.id === parseInt(id));
-        return { id: parseInt(id), date, group: grp, team1: t1, team2: t2, venue: ven, goals1: dbM?.goals1 ?? null, goals2: dbM?.goals2 ?? null, status: dbM?.status ?? 'upcoming' };
+        return { id: parseInt(id), date, group: grp, team1: t1, team2: t2, arena, city, country, tv, goals1: dbM?.goals1 ?? null, goals2: dbM?.goals2 ?? null, status: dbM?.status ?? 'upcoming' };
       }));
     });
     const unsubChat = onSnapshot(query(collection(db, "chat"), orderBy("createdAt", "asc")), (snap) => setChatMessages(snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))));
-    return () => { unsubTips(); unsubMatches(); unsubChat(); };
+    const unsubConfig = onSnapshot(doc(db, "settings", "appConfig"), (snap) => {
+      if(snap.exists()) setDeadline(snap.data().deadline?.toDate());
+    });
+    return () => { unsubTips(); unsubMatches(); unsubChat(); unsubConfig(); };
   }, []);
 
   // --- AUTOSAVE LOGIC ---
@@ -139,10 +216,22 @@ export default function App() {
 
   const clearDraft = () => { if(window.confirm('Rensa allt och börja om?')) { localStorage.removeItem('vmt_draft_v3'); window.location.reload(); } };
 
+  const checkExistingUser = () => {
+    const existing = tips.find(t => t.email.toLowerCase() === regEmail.toLowerCase().trim());
+    if(existing) {
+       setRegName(existing.name);
+       setRegGoals(existing.goals);
+       setRegPicks(existing.predictions || {});
+       alert("Välkommen tillbaka! Ditt tidigare tips har laddats in.");
+    }
+    setRegStep(2);
+  };
+
   // --- CALCULATIONS ---
   const activePlayers = useMemo(() => tips.filter(t => t.isApproved && !t.isAdmin), [tips]);
   const goalsSoFar = useMemo(() => matches.reduce((sum, m) => sum + (m.goals1 || 0) + (m.goals2 || 0), 0), [matches]);
   const get1X2 = (g1, g2) => { if (g1 === null || g2 === null) return null; return g1 > g2 ? '1' : g1 < g2 ? '2' : 'X'; };
+  const isDeadlinePassed = deadline && new Date() > deadline;
 
   const groupStandings = useMemo(() => {
     const stats = {};
@@ -178,8 +267,9 @@ export default function App() {
   };
 
   const submitTips = async () => {
-    await setDoc(doc(db, "tips", regEmail.toLowerCase()), { name: regName, email: regEmail.toLowerCase(), goals: parseInt(regGoals), predictions: regPicks, isApproved: false, isAdmin: false, groups: ["Alla"] });
-    alert("Tips skickat! Emil godkänner när betalning syns.");
+    if(isDeadlinePassed) return alert("Deadline har passerat!");
+    await setDoc(doc(db, "tips", regEmail.toLowerCase()), { name: regName, email: regEmail.toLowerCase(), goals: parseInt(regGoals), predictions: regPicks, isApproved: false, isAdmin: false, groups: ["Alla"] }, { merge: true });
+    alert("Tips sparat/uppdaterat! Emil godkänner när betalning syns.");
     localStorage.removeItem('vmt_draft_v3'); setShowRegister(false);
   };
 
@@ -205,7 +295,8 @@ export default function App() {
             {loginEmail.toLowerCase() === 'zettergren.emil@gmail.com' && <input type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} placeholder="Lösenord" className="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none" required />}
             {authError && <p className="text-red-400 text-xs font-bold text-center">{authError}</p>}
             <button type="submit" className="w-full py-4 bg-indigo-600 rounded-xl font-black shadow-lg">LOGGA IN</button>
-            <button type="button" onClick={() => setShowRegister(true)} className="w-full text-emerald-400 font-bold text-sm">LÄMNA NYTT TIPS {Object.keys(regPicks).length > 0 && " (Utkast finns)"}</button>
+            {!isDeadlinePassed && <button type="button" onClick={() => setShowRegister(true)} className="w-full text-emerald-400 font-bold text-sm">LÄMNA NYTT TIPS {Object.keys(regPicks).length > 0 && " (Utkast finns)"}</button>}
+            {isDeadlinePassed && <p className="text-center text-xs text-slate-500 font-bold italic">Anmälan stängd</p>}
           </form>
         ) : (
           <div className="mt-8 space-y-4 animate-in slide-in-from-right-4 duration-300">
@@ -217,56 +308,53 @@ export default function App() {
                 <input type="number" value={regGoals} onChange={e=>setRegGoals(e.target.value)} placeholder="Mål totalt i hela VM?" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
                 <div className="flex gap-2">
                    {Object.keys(regPicks).length > 0 && <button onClick={clearDraft} className="p-4 bg-red-500/20 text-red-400 rounded-2xl"><Trash2/></button>}
-                   <button onClick={() => setRegStep(2)} className="flex-1 py-4 bg-emerald-600 rounded-xl font-bold">NÄSTA: FYLL I TIPS</button>
+                   <button onClick={checkExistingUser} className="flex-1 py-4 bg-emerald-600 rounded-xl font-bold">NÄSTA: FYLL I TIPS</button>
                 </div>
                </>
              ) : (
                <div className="space-y-4">
-                  <div className="flex justify-between items-center"><button onClick={() => setRegStep(1)} className="text-xs text-slate-400">← Bakåt</button><span className="text-vmgold text-xs font-black">{Object.keys(regPicks).length}/48 tippade</span></div>
+                  <div className="flex justify-between items-center"><button onClick={() => setRegStep(1)} className="text-xs text-slate-400">← Bakåt</button><span className="text-vmgold text-xs font-black">{Object.keys(regPicks).length}/72 tippade</span></div>
                   <div className="max-h-[50vh] overflow-y-auto space-y-3 pr-2 no-scrollbar">
                     {initialMatchesList.map(m => (
                       <div key={m.id} className="bg-black/30 p-5 rounded-[2rem] border border-white/5 space-y-4">
-                        <div className="flex items-center justify-center gap-4 text-sm font-black text-white italic">
-                          <div className="flex items-center gap-2 flex-1 justify-end">
-                            <span>{m.team1}</span>
-                            <Flag code={TEAMS[m.team1]?.flag} />
-                          </div>
-                          <span className="text-vmgold opacity-50 px-2">VS</span>
-                          <div className="flex items-center gap-2 flex-1 justify-start">
-                            <Flag code={TEAMS[m.team2]?.flag} />
-                            <span>{m.team2}</span>
-                          </div>
+                        <div className="flex flex-col items-center gap-1">
+                           <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                              <MapPin size={10}/> {m.arena}, {m.city} | <Tv size={10}/> {m.tv}
+                           </div>
+                           <div className="flex items-center justify-center gap-4 text-sm font-black text-white italic">
+                             <div className="flex items-center gap-2 flex-1 justify-end">
+                               <span>{m.team1}</span>
+                               <Flag code={TEAMS[m.team1]?.flag} />
+                             </div>
+                             <span className="text-vmgold opacity-50 px-2">VS</span>
+                             <div className="flex items-center gap-2 flex-1 justify-start">
+                               <Flag code={TEAMS[m.team2]?.flag} />
+                               <span>{m.team2}</span>
+                             </div>
+                           </div>
                         </div>
                         <div className="flex gap-3">
                           {['1','X','2'].map(s => {
                             const primaryColor = s === '1' ? TEAMS[m.team1]?.primary : s === '2' ? TEAMS[m.team2]?.primary : '#64748b';
                             const isWhite = primaryColor?.toUpperCase() === '#FFFFFF';
-                            
                             let style = { backgroundColor: 'rgba(255,255,255,0.05)' };
                             let cl = "text-white scale-100 opacity-60";
-                            
                             if(regPicks[m.id] === s) {
                               cl = "scale-105 shadow-xl opacity-100 ring-2 ring-white/20";
                               style.backgroundColor = primaryColor;
-                              if(isWhite) cl += " text-slate-900 border border-slate-200";
+                              if(isWhite) cl += " text-slate-900 border border-slate-200 shadow-sm";
                             }
-
                             return (
-                              <button 
-                                key={s} 
-                                onClick={() => setRegPicks({...regPicks, [m.id]:s})} 
-                                style={style}
-                                className={`flex-1 py-4 rounded-2xl font-black transition-all duration-300 ${cl}`}
-                              >
-                                {s}
-                              </button>
+                              <button key={s} onClick={() => setRegPicks({...regPicks, [m.id]:s})} style={style} className={`flex-1 py-4 rounded-2xl font-black transition-all duration-300 ${cl}`}>{s}</button>
                             );
                           })}
                         </div>
                       </div>
                     ))}
                   </div>
-                  <button onClick={submitTips} disabled={Object.keys(regPicks).length < 48} className="w-full py-5 bg-indigo-600 disabled:opacity-30 rounded-2xl font-black shadow-[0_10px_20px_rgba(79,70,229,0.3)] mt-2">SKICKA IN ANMÄLAN</button>
+                  <button onClick={submitTips} disabled={Object.keys(regPicks).length < 72 || isDeadlinePassed} className="w-full py-5 bg-indigo-600 disabled:opacity-30 rounded-2xl font-black shadow-[0_10px_20px_rgba(79,70,229,0.3)] mt-2">
+                    {isDeadlinePassed ? 'DEADLINE PASSERAD' : 'SKICKA IN ANMÄLAN'}
+                  </button>
                </div>
              )}
           </div>
@@ -303,12 +391,11 @@ export default function App() {
                   ))}</tbody>
                 </table>
              </div>
-             {/* Matris med flaggor */}
              <div className="bg-white rounded-[2rem] border overflow-hidden shadow-sm overflow-x-auto p-6">
                 <h3 className="font-black text-xs uppercase mb-6 text-slate-400 flex items-center gap-2"><Grid3X3 size={16}/> Tippningsmatris</h3>
                 <table className="w-full text-sm border-collapse whitespace-nowrap">
                    <thead><tr className="bg-slate-50 border-b font-black text-xs uppercase text-slate-500"><th className="p-4 sticky left-0 bg-slate-50 border-r w-56 text-left">Match</th>{activePlayers.map(u => <th key={u.id} className="p-4 text-center border-r min-w-[80px]">{u.name.split(' ')[0]}</th>)}</tr></thead>
-                   <tbody>{matches.slice(0, 48).map(m => (
+                   <tbody>{matches.slice(0, 72).map(m => (
                      <tr key={m.id} className="border-b hover:bg-slate-50 transition-colors">
                         <td className="p-4 sticky left-0 bg-white border-r font-black flex items-center gap-3">
                           <div className="flex items-center gap-1.5 w-16 justify-end">
@@ -325,15 +412,9 @@ export default function App() {
                           const pick = u.predictions?.[m.id];
                           const pickColor = pick === '1' ? TEAMS[m.team1]?.primary : pick === '2' ? TEAMS[m.team2]?.primary : '#94a3b8';
                           const isWhite = pickColor?.toUpperCase() === '#FFFFFF';
-
                           return (
                             <td key={u.id} className="p-4 text-center border-r font-black">
-                              <span 
-                                style={{ color: pickColor }}
-                                className={`px-2 py-1 rounded ${isWhite ? 'bg-slate-800 border border-slate-700' : ''}`}
-                              >
-                                {pick || '-'}
-                              </span>
+                              <span style={{ color: pickColor }} className={`px-2 py-1 rounded shadow-sm ${isWhite ? 'bg-slate-800 border border-slate-700' : ''}`}>{pick || '-'}</span>
                             </td>
                           );
                         })}
@@ -353,10 +434,7 @@ export default function App() {
                      <thead><tr className="bg-slate-50 border-b text-slate-400 font-bold uppercase"><th className="p-3">Lag</th><th className="p-3 text-center">+/-</th><th className="p-3 text-center">P</th></tr></thead>
                      <tbody>{Object.values(groupStandings).filter(t => t.group === grp).sort((a,b) => b.pts - a.pts || b.gd - a.gd).map(t => (
                        <tr key={t.name} className="border-b hover:bg-slate-50 transition-colors">
-                         <td className="p-3 font-bold flex items-center gap-2">
-                           <Flag code={TEAMS[t.name]?.flag} />
-                           {t.name}
-                         </td>
+                         <td className="p-3 font-bold flex items-center gap-2"><Flag code={TEAMS[t.name]?.flag} />{t.name}</td>
                          <td className="p-3 text-center font-medium">{t.gd > 0 ? `+${t.gd}` : t.gd}</td>
                          <td className="p-3 text-center font-black text-indigo-600 bg-indigo-50/30">{t.pts}</td>
                        </tr>
@@ -365,6 +443,25 @@ export default function App() {
                </div>
              ))}
           </div>
+        )}
+
+        {activeTab === 'matches' && (
+           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {matches.map(m => (
+                 <div key={m.id} className="bg-white p-6 rounded-[2rem] border shadow-sm space-y-3">
+                    <div className="flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                       <span>{m.date} | Grupp {m.group}</span>
+                       <span className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-full"><Tv size={10}/> {m.tv}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-4">
+                       <div className="flex items-center gap-2 flex-1"><Flag code={TEAMS[m.team1]?.flag} /><span className="text-sm font-black">{m.team1}</span></div>
+                       <div className="text-lg font-black text-indigo-600">{m.goals1 ?? '-'}:{m.goals2 ?? '-'}</div>
+                       <div className="flex items-center gap-2 flex-1 justify-end"><span className="text-sm font-black text-right">{m.team2}</span><Flag code={TEAMS[m.team2]?.flag} /></div>
+                    </div>
+                    <div className="text-[10px] text-slate-400 text-center font-bold flex items-center justify-center gap-1 italic"><MapPin size={10}/> {m.arena}, {m.city} ({m.country})</div>
+                 </div>
+              ))}
+           </div>
         )}
 
         {activeTab === 'chat' && (
@@ -386,38 +483,36 @@ export default function App() {
 
         {activeTab === 'admin' && currentUser.isAdmin && (
           <div className="space-y-8 animate-in fade-in duration-500">
-            <div className="bg-white rounded-[2.5rem] border p-8 shadow-xl"><h2 className="text-2xl font-black mb-6 flex items-center gap-3"><ShieldCheck className="text-emerald-500" size={28}/> Hantera Betalningar</h2>
+            <div className="bg-white rounded-[2.5rem] border p-8 shadow-xl">
+              <h2 className="text-2xl font-black mb-6 flex items-center gap-3"><ShieldCheck className="text-emerald-500" size={28}/> Hantera Deltagare</h2>
+              <div className="mb-6 p-4 bg-slate-50 rounded-2xl border flex items-center justify-between">
+                 <div><h3 className="font-black text-sm uppercase">VM-Deadline</h3><p className="text-[10px] text-slate-400">{deadline ? deadline.toLocaleString() : 'Ej satt'}</p></div>
+                 <input type="datetime-local" onChange={e => setDoc(doc(db, "settings", "appConfig"), { deadline: new Date(e.target.value) }, { merge: true })} className="bg-white border p-2 rounded-xl text-xs font-bold outline-none"/>
+              </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 {tips.filter(t => !t.isAdmin).sort((a,b) => a.name.localeCompare(b.name)).map(t => (
                   <div key={t.id} className="flex justify-between items-center p-4 rounded-2xl border bg-slate-50/50 hover:bg-white transition-colors">
                     <div><div className="text-sm font-black">{t.name}</div><div className="text-[11px] text-slate-400 font-medium">{t.email}</div></div>
-                    <button onClick={() => updateDoc(doc(db, "tips", t.id), { isApproved: !t.isApproved })} className={`px-6 py-2.5 rounded-xl text-xs font-black transition-all ${t.isApproved?'bg-emerald-100 text-emerald-700 shadow-inner':'bg-white border-2 text-slate-400'}`}>{t.isApproved?'BETALD':'MARKERA'}</button>
+                    <div className="flex gap-2">
+                       <button onClick={() => updateDoc(doc(db, "tips", t.id), { isApproved: !t.isApproved })} className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all ${t.isApproved?'bg-emerald-100 text-emerald-700':'bg-white border text-slate-400'}`}>{t.isApproved?'BETALD':'MARKERA'}</button>
+                       <button onClick={() => window.confirm('Radera tips permanent?') && deleteDoc(doc(db, "tips", t.id))} className="p-2 text-red-400 hover:bg-red-50 rounded-xl transition-colors"><Trash2 size={16}/></button>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
-            
             <div className="bg-white rounded-[2.5rem] border p-8 shadow-xl"><h2 className="text-2xl font-black mb-6 flex items-center gap-3"><PlayCircle className="text-indigo-600" size={28}/> Rapportera Matchresultat</h2>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {matches.map(m => (
                   <div key={m.id} className="p-5 rounded-[2rem] border flex flex-col gap-4 bg-slate-50/50">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{m.date} | {m.group}</span>
-                      {m.status === 'finished' && <Check className="text-emerald-500" size={14} />}
-                    </div>
+                    <div className="flex items-center justify-between"><span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{m.date} | {m.group}</span>{m.status === 'finished' && <Check className="text-emerald-500" size={14} />}</div>
                     <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 flex-1">
-                        <Flag code={TEAMS[m.team1]?.flag} />
-                        <span className="text-xs font-black">{m.team1.slice(0,10)}</span>
-                      </div>
+                      <div className="flex items-center gap-2 flex-1"><Flag code={TEAMS[m.team1]?.flag} /><span className="text-xs font-black">{m.team1.slice(0,10)}</span></div>
                       <div className="flex gap-1.5">
                         <input type="number" value={m.goals1 ?? ''} onChange={e => updateMatch(m.id, { goals1: parseInt(e.target.value) || 0, status: 'finished' })} className="w-10 h-10 text-center border-2 rounded-xl font-black bg-white focus:border-indigo-500 outline-none transition-all"/>
                         <input type="number" value={m.goals2 ?? ''} onChange={e => updateMatch(m.id, { goals2: parseInt(e.target.value) || 0, status: 'finished' })} className="w-10 h-10 text-center border-2 rounded-xl font-black bg-white focus:border-indigo-500 outline-none transition-all"/>
                       </div>
-                      <div className="flex items-center gap-2 flex-1 justify-end">
-                        <span className="text-xs font-black text-right">{m.team2.slice(0,10)}</span>
-                        <Flag code={TEAMS[m.team2]?.flag} />
-                      </div>
+                      <div className="flex items-center gap-2 flex-1 justify-end"><span className="text-xs font-black text-right">{m.team2.slice(0,10)}</span><Flag code={TEAMS[m.team2]?.flag} /></div>
                     </div>
                   </div>
                 ))}
