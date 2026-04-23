@@ -184,6 +184,7 @@ export default function App() {
   const [h2hUser2, setH2hUser2] = useState('');
   const [showMentions, setShowMentions] = useState(false);
   const [mentionSearch, setMentionSearch] = useState('');
+  const [showNotifications, setShowNotifications] = useState(false);
 
   // --- FIREBASE DATA ---
   const [tips, setTips] = useState([]);
@@ -240,10 +241,26 @@ export default function App() {
   };
 
   // --- CALCULATIONS ---
+  const activeUser = useMemo(() => currentUser ? tips.find(t => t.id === currentUser.id) || currentUser : null, [currentUser, tips]);
   const activePlayers = useMemo(() => tips.filter(t => t.isApproved && !t.isAdmin), [tips]);
   const goalsSoFar = useMemo(() => matches.reduce((sum, m) => sum + (m.goals1 || 0) + (m.goals2 || 0), 0), [matches]);
   const get1X2 = (g1, g2) => { if (g1 === null || g2 === null) return null; return g1 > g2 ? '1' : g1 < g2 ? '2' : 'X'; };
   const isDeadlinePassed = deadline && new Date() > deadline;
+
+  // --- DAILY RANK NOTIFICATION ---
+  useEffect(() => {
+    if (activeUser && leaderboard && leaderboard.length > 0) {
+      const today = new Date().toISOString().split('T')[0];
+      if (activeUser.lastLoginDate !== today) {
+        const userRank = leaderboard.find(u => u.id === activeUser.id)?.rank;
+        if (userRank) {
+           const notifs = activeUser.notifications || [];
+           notifs.unshift({ id: Date.now().toString(), type: 'rank', text: `Dagens uppdatering: Du ligger just nu på plats #${userRank}`, isRead: false, createdAt: new Date().toISOString() });
+           updateDoc(doc(db, "tips", activeUser.id), { notifications: notifs, lastLoginDate: today });
+        }
+      }
+    }
+  }, [activeUser?.id, activeUser?.lastLoginDate, tips.length]); // using tips.length to approximate leaderboard ready state
 
   const folketsTips = useMemo(() => {
     const predictions = {};
@@ -322,6 +339,18 @@ export default function App() {
   const sendChat = async (e) => {
     e.preventDefault(); if(!newChatMsg.trim()) return;
     await addDoc(collection(db, "chat"), { user: currentUser.name, text: newChatMsg, createdAt: serverTimestamp() });
+    
+    activePlayers.forEach(p => {
+      const firstName = p.name.split(' ')[0].toLowerCase();
+      if (newChatMsg.toLowerCase().includes(`@${firstName}`) || newChatMsg.toLowerCase().includes(`@${p.name.toLowerCase()}`)) {
+        if (p.id !== currentUser.id) {
+          const notifs = p.notifications || [];
+          notifs.unshift({ id: Date.now().toString() + Math.random(), type: 'mention', text: `${currentUser.name} har nämnt dig i Snackis`, isRead: false, createdAt: new Date().toISOString() });
+          updateDoc(doc(db, "tips", p.id), { notifications: notifs });
+        }
+      }
+    });
+
     setNewChatMsg('');
   };
 
@@ -416,7 +445,34 @@ export default function App() {
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-20">
       <header className="bg-vmdark/95 backdrop-blur-md text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-xl">
         <div className="scale-75 origin-left"><Logo /></div>
-        <button onClick={() => setCurrentUser(null)} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors"><X/></button>
+        <div className="flex items-center gap-4 relative">
+          <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors">
+            <Bell size={20} />
+            {activeUser?.notifications?.filter(n => !n.isRead).length > 0 && (
+               <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border border-vmdark"></span>
+            )}
+          </button>
+          {showNotifications && (
+            <div className="absolute top-full right-0 mt-2 w-72 bg-white rounded-2xl shadow-2xl border overflow-hidden z-50 animate-in slide-in-from-top-2">
+              <div className="bg-slate-50 p-3 border-b font-black text-xs text-slate-400 uppercase tracking-wider">Notiser</div>
+              <div className="max-h-64 overflow-y-auto no-scrollbar">
+                {activeUser?.notifications?.length > 0 ? activeUser.notifications.map((n, i) => (
+                  <div key={n.id || i} onClick={() => {
+                     if (!n.isRead) {
+                       const newNotifs = [...activeUser.notifications];
+                       newNotifs[i].isRead = true;
+                       updateDoc(doc(db, "tips", activeUser.id), { notifications: newNotifs });
+                     }
+                  }} className={`p-4 border-b cursor-pointer transition-colors flex items-start gap-3 ${n.isRead ? 'opacity-60 bg-white hover:bg-slate-50' : 'bg-indigo-50/30 hover:bg-indigo-50/50'}`}>
+                    {!n.isRead && <div className="w-2 h-2 rounded-full bg-indigo-500 mt-1.5 shrink-0"></div>}
+                    <div className={`text-sm ${n.isRead ? 'font-medium text-slate-600' : 'font-bold text-slate-900'}`}>{n.text}</div>
+                  </div>
+                )) : <div className="p-4 text-center text-sm text-slate-400 font-bold">Inga notiser</div>}
+              </div>
+            </div>
+          )}
+          <button onClick={() => setCurrentUser(null)} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors"><X size={20}/></button>
+        </div>
       </header>
 
       <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t z-40 flex justify-around p-1 sm:sticky sm:top-[72px] sm:max-w-5xl sm:mx-auto sm:my-4 sm:rounded-3xl sm:border shadow-xl">
@@ -576,12 +632,23 @@ export default function App() {
         {activeTab === 'chat' && (
           <div className="bg-white/90 backdrop-blur-md rounded-[2rem] border h-[65vh] flex flex-col overflow-hidden shadow-xl animate-in fade-in duration-300">
             <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/50 flex flex-col no-scrollbar">
-              {chatMessages.map(m => (
-                <div key={m.id} className={`flex flex-col ${m.user === currentUser.name ? 'items-end' : 'items-start'}`}>
-                  <span className="text-[10px] font-black text-slate-400 mb-1 px-1">{m.user}</span>
-                  <div className={`px-5 py-3 rounded-2xl max-w-[85%] text-sm shadow-sm ${m.user === currentUser.name ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white border text-slate-800 rounded-tl-none'}`}>{m.text}</div>
-                </div>
-              ))}
+              {chatMessages.map(m => {
+                const parts = m.text.split(/(@[a-zA-ZåäöÅÄÖ0-9_-]+(?: [a-zA-ZåäöÅÄÖ0-9_-]+)?)/g);
+                const renderedText = parts.map((part, i) => {
+                  if (part.startsWith('@')) {
+                    const namePart = part.substring(1).toLowerCase();
+                    const match = activePlayers.find(p => p.name.toLowerCase() === namePart || p.name.split(' ')[0].toLowerCase() === namePart);
+                    if (match) return <span key={i} className="text-blue-500 font-bold">{part}</span>;
+                  }
+                  return <span key={i}>{part}</span>;
+                });
+                return (
+                  <div key={m.id} className={`flex flex-col ${m.user === currentUser.name ? 'items-end' : 'items-start'}`}>
+                    <span className="text-[10px] font-black text-slate-400 mb-1 px-1">{m.user}</span>
+                    <div className={`px-5 py-3 rounded-2xl max-w-[85%] text-sm shadow-sm ${m.user === currentUser.name ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white border text-slate-800 rounded-tl-none'}`}>{renderedText}</div>
+                  </div>
+                );
+              })}
             </div>
             <form onSubmit={sendChat} className="p-4 border-t bg-white flex gap-3 relative overflow-visible">
               <div className="relative flex-1">
