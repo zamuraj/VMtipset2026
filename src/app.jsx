@@ -31,7 +31,7 @@ const TEAMS = {
   'Uzbekistan': { flag: 'uz', primary: '#0099B5' }, 
   'Uruguay': { flag: 'uy', primary: '#0038A8' }, 
   'Kamerun': { flag: 'cm', primary: '#007A5E' }, 
-  'NederlÃ¤nderna': { flag: 'nl', primary: '#F36C21' }, 
+  'Nederländerna': { flag: 'nl', primary: '#F36C21' }, 
   'Australien': { flag: 'au', primary: '#00008B' }, 
   'Argentina': { flag: 'ar', primary: '#75AADB' }, 
   'Haiti': { flag: 'ht', primary: '#00209F' }, 
@@ -49,7 +49,7 @@ const TEAMS = {
   'Schweiz': { flag: 'ch', primary: '#D52B1E' }, 
   'Skottland': { flag: 'gb-sct', primary: '#004B84' }, 
   'Turkiet': { flag: 'tr', primary: '#E30A17' }, 
-  'CuraÃ§ao': { flag: 'cw', primary: '#002B7F' }, 
+  'Curaçao': { flag: 'cw', primary: '#002B7F' }, 
   'Elfenbenskusten': { flag: 'ci', primary: '#FF8200' }, 
   'Tunisien': { flag: 'tn', primary: '#E70013' }, 
   'Kap Verde': { flag: 'cv', primary: '#003893' }, 
@@ -256,7 +256,7 @@ export default function App() {
         const userRank = leaderboard.find(u => u.id === activeUser.id)?.rank;
         if (userRank) {
            const notifs = activeUser.notifications || [];
-           notifs.unshift({ id: Date.now().toString(), type: 'rank', text: `Dagens uppdatering: Du ligger just nu pÃ¥ plats #${userRank}`, isRead: false, createdAt: new Date().toISOString() });
+           notifs.unshift({ id: Date.now().toString(), type: 'rank', text: `Dagens uppdatering: Du ligger just nu på plats #${userRank}`, isRead: false, createdAt: new Date().toISOString() });
            updateDoc(doc(db, "tips", activeUser.id), { notifications: notifs, lastLoginDate: today });
         }
       }
@@ -315,6 +315,68 @@ export default function App() {
       return { ...u, pts, diff: Math.abs(u.goals - goalsSoFar) };
     }).sort((a, b) => b.pts - a.pts || a.diff - b.diff).map((u, i) => ({ ...u, rank: i + 1 }));
   }, [activePlayers, matches, goalsSoFar]);
+
+  // --- STATS: OPTIMIST / PESSIMIST ---
+  const optimist = useMemo(() => {
+    if (!activePlayers.length) return null;
+    return activePlayers.reduce((max, u) => (!max || (u.goals || 0) > (max.goals || 0)) ? u : max, null);
+  }, [activePlayers]);
+  const pessimist = useMemo(() => {
+    if (!activePlayers.length) return null;
+    return activePlayers.reduce((min, u) => (!min || (u.goals || 0) < (min.goals || 0)) ? u : min, null);
+  }, [activePlayers]);
+
+  // --- STATS: UNIQUE TIPS (flagga om < 3 tippat ett utfall) ---
+  const uniqueTips = useMemo(() => {
+    const flags = {};
+    matches.forEach(m => {
+      const counts = { '1': [], 'X': [], '2': [] };
+      activePlayers.forEach(p => {
+        const pick = p.predictions?.[m.id];
+        if (pick) counts[pick].push(p.name.split(' ')[0]);
+      });
+      ['1','X','2'].forEach(sign => {
+        if (counts[sign].length > 0 && counts[sign].length < 3) {
+          if (!flags[m.id]) flags[m.id] = [];
+          flags[m.id].push({ sign, names: counts[sign] });
+        }
+      });
+    });
+    return flags;
+  }, [activePlayers, matches]);
+
+  // --- STATS: FOLKETS SLUTSTÄLLNING WINNER ---
+  const folketsLeader = useMemo(() => {
+    if (!activePlayers.length) return null;
+    const simulated = activePlayers.map(u => {
+      let pts = 0;
+      matches.forEach(m => {
+        const folkSign = folketsTips[m.id];
+        if (folkSign && folkSign !== '-' && u.predictions?.[m.id] === folkSign) pts++;
+      });
+      return { ...u, pts };
+    }).sort((a, b) => b.pts - a.pts);
+    return simulated[0] || null;
+  }, [activePlayers, matches, folketsTips]);
+
+  // --- PRISPOTT CALCULATION ---
+  const adminCost = 0; // Uppdateras från Firebase om administrativKostnad finns i appConfig
+  const prizePool = useMemo(() => {
+    const n = activePlayers.length;
+    const total = n * 100 - adminCost;
+    if (total <= 0) return { total: 0, first: 0, second: 0, third: 0 };
+    const third = 100;
+    if (n >= 20) {
+      const remaining = total - third;
+      const first = Math.round((remaining * 0.70) / 100) * 100;
+      const second = Math.round((remaining * 0.30) / 100) * 100;
+      return { total, first, second, third };
+    } else {
+      const first = Math.round((total * 0.60) / 100) * 100;
+      const second = Math.round((total * 0.30) / 100) * 100;
+      return { total, first, second, third };
+    }
+  }, [activePlayers.length, adminCost]);
 
   // --- HANDLERS ---
   const handleLogin = (e) => {
@@ -500,7 +562,7 @@ export default function App() {
              {/* PRISPOTT */}
              <div className="bg-vmdark text-white rounded-[2rem] shadow-xl overflow-hidden">
                <button onClick={() => setIsPrizeExpanded(!isPrizeExpanded)} className="w-full p-6 flex justify-between items-center">
-                 <h3 className="font-black text-xs uppercase tracking-widest text-vmgold flex items-center gap-2"><Trophy size={14}/> Prispott &mdash; {activePlayers.length * 100} kr totalt</h3>
+                 <h3 className="font-black text-xs uppercase tracking-widest text-vmgold flex items-center gap-2"><Trophy size={14}/> Prispott &mdash; {prizePool.total} kr totalt</h3>
                  {isPrizeExpanded ? <ChevronUp size={16} className="text-vmgold"/> : <ChevronDown size={16} className="text-vmgold"/>}
                </button>
                {isPrizeExpanded && (
