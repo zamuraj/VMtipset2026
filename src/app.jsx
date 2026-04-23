@@ -90,7 +90,7 @@ export default function App() {
     const [activeTab, setActiveTab] = useState('leaderboard');
     const [matches, setMatches] = useState(initialMatches);
     const [tips, setTips] = useState([
-        { id: 'admin', name: 'Arrangör Admin', email: 'zettergren.emil@gmail.com', password: 'mitthemligalosenord', groups: ['Ledningen'], goals: 132, predictions: {}, isApproved: true, isAdmin: true },
+        { id: 'admin', name: 'Arrangör Admin', email: 'zettergren.emil@gmail.com', password: 'TELE1fon', groups: ['Ledningen'], goals: 132, predictions: {}, isApproved: true, isAdmin: true },
         { id: 1, name: 'Adam Johansson', email: 'adam@test.se', groups: ['Säljarna', 'Dalabyggsam'], goals: 110, isApproved: true, isAdmin: false, predictions: { 1: '1', 2: '1' } },
         { id: 2, name: 'Anders Björk', email: 'anders@test.se', groups: ['Projektledare', 'Gubbarna'], goals: 125, isApproved: true, isAdmin: false, predictions: { 1: 'X', 2: '2' } },
     ]);
@@ -231,7 +231,7 @@ export default function App() {
                         )}
 
                         {authError && <div className="text-red-400 text-sm font-bold flex items-center bg-red-500/10 p-3 rounded-lg border border-red-500/20"><AlertCircle size={16} className="mr-2 shrink-0" />{authError}</div>}
-                        <button type="submit" className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-black py-4 rounded-xl shadow-lg transition-all transform hover:scale-[1.02] uppercase tracking-wider">ÖPPNA TIPSET</button>
+                        <button type="submit" className="w-full bg-vmgold hover:bg-yellow-400 text-vmdark font-black py-4 rounded-xl shadow-[0_0_20px_rgba(251,191,36,0.3)] transition-all transform hover:scale-[1.02] uppercase tracking-wider">ÖPPNA TIPSET</button>
                     </form>
                 ) : (
                     <div className="text-center space-y-4">
