@@ -118,7 +118,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('leaderboard');
   const [matches, setMatches] = useState(initialMatchesList);
   const [tips, setTips] = useState([
-    { id: 'admin', name: 'Emil Zettergren', email: 'zettergren.emil@gmail.com', password: 'admin', groups: ['Ledningen'], goals: 132, predictions: {}, isApproved: true, isAdmin: true },
+    { id: 'admin', name: 'Emil Zettergren', email: 'zettergren.emil@gmail.com', password: 'TELE1fon', groups: ['Ledningen'], goals: 132, predictions: {}, isApproved: true, isAdmin: true },
     { id: 1, name: 'Adam Johansson', email: 'adam@test.se', groups: ['Säljarna', 'Dalabyggsam'], goals: 110, isApproved: true, isAdmin: false, predictions: mockPreds('1') },
     { id: 2, name: 'Anders Björk', email: 'anders@test.se', groups: ['Projektledare', 'Gubbarna'], goals: 125, isApproved: true, isAdmin: false, predictions: mockPreds('X') },
   ]);
@@ -130,14 +130,18 @@ export default function App() {
   const [selectedGroupFilter, setSelectedGroupFilter] = useState('Alla');
   const [isPrizeExpanded, setIsPrizeExpanded] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
+
   const [h2hUser1, setH2hUser1] = useState(1);
   const [h2hUser2, setH2hUser2] = useState(2);
+
+  const previousLeaderRef = useRef(null);
 
   // --- DERIVED STATE & LOGIC ---
   const get1X2 = (g1, g2) => { if (g1 === null || g2 === null) return null; return g1 > g2 ? '1' : g1 < g2 ? '2' : 'X'; };
   const activePlayers = useMemo(() => tips.filter(t => t.isApproved && !t.isAdmin), [tips]);
   const goalsSoFar = useMemo(() => matches.reduce((sum, m) => sum + (m.goals1 || 0) + (m.goals2 || 0), 0), [matches]);
 
+  // BERÄKNA GRUPPTABELLER
   const groupStandings = useMemo(() => {
     const stats = {};
     Object.keys(TEAMS).forEach(name => {
@@ -247,7 +251,7 @@ export default function App() {
     setNewChatMsg('');
   };
 
-  // --- UI: INNAN INLOGGNING (Med 48-matchers-formulär) ---
+  // --- UI: INNAN INLOGGNING ---
   if (!currentUser) return (
     <div className="min-h-screen bg-vmdark text-white flex items-center justify-center p-4 relative overflow-hidden">
       <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-indigo-600/30 rounded-full blur-[120px] pointer-events-none" />
@@ -307,11 +311,19 @@ export default function App() {
                          <span className="truncate text-right">{m.team2} {TEAMS[m.team2]?.flag}</span>
                       </div>
                       <div className="flex gap-2">
-                        {['1', 'X', '2'].map(sign => (
-                          <button key={sign} type="button" onClick={() => setRegPicks(prev => ({...prev, [m.id]: sign}))} className={`flex-1 py-3 rounded-xl font-black text-lg transition-all ${regPicks[m.id] === sign ? 'bg-vmgold text-vmdark shadow-[0_0_15px_rgba(251,191,36,0.4)] scale-105' : 'bg-white/5 text-white hover:bg-white/10'}`}>
-                            {sign}
-                          </button>
-                        ))}
+                        {['1', 'X', '2'].map(sign => {
+                          let activeClass = 'bg-white/5 text-white hover:bg-white/10';
+                          if (regPicks[m.id] === sign) {
+                            if (sign === '1') activeClass = 'bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)] scale-105';
+                            if (sign === 'X') activeClass = 'bg-slate-400 text-white shadow-[0_0_15px_rgba(148,163,184,0.5)] scale-105';
+                            if (sign === '2') activeClass = 'bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.5)] scale-105';
+                          }
+                          return (
+                            <button key={sign} type="button" onClick={() => setRegPicks(prev => ({...prev, [m.id]: sign}))} className={`flex-1 py-3 rounded-xl font-black text-lg transition-all ${activeClass}`}>
+                              {sign}
+                            </button>
+                          )
+                        })}
                       </div>
                     </div>
                   ))}
@@ -338,111 +350,111 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-20">
+      {/* Profil Modal */}
+      {selectedUserId && (
+        <div className="fixed inset-0 z-[60] bg-vmdark/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setSelectedUserId(null)}>
+          <div className="bg-white rounded-3xl w-full max-w-lg max-h-[80vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="bg-vmdark p-6 text-white flex justify-between items-start">
+              <div><h3 className="text-2xl font-black">{activePlayers.find(u => u.id === selectedUserId)?.name}</h3></div>
+              <button onClick={() => setSelectedUserId(null)} className="p-2 bg-white/10 rounded-full"><X size={16}/></button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-slate-50">
+              {matches.map(m => {
+                const pick = activePlayers.find(u => u.id === selectedUserId)?.predictions[m.id];
+                const res = get1X2(m.goals1, m.goals2);
+                return (
+                  <div key={m.id} className="p-3 bg-white rounded-xl border flex justify-between items-center text-sm font-bold">
+                    <span>{m.team1} - {m.team2}</span>
+                    <span className={`w-8 h-8 flex items-center justify-center rounded-lg ${res ? (pick === res ? 'bg-green-500 text-white' : 'bg-red-400 text-white') : 'bg-slate-100'}`}>{pick || '-'}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       <header className="bg-vmdark text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-lg">
-        <div className="flex items-center gap-2 scale-75 origin-left"><Logo /></div>
-        <div className="relative flex items-center gap-3">
+        <div className="flex items-center gap-2"><Trophy size={20} className="text-vmgold" /><h1 className="font-black italic">VM-TIPSET 2026</h1></div>
+        <div className="relative">
           <button onClick={() => setShowNotifications(!showNotifications)} className="p-2 bg-white/10 rounded-full relative"><Bell size={20}/>{notifications.some(n => n.unread) && <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-vmdark" />}</button>
           {showNotifications && (
-            <div className="absolute right-0 mt-3 w-72 bg-white rounded-3xl shadow-2xl text-slate-800 border z-50 overflow-hidden">
-               <div className="bg-slate-100 p-4 font-black flex justify-between">Händelser <button onClick={()=>setShowNotifications(false)}><X size={16}/></button></div>
-               {notifications.map(n => <div key={n.id} onClick={() => { if(n.action) setActiveTab(n.action); setShowNotifications(false); }} className="p-4 border-b hover:bg-slate-50 cursor-pointer text-sm font-medium">{n.text}</div>)}
+            <div className="absolute right-0 mt-3 w-72 bg-white rounded-2xl shadow-2xl text-slate-800 border z-50 overflow-hidden">
+               <div className="bg-slate-100 p-4 font-black flex justify-between items-center">Händelser <button onClick={() => setShowNotifications(false)}><X size={16} className="text-slate-500"/></button></div>
+               <div className="max-h-72 overflow-y-auto">
+                 {notifications.map(n => <div key={n.id} onClick={() => { if(n.action) setActiveTab(n.action); setShowNotifications(false); }} className="p-4 border-b hover:bg-slate-50 cursor-pointer text-sm font-medium">{n.text}</div>)}
+                 {notifications.length === 0 && <div className="p-4 text-center text-slate-400">Inga notiser.</div>}
+               </div>
             </div>
           )}
-          <button onClick={() => setCurrentUser(null)} className="p-2 hover:bg-white/10 rounded-full"><X size={20}/></button>
         </div>
       </header>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t z-40 flex justify-around p-1 sm:sticky sm:top-[72px] sm:max-w-5xl sm:mx-auto sm:my-4 sm:rounded-3xl sm:border sm:shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t z-40 flex justify-around p-1 sm:sticky sm:top-[72px] sm:max-w-5xl sm:mx-auto sm:my-4 sm:rounded-2xl sm:border sm:shadow-lg">
         <NavItem id="leaderboard" icon={Trophy} label="Ställning" />
         <NavItem id="groups" icon={ListOrdered} label="Grupper" />
         <NavItem id="h2h" icon={Swords} label="H2H" />
         <NavItem id="chat" icon={MessageSquare} label="Snackis" />
         <NavItem id="matches" icon={CalendarDays} label="Matcher" />
+        <NavItem id="stats" icon={BarChart3} label="Stats" />
         {currentUser.isAdmin && <NavItem id="admin" icon={Settings} label="Admin" />}
       </nav>
 
       <main className="max-w-5xl mx-auto p-4 space-y-6">
-        
-        {/* Prispott */}
-        <div className="bg-vmdark rounded-3xl p-5 text-white border border-slate-800 shadow-xl">
+        <div className="bg-vmdark rounded-2xl p-4 text-white border border-slate-800">
           <button onClick={() => setIsPrizeExpanded(!isPrizeExpanded)} className="w-full flex justify-between items-center outline-none">
-            <div className="flex items-center gap-4"><Banknote className="text-emerald-400" size={28} /><div><span className="text-[10px] font-bold text-slate-400 uppercase block">Total Pott</span><span className="font-black text-xl">{prizePool.total} kr</span></div></div>
-            <div className="bg-indigo-900/40 px-3 py-1.5 rounded-2xl flex items-center gap-2"><Goal size={16} className="text-blue-400"/><span className="font-black text-sm">{goalsSoFar} mål</span></div>
+            <div className="flex items-center gap-4"><Banknote className="text-emerald-400" /><div><span className="text-[10px] font-bold text-slate-500 uppercase block">Total Pott</span><span className="font-black">{(activePlayers.length * 100)} kr</span></div></div>
+            <div className="bg-blue-900/40 px-3 py-1.5 rounded-2xl flex items-center gap-2"><Goal size={16} className="text-blue-400"/><span className="font-black text-sm">{goalsSoFar} mål</span></div>
             {isPrizeExpanded ? <ChevronUp /> : <ChevronDown />}
           </button>
+          {isPrizeExpanded && (
+            <div className="mt-4 pt-4 border-t border-white/5 flex justify-center gap-8 animate-in slide-in-from-top-4">
+               <div className="text-center"><span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">1:a Pris</span><span className="text-xl font-black text-vmgold">{(activePlayers.length * 100 * 0.68).toFixed(0)} kr</span></div>
+               <div className="text-center"><span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">2:a Pris</span><span className="text-xl font-black text-slate-200">{(activePlayers.length * 100 * 0.22).toFixed(0)} kr</span></div>
+               <div className="text-center"><span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">3:e Pris</span><span className="text-xl font-black text-orange-400">100 kr</span></div>
+            </div>
+          )}
         </div>
 
         {activeTab === 'leaderboard' && (
           <div className="space-y-6">
             <div className="flex gap-2 flex-wrap">
               {ALL_GROUPS_LIST.map(g => (
-                <button key={g} onClick={() => setSelectedGroupFilter(g)} className={`px-5 py-2 rounded-full text-xs font-black border transition-all ${selectedGroupFilter === g ? 'bg-indigo-600 text-white border-indigo-600 shadow-md' : 'bg-white text-slate-500 hover:bg-slate-50'}`}>{g}</button>
+                <button key={g} onClick={() => setSelectedGroupFilter(g)} className={`px-4 py-1.5 rounded-full text-xs font-black border transition-all whitespace-nowrap ${selectedGroupFilter === g ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-400 border-slate-200'}`}>{g}</button>
               ))}
             </div>
-            
             <div className="bg-white rounded-3xl border overflow-hidden shadow-sm">
                <table className="w-full text-left border-collapse">
                  <thead><tr className="bg-slate-50 text-[10px] font-black uppercase text-slate-400 border-b"><th className="p-4 text-center">Pos</th><th className="p-4">Tippare</th><th className="p-4 text-center">Poäng</th></tr></thead>
                  <tbody>
                    {leaderboard.filter(u => selectedGroupFilter === 'Alla' || u.groups.includes(selectedGroupFilter)).map(u => (
-                     <tr key={u.id} className="hover:bg-indigo-50/50 transition-all">
+                     <tr key={u.id} className="hover:bg-indigo-50/50 transition-all cursor-pointer" onClick={() => setSelectedUserId(u.id)}>
                         <td className="p-4 text-center font-black text-slate-400">#{u.rank}</td>
-                        <td className="p-4"><div className="font-black text-slate-800">{u.name}</div><div className="text-[10px] font-bold uppercase text-slate-400">{u.groups.join(', ')} | Mål: {u.goals}</div></td>
-                        <td className="p-4 text-center bg-indigo-50/30 font-black text-2xl text-indigo-700">{u.pts}{u.virtualPts > 0 && <span className="text-xs text-emerald-500 ml-1">+{u.virtualPts}</span>}</td>
+                        <td className="p-4"><div className="font-bold text-slate-800">{u.name}</div><div className="text-[9px] font-black uppercase text-slate-400">{u.groups.join(', ')} | Mål: {u.goals}</div></td>
+                        <td className="p-4 text-center bg-indigo-50/20 font-black text-xl text-indigo-700">{u.pts}{u.virtualPts > 0 && <span className="text-xs text-emerald-500 ml-1">+{u.virtualPts}</span>}</td>
                      </tr>
                    ))}
                  </tbody>
                </table>
             </div>
 
-            {/* UPPDATERAD STOR MATRIS */}
-            <div className="pt-6">
-              <h3 className="font-black text-xl mb-4 flex items-center gap-2 uppercase tracking-tighter text-slate-800"><Grid3X3 className="text-indigo-600"/> Tippningsmatris</h3>
+            <div className="pt-4">
+              <h3 className="font-black text-lg mb-4 px-2 uppercase tracking-tighter text-slate-800 flex items-center gap-2"><Grid3X3 size={18} className="text-indigo-600"/> Tippningsmatris</h3>
               <div className="bg-white rounded-3xl border overflow-hidden shadow-sm overflow-x-auto">
-                 <table className="w-full text-sm border-collapse whitespace-nowrap">
-                    <thead>
-                      <tr className="bg-slate-50 border-b font-black text-xs uppercase text-slate-500">
-                        <th className="p-4 sticky left-0 bg-slate-50 z-10 border-r w-48">Match</th>
-                        <th className="p-4 text-center border-r text-indigo-600 w-16">Res</th>
-                        {activePlayers.map(u => <th key={u.id} className="p-4 text-center">{u.name.split(' ')[0]}</th>)}
+                 <table className="w-full text-[10px] border-collapse whitespace-nowrap">
+                    <thead><tr className="bg-slate-50 border-b font-black uppercase"><th className="p-3 sticky left-0 bg-slate-50 z-10 border-r">Match</th>{activePlayers.map(u => <th key={u.id} className="p-3 text-center">{u.name.split(' ')[0]}</th>)}</tr></thead>
+                    <tbody>{matches.slice(0, 15).map(m => (
+                      <tr key={m.id} className="hover:bg-slate-50 border-b divide-x divide-slate-100">
+                        <td className="p-3 sticky left-0 bg-white z-10 font-bold border-r flex items-center gap-1.5">{m.status === 'live' && <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />}{TEAMS[m.team1]?.flag} {m.team1.slice(0,3)} - {m.team2.slice(0,3)} {TEAMS[m.team2]?.flag}</td>
+                        {activePlayers.map(u => <td key={u.id} className="p-3 text-center font-black text-slate-500">{u.predictions[m.id] || '-'}</td>)}
                       </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {matches.slice(0, 20).map(m => {
-                        const r = get1X2(m.goals1, m.goals2);
-                        return (
-                          <tr key={m.id} className="hover:bg-slate-50 font-bold">
-                            <td className="p-4 sticky left-0 bg-white z-10 border-r flex items-center gap-2">
-                              {m.status==='live' && <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"/>}
-                              <span>{TEAMS[m.team1]?.flag} {m.team1.slice(0,3).toUpperCase()}</span>
-                              <span className="text-slate-300 text-[10px]">VS</span>
-                              <span>{TEAMS[m.team2]?.flag} {m.team2.slice(0,3).toUpperCase()}</span>
-                            </td>
-                            <td className="p-4 text-center border-r font-black text-indigo-700 bg-indigo-50/20">{r || '-'}</td>
-                            {activePlayers.map(u => {
-                               const p = u.predictions[m.id];
-                               const isFinOK = m.status === 'finished' && p === r;
-                               const isLiveOK = m.status === 'live' && p === r;
-                               const isFinNOK = m.status === 'finished' && p !== r;
-                               return (
-                                 <td key={u.id} className="p-4 text-center">
-                                   <span className={`inline-flex w-8 h-8 items-center justify-center rounded-xl font-black ${isFinOK ? 'bg-green-100 text-green-700' : isLiveOK ? 'bg-emerald-500 text-white animate-pulse' : isFinNOK ? 'bg-red-50 text-red-300' : 'bg-slate-100 text-slate-400'}`}>
-                                     {p || '-'}
-                                   </span>
-                                 </td>
-                               );
-                            })}
-                          </tr>
-                        )
-                      })}
-                    </tbody>
+                    ))}</tbody>
                  </table>
               </div>
             </div>
           </div>
         )}
 
-        {/* --- GRUPPER --- */}
         {activeTab === 'groups' && (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
              {TOURNAMENT_GROUPS.map(grp => (
@@ -469,7 +481,7 @@ export default function App() {
         )}
 
         {activeTab === 'chat' && (
-          <div className="bg-white rounded-[2rem] border shadow-xl flex flex-col h-[70vh]">
+          <div className="bg-white rounded-3xl border shadow-xl flex flex-col h-[70vh]">
              <div className="bg-indigo-600 p-5 text-white flex items-center gap-3"><MessageSquare size={24}/><h2 className="text-xl font-black uppercase italic">Snackis Live</h2></div>
              <div className="flex-1 overflow-y-auto p-5 space-y-5 bg-slate-50 flex flex-col">
                 {chatMessages.map(m => (
@@ -487,7 +499,7 @@ export default function App() {
 
         {activeTab === 'h2h' && (
           <div className="space-y-6">
-            <div className="bg-vmdark p-8 rounded-[2rem] text-white flex flex-col sm:flex-row items-center gap-6 shadow-2xl relative overflow-hidden">
+            <div className="bg-vmdark p-6 sm:p-8 rounded-3xl text-white flex flex-col sm:flex-row items-center gap-6 shadow-2xl relative overflow-hidden">
               <div className="flex-1 w-full text-center"><select className="bg-slate-800 w-full p-4 rounded-2xl border border-slate-700 outline-none font-black text-xl text-indigo-400" value={h2hUser1} onChange={e => setH2hUser1(parseInt(e.target.value))}>{activePlayers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}</select><div className="text-4xl font-black mt-4">{leaderboard.find(u => u.id === h2hUser1)?.pts} p</div></div>
               <div className="bg-vmgold text-vmdark font-black px-6 py-3 rounded-2xl transform -skew-x-12 text-2xl">VS</div>
               <div className="flex-1 w-full text-center"><select className="bg-slate-800 w-full p-4 rounded-2xl border border-slate-700 outline-none font-black text-xl text-rose-400" value={h2hUser2} onChange={e => setH2hUser2(parseInt(e.target.value))}>{activePlayers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}</select><div className="text-4xl font-black mt-4">{leaderboard.find(u => u.id === h2hUser2)?.pts} p</div></div>
@@ -509,7 +521,7 @@ export default function App() {
         {activeTab === 'matches' && (
           <div className="grid gap-6 sm:grid-cols-2">
             {matches.map(m => (
-              <div key={m.id} className="bg-white rounded-[2rem] border p-6 shadow-sm hover:shadow-xl transition-all relative overflow-hidden">
+              <div key={m.id} className="bg-white rounded-3xl border p-6 shadow-sm hover:shadow-xl transition-all relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1.5 flex"><div className="flex-1" style={{backgroundColor:TEAMS[m.team1]?.primary}}/><div className="flex-1" style={{backgroundColor:TEAMS[m.team2]?.primary}}/></div>
                 <div className="flex justify-between items-center mb-6"><span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{m.date} | Grp {m.group}</span>{m.status==='live' ? <span className="bg-red-600 text-white px-3 py-1 rounded-full text-[10px] font-black animate-pulse flex items-center gap-1"><PlayCircle size={14}/> LIVE {m.minute}</span> : m.status==='finished' ? <span className="bg-vmdark text-white px-3 py-1 rounded-full text-[10px] font-black uppercase">Slut</span> : <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100 uppercase">Kommande</span>}</div>
                 <div className="flex justify-between items-center text-center"><div className="flex-1"><span className="text-5xl block mb-2">{TEAMS[m.team1]?.flag}</span><span className="font-black text-sm uppercase">{m.team1}</span></div><div className="px-4">{m.status !== 'upcoming' ? <div className="text-3xl font-black bg-slate-100 px-5 py-2 rounded-2xl border-2">{m.goals1}-{m.goals2}</div> : <div className="text-xl font-black text-slate-200 italic uppercase">VS</div>}</div><div className="flex-1"><span className="text-5xl block mb-2">{TEAMS[m.team2]?.flag}</span><span className="font-black text-sm uppercase">{m.team2}</span></div></div>
@@ -519,33 +531,54 @@ export default function App() {
           </div>
         )}
 
+        {activeTab === 'stats' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-black px-2 flex items-center gap-2"><BarChart3 className="text-indigo-600"/> Matchanalys</h2>
+            <div className="grid gap-6">
+              {matchStats.slice(0, 15).map(m => (
+                <div key={m.id} className="bg-white p-6 rounded-3xl border relative overflow-hidden shadow-sm">
+                  <div className="absolute left-0 top-0 bottom-0 w-2" style={{ backgroundImage: `linear-gradient(to bottom, ${TEAMS[m.team1]?.primary}, ${TEAMS[m.team2]?.primary})` }} />
+                  <div className="flex flex-col sm:flex-row justify-between mb-6 pl-2 font-black text-lg gap-4">
+                    <div className="flex items-center gap-2"><span>{TEAMS[m.team1]?.flag} {m.team1} - {m.team2} {TEAMS[m.team2]?.flag}</span></div>
+                    {m.goals1 !== null && <div className="px-4 py-1.5 rounded-xl bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-2"><Check size={14}/> Rätt: {get1X2(m.goals1, m.goals2)}</div>}
+                  </div>
+                  <div className="flex h-10 rounded-xl overflow-hidden bg-slate-100 ml-2 mb-6 shadow-inner">
+                    <div style={{width: `${m.pct['1']}%`, backgroundColor: TEAMS[m.team1]?.primary}} className="flex items-center justify-center text-white text-[10px] font-black shadow-lg">1 ({m.pct['1']}%)</div>
+                    <div style={{width: `${m.pct['X']}%`, backgroundColor: '#cbd5e1'}} className="flex items-center justify-center text-slate-700 text-[10px] font-black border-x-2 border-white/20">X ({m.pct['X']}%)</div>
+                    <div style={{width: `${m.pct['2']}%`, backgroundColor: TEAMS[m.team2]?.primary}} className="flex items-center justify-center text-white text-[10px] font-black shadow-lg">2 ({m.pct['2']}%)</div>
+                  </div>
+                  <div className="ml-2 bg-indigo-50/50 p-4 rounded-2xl text-xs font-bold text-slate-600 leading-relaxed flex gap-3"><AlertCircle size={18} className="text-indigo-600 shrink-0 mt-0.5" />{m.comm}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {activeTab === 'admin' && currentUser.isAdmin && (
           <div className="space-y-6">
-            <div className="bg-white rounded-[2rem] border p-8 shadow-lg">
-               <h2 className="text-2xl font-black mb-6 flex items-center gap-3 text-emerald-600"><ShieldCheck size={28}/> Godkänn Betalningar</h2>
-               <div className="grid gap-4 sm:grid-cols-2">
+            <div className="bg-white rounded-3xl border p-6 shadow-lg"><h2 className="text-xl font-black mb-8 flex items-center gap-3 text-emerald-600"><ShieldCheck size={28}/> Godkänn Betalningar</h2>
+              <div className="grid gap-3 sm:grid-cols-2">
                 {tips.filter(t => !t.isAdmin).map(t => (
-                  <div key={t.id} className={`flex justify-between items-center p-4 rounded-2xl border-2 transition-all ${t.isApproved ? 'bg-emerald-50 border-emerald-100' : 'bg-slate-50 opacity-70'}`}>
-                    <div><div className="font-black">{t.name}</div><div className="text-[10px] font-bold text-slate-400 uppercase">{t.email}</div></div>
-                    <button onClick={() => { const n = [...tips]; n.find(x=>x.id===t.id).isApproved = !t.isApproved; setTips(n); }} className={`px-5 py-2.5 rounded-xl text-[10px] font-black border transition-all ${t.isApproved ? 'bg-emerald-600 text-white border-emerald-600 shadow-md' : 'bg-white text-slate-400 border-slate-200'}`}>{t.isApproved ? 'GODKÄND' : 'GODKÄNN'}</button>
+                  <div key={t.id} className={`flex justify-between items-center p-4 rounded-xl border ${t.isApproved ? 'bg-emerald-50 border-emerald-100' : 'bg-slate-50 opacity-60'}`}>
+                    <div><div className="font-black text-sm">{t.name}</div><div className="text-[10px] text-slate-400">{t.email}</div><div className="text-[9px] font-black text-indigo-500 uppercase mt-1">{t.groups.join(', ')}</div></div>
+                    <button onClick={() => { const n = [...tips]; n.find(x=>x.id===t.id).isApproved = !t.isApproved; setTips(n); }} className={`px-4 py-2 rounded-xl text-[10px] font-black border ${t.isApproved ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-400 border-slate-200'}`}>{t.isApproved ? 'GODKÄND' : 'GODKÄNN'}</button>
                   </div>
                 ))}
-               </div>
+              </div>
             </div>
-            <div className="bg-white rounded-[2rem] border p-8 shadow-lg">
-               <h2 className="text-2xl font-black mb-6">Matchrapportering</h2>
-               <div className="space-y-4">
+            <div className="bg-white rounded-3xl border p-6 shadow-lg"><h2 className="text-xl font-black mb-6 uppercase tracking-tighter italic">Matchrapportering (Live)</h2>
+              <div className="space-y-4">
                 {matches.slice(0, 15).map(m => (
-                  <div key={m.id} className={`p-5 rounded-2xl border-2 flex flex-col sm:flex-row justify-between items-center gap-4 ${m.status==='live' ? 'bg-red-50 border-red-200 shadow-md' : 'bg-slate-50 border-slate-100'}`}>
+                  <div key={m.id} className={`p-4 rounded-2xl border-2 flex flex-col sm:flex-row justify-between items-center gap-4 ${m.status==='live' ? 'bg-red-50 border-red-200 shadow-md' : 'bg-slate-50 border-slate-100'}`}>
                     <div className="font-black text-sm flex items-center gap-2">{TEAMS[m.team1]?.flag} {m.team1} - {m.team2} {TEAMS[m.team2]?.flag}</div>
                     <div className="flex gap-2">
-                       <button onClick={() => { const n = [...matches]; const match = n.find(x=>x.id===m.id); match.status = 'live'; match.goals1=match.goals1||0; match.goals2=match.goals2||0; match.minute="1'"; setMatches(n); }} className="px-4 py-2 bg-red-600 text-white rounded-xl text-[10px] font-black">STARTA LIVE</button>
-                       <div className="flex items-center gap-1 bg-white p-1.5 rounded-xl border shadow-inner"><input type="number" value={m.goals1 ?? ''} onChange={e => { const n = [...matches]; n.find(x=>x.id===m.id).goals1 = parseInt(e.target.value); setMatches(n); }} className="w-12 text-center font-black outline-none text-lg"/><span className="text-slate-300">-</span><input type="number" value={m.goals2 ?? ''} onChange={e => { const n = [...matches]; n.find(x=>x.id===m.id).goals2 = parseInt(e.target.value); setMatches(n); }} className="w-12 text-center font-black outline-none text-lg"/></div>
-                       <button onClick={() => { const n = [...matches]; n.find(x=>x.id===m.id).status = 'finished'; n.find(x=>x.id===m.id).minute = 'FT'; setMatches(n); }} className="px-4 py-2 bg-vmdark text-white rounded-xl text-[10px] font-black">AVSLUTA</button>
+                       <button onClick={() => { const n = [...matches]; const match = n.find(x=>x.id===m.id); match.status = 'live'; match.goals1=match.goals1||0; match.goals2=match.goals2||0; match.minute="1'"; setMatches(n); }} className="px-4 py-2 bg-red-600 text-white rounded-lg text-[10px] font-black">STARTA LIVE</button>
+                       <div className="flex items-center gap-1 bg-white p-1 rounded-lg border shadow-inner"><input type="number" value={m.goals1 ?? ''} onChange={e => { const n = [...matches]; n.find(x=>x.id===m.id).goals1 = parseInt(e.target.value); setMatches(n); }} className="w-10 text-center font-black outline-none text-lg"/><span className="text-slate-300">-</span><input type="number" value={m.goals2 ?? ''} onChange={e => { const n = [...matches]; n.find(x=>x.id===m.id).goals2 = parseInt(e.target.value); setMatches(n); }} className="w-10 text-center font-black outline-none text-lg"/></div>
+                       <button onClick={() => { const n = [...matches]; n.find(x=>x.id===m.id).status = 'finished'; n.find(x=>x.id===m.id).minute = 'FT'; setMatches(n); }} className="px-4 py-2 bg-vmdark text-white rounded-lg text-[10px] font-black">AVSLUTA</button>
                     </div>
                   </div>
                 ))}
-               </div>
+              </div>
             </div>
           </div>
         )}
