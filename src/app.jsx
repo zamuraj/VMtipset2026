@@ -530,7 +530,7 @@ export default function App() {
       <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none" />
       <div className="w-full max-w-md bg-white/5 backdrop-blur-3xl p-8 rounded-[2rem] border border-white/10 shadow-2xl z-10">
         <Logo />
-        {timeLeft && <div className="mt-4 mb-2 p-3 bg-vmdark/50 backdrop-blur-sm border border-vmgold/20 text-vmgold text-xs font-black rounded-2xl uppercase tracking-widest text-center shadow-lg animate-pulse">{timeLeft}</div>}
+        {!showRegister && timeLeft && <div className="mt-4 mb-2 p-3 bg-vmdark/50 backdrop-blur-sm border border-vmgold/20 text-vmgold text-xs font-black rounded-2xl uppercase tracking-widest text-center shadow-lg animate-pulse">{timeLeft}</div>}
         {!showRegister ? (
           <form onSubmit={handleLogin} className="mt-10 space-y-4">
             <input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} placeholder="Din e-post" className="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none" required />
@@ -545,7 +545,6 @@ export default function App() {
              {regStep === 1 ? (
                <>
                 <div className="flex justify-between items-center mb-2"><h2 className="font-bold">{editingParticipantId ? 'Redigera Deltagare' : '1. Dina Uppgifter'}</h2><button onClick={() => { setShowRegister(false); setEditingParticipantId(null); }}><X/></button></div>
-                {timeLeft && <div className="mt-4 mb-2 p-3 bg-vmdark/50 backdrop-blur-sm border border-vmgold/20 text-vmgold text-xs font-black rounded-2xl uppercase tracking-widest text-center shadow-lg animate-pulse">{timeLeft}</div>}
                 <input type="text" value={regName} onChange={e=>setRegName(e.target.value)} placeholder="Namn" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
                 <input type="email" value={regEmail} onChange={e=>setRegEmail(e.target.value)} placeholder="E-post" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
                 <input type="number" value={regGoals} onChange={e=>setRegGoals(e.target.value)} placeholder="Mål totalt i hela VM?" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
@@ -557,8 +556,8 @@ export default function App() {
              ) : (
                <div className="space-y-4">
                   <div className="flex justify-between items-center"><button onClick={() => setRegStep(1)} className="text-xs text-slate-400">← Bakåt</button><span className="text-vmgold text-xs font-black">{Object.keys(regPicks).length}/72 tippade</span></div>
-                  {timeLeft && <div className="sticky top-0 z-50 bg-vmdark/95 backdrop-blur-md p-4 mb-4 -mx-2 rounded-b-3xl text-vmgold text-xs font-black text-center shadow-xl border-b border-vmgold/20 animate-pulse">{timeLeft}</div>}
-                  <div className="max-h-[50vh] overflow-y-auto space-y-3 pr-2 no-scrollbar">
+                  <div className="max-h-[50vh] overflow-y-auto space-y-3 pr-2 no-scrollbar relative">
+                    {timeLeft && <div className="sticky top-0 z-50 bg-vmdark/95 backdrop-blur-md p-4 mb-4 -mx-2 rounded-b-3xl text-vmgold text-xs font-black text-center shadow-xl border-b border-vmgold/20 animate-pulse">{timeLeft}</div>}
                     {initialMatchesList.map(m => (
                       <div key={m.id} className="bg-black/30 p-5 rounded-[2rem] border border-white/5 space-y-4">
                         <div className="flex flex-col items-center gap-1">
