@@ -208,6 +208,27 @@ export default function App() {
   const [regEmail, setRegEmail] = useState('');
   const [regGoals, setRegGoals] = useState('');
   const [regPicks, setRegPicks] = useState({});
+  const [timeLeft, setTimeLeft] = useState('');
+
+  // --- TIMER LOGIC ---
+  useEffect(() => {
+    if (!deadline) return;
+    const interval = setInterval(() => {
+      const now = new Date();
+      const diff = deadline - now;
+      if (diff <= 0) {
+        setTimeLeft('Deadline passerad');
+        clearInterval(interval);
+      } else {
+        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((diff % (1000 * 60)) / 1000);
+        setTimeLeft(`${d} dagar, ${h} timmar, ${m} minuter, ${s} sekunder`);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [deadline]);
 
   // --- FIREBASE SYNC ---
   useEffect(() => {
@@ -509,6 +530,7 @@ export default function App() {
       <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none" />
       <div className="w-full max-w-md bg-white/5 backdrop-blur-3xl p-8 rounded-[2rem] border border-white/10 shadow-2xl z-10">
         <Logo />
+        {timeLeft && <div className="mt-2 px-3 py-1 bg-vmgold/10 text-vmgold text-[10px] font-black rounded-full uppercase tracking-widest text-center animate-pulse">{timeLeft}</div>}
         {!showRegister ? (
           <form onSubmit={handleLogin} className="mt-10 space-y-4">
             <input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} placeholder="Din e-post" className="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none" required />
@@ -568,7 +590,7 @@ export default function App() {
                               if(isWhite) cl += " text-slate-900 border border-slate-200 shadow-sm";
                             }
                             return (
-                              <button key={s} onClick={() => setRegPicks({...regPicks, [m.id]:s})} style={style} className={`flex-1 py-4 rounded-2xl font-black transition-all duration-300 ${cl}`}>{s}</button>
+                              <button key={s} onClick={() => setRegPicks(prev => ({...prev, [m.id]: prev[m.id] === s ? null : s}))} style={style} className={`flex-1 py-4 rounded-2xl font-black transition-all duration-300 ${cl}`}>{s}</button>
                             );
                           })}
                         </div>
@@ -589,7 +611,10 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-20">
       <header className="bg-vmdark/95 backdrop-blur-md text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-xl">
-        <div className="scale-75 origin-left"><Logo /></div>
+        <div className="scale-75 origin-left">
+          <Logo />
+          {timeLeft && <div className="mt-1 px-2 py-0.5 bg-vmgold/10 text-vmgold text-[8px] font-black rounded-full uppercase tracking-widest text-center animate-pulse">{timeLeft}</div>}
+        </div>
         <div className="flex items-center gap-4 relative">
           <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors">
             <Bell size={20} />
@@ -1217,7 +1242,7 @@ export default function App() {
                         ? `scale-105 shadow-md opacity-100 ring-2 ring-white/20 font-black${isWhite ? ' text-slate-900 border border-slate-300' : ' text-white'}`
                         : 'text-slate-500 font-bold opacity-70';
                       return (
-                        <button key={s} onClick={() => setRegPicks({...regPicks, [m.id]: s})} style={style} className={`flex-1 py-2.5 rounded-xl text-sm transition-all duration-200 ${cl}`}>{s}</button>
+                        <button key={s} onClick={() => setRegPicks(prev => ({...prev, [m.id]: prev[m.id] === s ? null : s}))} style={style} className={`flex-1 py-2.5 rounded-xl text-sm transition-all duration-200 ${cl}`}>{s}</button>
                       );
                     })}
                   </div>
