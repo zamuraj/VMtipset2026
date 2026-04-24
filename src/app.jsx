@@ -276,6 +276,8 @@ export default function App() {
   const [editingParticipantId, setEditingParticipantId] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editingUserId, setEditingUserId] = useState(null);
+  const [isLiveSyncActive, setIsLiveSyncActive] = useState(false);
+  const API_KEY = '4df5d7b0f4f2445d992db758adf311cc';
 
   // --- REGISTRATION DRAFT ---
   const [regStep, setRegStep] = useState(1);
@@ -328,6 +330,32 @@ export default function App() {
     }, (err) => console.error('Firebase Error HallOfFame:', err));
     return () => { unsubTips(); unsubMatches(); unsubChat(); unsubConfig(); unsubHof(); };
   }, []);
+
+  const fetchLiveResults = async () => {
+    try {
+      const response = await fetch('https://api.football-data.org/v4/competitions/WC/matches', { headers: { 'X-Auth-Token': API_KEY } });
+      const data = await response.json();
+      const map = { 'Mexico':'Mexiko', 'Canada':'Kanada', 'Slovakia':'Slovakien', 'Italy':'Italien', 'Morocco':'Marocko', 'Spain':'Spanien', 'Japan':'Japan', 'Brazil':'Brasilien', 'South Korea':'Sydkorea', 'Sweden':'Sverige', 'Jordan':'Jordanien', 'Germany':'Tyskland', 'Norway':'Norge', 'France':'Frankrike', 'Uzbekistan':'Uzbekistan', 'Uruguay':'Uruguay', 'Cameroon':'Kamerun', 'Netherlands':'Nederländerna', 'Australia':'Australien', 'Argentina':'Argentina', 'Belgium':'Belgien', 'Portugal':'Portugal', 'Denmark':'Danmark', 'South Africa':'Sydafrika', 'Czech Republic':'Tjeckien', 'Bosnia-Herzegovina':'Bosnien', 'Turkey':'Turkiet', 'Ivory Coast':'Elfenbenskusten', 'Tunisia':'Tunisien', 'Cape Verde':'Kap Verde', 'Egypt':'Egypten', 'Saudi Arabia':'Saudiarabien', 'New Zealand':'Nya Zeeland', 'Iraq':'Irak', 'Algeria':'Algeriet', 'Austria':'Österrike', 'DR Congo':'DR Kongo', 'Colombia':'Colombia', 'Croatia':'Kroatien', 'Ghana':'Ghana' };
+      data.matches?.forEach(mApi => {
+        const h = map[mApi.homeTeam.name] || mApi.homeTeam.name;
+        const a = map[mApi.awayTeam.name] || mApi.awayTeam.name;
+        const m = matches.find(x => x.team1 === h && x.team2 === a);
+        if (m) {
+          const g1 = mApi.score.fullTime.home, g2 = mApi.score.fullTime.away;
+          const st = mApi.status === 'FINISHED' ? 'finished' : (['IN_PLAY','LIVE','PAUSED'].includes(mApi.status) ? 'live' : 'upcoming');
+          if (m.goals1 !== g1 || m.goals2 !== g2 || m.status !== st) updateMatch(m.id, { goals1: g1, goals2: g2, status: st, minute: mApi.minute?.toString() || null });
+        }
+      });
+    } catch(e) { console.error("Live Sync Error:", e); }
+  };
+
+  useEffect(() => {
+    if (currentUser?.isAdmin && isLiveSyncActive) {
+      const interval = setInterval(fetchLiveResults, 60000);
+      fetchLiveResults();
+      return () => clearInterval(interval);
+    }
+  }, [currentUser, isLiveSyncActive]);
 
   // --- SESSION LOGIC ---
   useEffect(() => {
@@ -1236,7 +1264,12 @@ export default function App() {
             </div>
 
             <div className="bg-white/90 backdrop-blur-md rounded-[2.5rem] border p-8 shadow-xl">
-               <h2 className="text-2xl font-black mb-6 flex items-center gap-3"><PlayCircle className="text-indigo-600" size={28}/> Rapportera Resultat</h2>
+               <div className="flex justify-between items-center mb-6">
+                 <h2 className="text-2xl font-black flex items-center gap-3 text-slate-800"><PlayCircle className="text-indigo-600" size={28}/> Rapportera Resultat</h2>
+                 <button onClick={() => setIsLiveSyncActive(!isLiveSyncActive)} className={`px-6 py-3 rounded-2xl font-black transition-all flex items-center gap-2 ${isLiveSyncActive ? 'bg-red-500 text-white shadow-lg shadow-red-500/30 animate-pulse' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}>
+                    {isLiveSyncActive ? <><Activity size={18}/> 🔴 LIVE-SYNK AKTIV</> : <><PlayCircle size={18}/> ⚪ STARTA LIVE-SYNK</>}
+                 </button>
+               </div>
                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {matches.map(m => (
                     <div key={m.id} className="p-6 bg-slate-50 rounded-[2rem] border space-y-4">
@@ -1244,15 +1277,15 @@ export default function App() {
                        <div className="space-y-3">
                           <div className="flex items-center justify-between gap-2">
                              <div className="flex items-center gap-2 flex-1"><Flag code={TEAMS[m.team1]?.flag}/><span className="text-xs font-black truncate">{m.team1}</span></div>
-                             <input type="number" defaultValue={m.goals1} onBlur={e => updateMatch(m.id, { goals1: parseInt(e.target.value) || 0, status: 'finished' })} className="w-12 p-2 border rounded-xl text-center font-black outline-none bg-white"/>
+                             <input type="number" disabled={isLiveSyncActive} defaultValue={m.goals1} onBlur={e => updateMatch(m.id, { goals1: parseInt(e.target.value) || 0, status: 'finished' })} className="w-12 p-2 border rounded-xl text-center font-black outline-none bg-white disabled:opacity-50"/>
                           </div>
                           <div className="flex items-center justify-between gap-2">
                              <div className="flex items-center gap-2 flex-1"><Flag code={TEAMS[m.team2]?.flag}/><span className="text-xs font-black truncate">{m.team2}</span></div>
-                             <input type="number" defaultValue={m.goals2} onBlur={e => updateMatch(m.id, { goals2: parseInt(e.target.value) || 0, status: 'finished' })} className="w-12 p-2 border rounded-xl text-center font-black outline-none bg-white"/>
+                             <input type="number" disabled={isLiveSyncActive} defaultValue={m.goals2} onBlur={e => updateMatch(m.id, { goals2: parseInt(e.target.value) || 0, status: 'finished' })} className="w-12 p-2 border rounded-xl text-center font-black outline-none bg-white disabled:opacity-50"/>
                           </div>
                           <div className="flex gap-2">
-                            <input type="text" placeholder="Minut (ex 65)" defaultValue={m.minute} onBlur={e => updateMatch(m.id, { minute: e.target.value, status: e.target.value ? 'live' : 'finished' })} className="flex-1 p-2 border rounded-xl text-[10px] font-black outline-none bg-white"/>
-                       <button onClick={() => updateMatch(m.id, { status: 'upcoming', goals1: null, goals2: null, minute: null })} className="p-2 text-slate-300 hover:text-red-400 transition-colors"><X size={16}/></button>
+                             <input type="text" disabled={isLiveSyncActive} placeholder="Minut (ex 65)" defaultValue={m.minute} onBlur={e => updateMatch(m.id, { minute: e.target.value, status: e.target.value ? 'live' : 'finished' })} className="flex-1 p-2 border rounded-xl text-[10px] font-black outline-none bg-white disabled:opacity-50"/>
+                             <button disabled={isLiveSyncActive} onClick={() => updateMatch(m.id, { status: 'upcoming', goals1: null, goals2: null, minute: null })} className="p-2 text-slate-300 hover:text-red-400 transition-colors disabled:opacity-30"><X size={16}/></button>
                           </div>
                        </div>
                     </div>
