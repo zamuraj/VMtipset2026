@@ -456,11 +456,9 @@ export default function App() {
   const startEditing = (p) => {
     setEditingParticipantId(p.id);
     setRegName(p.name);
-    setRegEmail(p.email);
-    setRegGoals(p.goals);
+    setRegEmail(p.email || p.id);
+    setRegGoals(p.goals || '');
     setRegPicks(p.predictions || {});
-    setRegStep(2);
-    setShowRegister(true);
   };
 
   const deleteParticipant = async (id) => {
@@ -1087,6 +1085,54 @@ export default function App() {
                  </div>
               </div>
            </div>
+        </div>
+      )}
+      {editingParticipantId && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-vmdark/80 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-2xl rounded-[3rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="bg-vmdark p-6 text-white flex justify-between items-center">
+              <h2 className="font-black text-xl flex items-center gap-2"><Edit size={20} className="text-vmgold"/> Redigera Deltagare</h2>
+              <button onClick={() => setEditingParticipantId(null)} className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors"><X/></button>
+            </div>
+            <div className="p-6 space-y-3 border-b">
+              <input type="text" value={regName} onChange={e => setRegName(e.target.value)} placeholder="Namn" className="w-full p-3 rounded-xl bg-slate-50 border outline-none focus:border-indigo-400 font-bold text-sm"/>
+              <input type="email" value={regEmail} onChange={e => setRegEmail(e.target.value)} placeholder="E-post" className="w-full p-3 rounded-xl bg-slate-50 border outline-none focus:border-indigo-400 font-bold text-sm"/>
+              <input type="number" value={regGoals} onChange={e => setRegGoals(e.target.value)} placeholder="Mål totalt i hela VM?" className="w-full p-3 rounded-xl bg-slate-50 border outline-none focus:border-indigo-400 font-bold text-sm"/>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 space-y-3 no-scrollbar bg-slate-50/50" style={{maxHeight:'40vh'}}>
+              <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex justify-between">
+                <span>Match-tips</span>
+                <span className="text-indigo-500">{Object.keys(regPicks).length}/72 tippade</span>
+              </div>
+              {initialMatchesList.map(m => (
+                <div key={m.id} className="bg-white rounded-2xl border p-3 space-y-2">
+                  <div className="flex items-center justify-center gap-3 text-xs font-black">
+                    <div className="flex items-center gap-1.5 flex-1 justify-end"><span>{m.team1}</span><Flag code={TEAMS[m.team1]?.flag}/></div>
+                    <span className="text-slate-300 text-[10px]">vs</span>
+                    <div className="flex items-center gap-1.5 flex-1 justify-start"><Flag code={TEAMS[m.team2]?.flag}/><span>{m.team2}</span></div>
+                  </div>
+                  <div className="flex gap-2">
+                    {['1','X','2'].map(s => {
+                      const primaryColor = s === '1' ? TEAMS[m.team1]?.primary : s === '2' ? TEAMS[m.team2]?.primary : '#64748b';
+                      const isWhite = primaryColor?.toUpperCase() === '#FFFFFF';
+                      const selected = regPicks[m.id] === s;
+                      let style = { backgroundColor: selected ? primaryColor : 'rgba(0,0,0,0.04)' };
+                      let cl = selected
+                        ? `scale-105 shadow-md opacity-100 ring-2 ring-white/20 font-black${isWhite ? ' text-slate-900 border border-slate-300' : ' text-white'}`
+                        : 'text-slate-500 font-bold opacity-70';
+                      return (
+                        <button key={s} onClick={() => setRegPicks({...regPicks, [m.id]: s})} style={style} className={`flex-1 py-2.5 rounded-xl text-sm transition-all duration-200 ${cl}`}>{s}</button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="p-6 flex gap-3 border-t bg-white">
+              <button onClick={() => setEditingParticipantId(null)} className="flex-1 py-3 rounded-2xl border font-bold text-slate-500 hover:bg-slate-50 transition-colors">Avbryt</button>
+              <button onClick={submitTips} className="flex-1 py-3 bg-indigo-600 text-white rounded-2xl font-black shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-colors">Spara ändringar</button>
+            </div>
+          </div>
         </div>
       )}
     </div>
