@@ -198,6 +198,8 @@ export default function App() {
   const [hallOfFame, setHallOfFame] = useState([]);
   const [adminFee, setAdminFee] = useState(100);
   const [editingParticipantId, setEditingParticipantId] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingUserId, setEditingUserId] = useState(null);
 
   // --- REGISTRATION DRAFT ---
   const [regStep, setRegStep] = useState(1);
@@ -301,22 +303,24 @@ export default function App() {
 
   const groupStandings = useMemo(() => {
     const stats = {};
-    Object.keys(TEAMS).forEach(name => { stats[name] = { name, played: 0, win: 0, draw: 0, loss: 0, gf: 0, ga: 0, gd: 0, pts: 0, group: "" }; });
+    const forecastTeams = new Set();
+    Object.keys(TEAMS).forEach(name => { stats[name] = { name, played: 0, win: 0, draw: 0, loss: 0, gf: 0, ga: 0, gd: 0, pts: 0, group: "", hasForecast: false }; });
     matches.forEach(m => {
       if (stats[m.team1]) stats[m.team1].group = m.group; if (stats[m.team2]) stats[m.team2].group = m.group;
-      let g1, g2, isPlayed = false;
+      let g1, g2, isPlayed = false, isForecast = false;
       if (folketsTipsMode === 1) {
           const p = folketsTips[m.id];
-          if (p === '1') { g1 = 1; g2 = 0; isPlayed = true; }
-          else if (p === '2') { g1 = 0; g2 = 1; isPlayed = true; }
-          else if (p === 'X') { g1 = 0; g2 = 0; isPlayed = true; }
+          if (p === '1') { g1 = 1; g2 = 0; isPlayed = true; isForecast = true; }
+          else if (p === '2') { g1 = 0; g2 = 1; isPlayed = true; isForecast = true; }
+          else if (p === 'X') { g1 = 0; g2 = 0; isPlayed = true; isForecast = true; }
       } else if (folketsTipsMode === 2) {
           if (m.status === 'finished') { g1 = m.goals1 || 0; g2 = m.goals2 || 0; isPlayed = true; }
-          else { const p = folketsTips[m.id]; if (p === '1') { g1=1; g2=0; isPlayed=true; } else if (p === '2') { g1=0; g2=1; isPlayed=true; } else if (p === 'X') { g1=0; g2=0; isPlayed=true; } }
+          else { const p = folketsTips[m.id]; if (p === '1') { g1=1; g2=0; isPlayed=true; isForecast=true; } else if (p === '2') { g1=0; g2=1; isPlayed=true; isForecast=true; } else if (p === 'X') { g1=0; g2=0; isPlayed=true; isForecast=true; } }
       } else if (m.status === 'finished') {
           g1 = m.goals1 || 0; g2 = m.goals2 || 0; isPlayed = true;
       }
       if (isPlayed) {
+        if (isForecast) { forecastTeams.add(m.team1); forecastTeams.add(m.team2); }
         if (stats[m.team1]) {
           stats[m.team1].played++;
           stats[m.team1].gf += g1;
@@ -335,6 +339,7 @@ export default function App() {
         }
       }
     });
+    if (folketsTipsMode === 2) forecastTeams.forEach(name => { if (stats[name]) stats[name].hasForecast = true; });
     return stats;
   }, [matches, folketsTipsMode, folketsTips]);
 
@@ -691,15 +696,20 @@ export default function App() {
 
         {activeTab === 'groups' && (
           <div className="space-y-6 animate-in fade-in duration-300">
-             <div className="sticky top-[72px] z-30 bg-slate-50/95 backdrop-blur-sm py-2 px-2 -mx-2 flex justify-between items-center">
-               <h2 className="font-black text-xl">Gruppspel</h2>
-               <div className="flex rounded-xl border bg-white overflow-hidden shadow-sm">
-                 {[{label:'Verkliga', val:0},{label:'Folkets', val:1},{label:'Kombo', val:2}].map(({label, val}) => (
-                   <button key={val} onClick={() => setFolketsTipsMode(val)} className={`px-3 py-2 text-xs font-black transition-all flex items-center gap-1 ${folketsTipsMode === val ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-50'}`}>
-                     {val === 1 && <Users size={10}/>} {label}
-                   </button>
-                 ))}
+             <div className="sticky top-[72px] z-30 bg-slate-50/95 backdrop-blur-sm py-2 px-2 -mx-2 flex flex-col gap-2">
+               <div className="flex justify-between items-center">
+                 <h2 className="font-black text-xl">Gruppspel</h2>
+                 <div className="flex rounded-xl border bg-white overflow-hidden shadow-sm">
+                   {[{label:'Verkliga', val:0},{label:'Folkets', val:1},{label:'Kombo', val:2}].map(({label, val}) => (
+                     <button key={val} onClick={() => setFolketsTipsMode(val)} className={`px-3 py-2 text-xs font-black transition-all flex items-center gap-1 ${folketsTipsMode === val ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-50'}`}>
+                       {val === 1 && <Users size={10}/>} {label}
+                     </button>
+                   ))}
+                 </div>
                </div>
+               {folketsTipsMode === 2 && (
+                 <p className="text-[10px] text-indigo-500 font-bold flex items-center gap-1"><Users size={10}/> Visar verkliga resultat + folkets tips för kommande matcher. <span className="text-indigo-400 font-medium">Indigo-färg = prognos.</span></p>
+               )}
              </div>
              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                {TOURNAMENT_GROUPS.map(grp => (
@@ -707,17 +717,20 @@ export default function App() {
                     <div className="bg-vmdark p-4 text-vmgold font-black text-center text-sm tracking-widest uppercase">GRUPP {grp}</div>
                     <table className="w-full text-left text-xs">
                        <thead><tr className="bg-slate-50 border-b text-slate-400 font-bold uppercase"><th className="p-3">Lag</th><th className="p-3 text-center">+/-</th><th className="p-3 text-center">P</th></tr></thead>
-                       <tbody>{Object.values(groupStandings).filter(t => t.group === grp).sort((a,b) => b.pts - a.pts || b.gd - a.gd).map(t => (
-                         <tr key={t.name} className="border-b hover:bg-slate-50 transition-colors">
-                           <td className="p-3 font-bold flex items-center gap-2">
-                             <Flag code={TEAMS[t.name]?.flag} />
-                             {t.name}
-                             {folketsTipsMode > 0 && <Users size={10} className="text-indigo-400 ml-1 opacity-50"/>}
-                           </td>
-                           <td className="p-3 text-center font-medium">{t.gd > 0 ? `+${t.gd}` : t.gd}</td>
-                           <td className="p-3 text-center font-black text-indigo-600 bg-indigo-50/30">{t.pts}</td>
-                         </tr>
-                       ))}</tbody>
+                       <tbody>{Object.values(groupStandings).filter(t => t.group === grp).sort((a,b) => b.pts - a.pts || b.gd - a.gd).map(t => {
+                         const isForecast = folketsTipsMode === 2 && t.hasForecast;
+                         return (
+                           <tr key={t.name} className="border-b hover:bg-slate-50 transition-colors">
+                             <td className="p-3 font-bold flex items-center gap-2">
+                               <Flag code={TEAMS[t.name]?.flag} />
+                               {t.name}
+                               {isForecast && <Users size={10} className="text-indigo-500 ml-1 opacity-70"/>}
+                             </td>
+                             <td className={`p-3 text-center font-medium ${isForecast ? 'text-indigo-600' : ''}`}>{t.gd > 0 ? `+${t.gd}` : t.gd}</td>
+                             <td className={`p-3 text-center font-black bg-indigo-50/30 ${isForecast ? 'text-indigo-600' : 'text-slate-700'}`}>{t.pts}</td>
+                           </tr>
+                         );
+                       })}</tbody>
                     </table>
                  </div>
                ))}
@@ -790,10 +803,15 @@ export default function App() {
                     </div>
                     <div className="flex items-center justify-between gap-4">
                        <div className="flex items-center gap-2 flex-1"><Flag code={TEAMS[m.team1]?.flag} /><span className="text-sm font-black">{m.team1}</span></div>
-                       <div className="flex items-center gap-2 bg-slate-50 px-3 py-1 rounded-xl border">
-                          <span className="font-black text-lg">{m.goals1 ?? '-'}</span>
-                          <span className="text-slate-300">:</span>
-                          <span className="font-black text-lg">{m.goals2 ?? '-'}</span>
+                       <div className="flex flex-col items-center gap-0.5">
+                         <div className="flex items-center gap-2 bg-slate-50 px-3 py-1 rounded-xl border">
+                            <span className="font-black text-lg">{m.goals1 ?? '-'}</span>
+                            <span className="text-slate-300">:</span>
+                            <span className="font-black text-lg">{m.goals2 ?? '-'}</span>
+                         </div>
+                         {m.goals1 == null && (folketsTipsMode === 1 || (folketsTipsMode === 2 && m.status !== 'finished')) && (
+                           <div className="flex items-center gap-1 text-[9px] font-black text-indigo-400 uppercase"><Users size={9}/> Folkets</div>
+                         )}
                        </div>
                        <div className="flex items-center gap-2 flex-1 justify-end"><span className="text-sm font-black text-right">{m.team2}</span><Flag code={TEAMS[m.team2]?.flag} /></div>
                     </div>
