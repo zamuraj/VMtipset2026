@@ -4,7 +4,7 @@ import { collection, onSnapshot, doc, setDoc, addDoc, query, orderBy, serverTime
 import { 
   Trophy, BarChart3, Settings, CalendarDays, Check, 
   AlertCircle, Clock, Grid3X3, User, X, Lock, LogOut, Award, History, Star,
-  Swords, Bell, PlayCircle, Banknote, MessageSquare, Send, Goal, ShieldCheck, ChevronDown, ChevronUp, MapPin, ListOrdered, Trash2, Tv, Users, Activity
+  Swords, Bell, PlayCircle, Banknote, MessageSquare, Send, Goal, ShieldCheck, ChevronDown, ChevronUp, MapPin, ListOrdered, Trash2, Tv, Users, Activity, Edit
 } from 'lucide-react';
 
 // --- DATA: LAG & SCHEMA ---
@@ -191,12 +191,13 @@ export default function App() {
 
   // --- FIREBASE DATA ---
   const [tips, setTips] = useState([]);
-  const [matches, setMatches] = useState([]);
+  const [matches, setMatches] = useState(initialMatchesList);
   const [chatMessages, setChatMessages] = useState([]);
   const [newChatMsg, setNewChatMsg] = useState('');
   const [deadline, setDeadline] = useState(null);
   const [hallOfFame, setHallOfFame] = useState([]);
   const [adminFee, setAdminFee] = useState(100);
+  const [editingParticipantId, setEditingParticipantId] = useState(null);
 
   // --- REGISTRATION DRAFT ---
   const [regStep, setRegStep] = useState(1);
@@ -207,7 +208,7 @@ export default function App() {
 
   // --- FIREBASE SYNC ---
   useEffect(() => {
-    const unsubTips = onSnapshot(collection(db, "tips"), (snap) => setTips(snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))));
+    const unsubTips = onSnapshot(collection(db, "tips"), (snap) => setTips(snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))), (err) => console.error('Firebase Error Tips:', err));
     const unsubMatches = onSnapshot(collection(db, "matches"), (snap) => {
       const dbMatches = snap.docs.map(doc => ({ id: parseInt(doc.id), ...doc.data() }));
       setMatches(VM_SCHEDULE.map(m => {
@@ -215,18 +216,24 @@ export default function App() {
         const dbM = dbMatches.find(x => x.id === parseInt(id));
         return { id: parseInt(id), date, group: grp, team1: t1, team2: t2, arena, city, country, tv, goals1: dbM?.goals1 ?? null, goals2: dbM?.goals2 ?? null, status: dbM?.status ?? 'upcoming', minute: dbM?.minute ?? null };
       }));
-    });
-    const unsubChat = onSnapshot(query(collection(db, "chat"), orderBy("createdAt", "asc")), (snap) => setChatMessages(snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))));
+    }, (err) => console.error('Firebase Error Matches:', err));
+    const unsubChat = onSnapshot(query(collection(db, "chat"), orderBy("createdAt", "asc")), (snap) => setChatMessages(snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))), (err) => console.error('Firebase Error Chat:', err));
     const unsubConfig = onSnapshot(doc(db, "settings", "appConfig"), (snap) => {
       if(snap.exists()) {
         setDeadline(snap.data().deadline?.toDate());
         if (snap.data().adminFee != null) setAdminFee(snap.data().adminFee);
       }
-    });
+    }, (err) => console.error('Firebase Error Config:', err));
     const unsubHof = onSnapshot(query(collection(db, "hallOfFame"), orderBy("year", "desc")), (snap) => {
       setHallOfFame(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
+    }, (err) => console.error('Firebase Error HallOfFame:', err));
     return () => { unsubTips(); unsubMatches(); unsubChat(); unsubConfig(); unsubHof(); };
+  }, []);
+
+  // --- SESSION LOGIC ---
+  useEffect(() => {
+    const sessionData = localStorage.getItem('vmt_login_session');
+    if (sessionData) setCurrentUser(JSON.parse(sessionData));
   }, []);
 
   // --- AUTOSAVE LOGIC ---
@@ -403,7 +410,9 @@ export default function App() {
     e.preventDefault();
     if (loginEmail.toLowerCase().trim() === 'zettergren.emil@gmail.com' && loginPassword === 'TELE1fon') {
       const adminUser = tips.find(t => t.email.toLowerCase() === 'zettergren.emil@gmail.com') || { id: 'admin', name: 'Emil Zettergren', email: 'zettergren.emil@gmail.com', isAdmin: true, isApproved: true, predictions: {} };
-      setCurrentUser({ ...adminUser, isAdmin: true });
+      const userObj = { ...adminUser, isAdmin: true };
+      setCurrentUser(userObj);
+      localStorage.setItem('vmt_login_session', JSON.stringify(userObj));
       setActiveTab('admin');
       return;
     }
@@ -411,14 +420,48 @@ export default function App() {
     if (!user) return setAuthError("E-post ej hittad.");
     if (user.isAdmin && loginPassword !== user.password) return setAuthError("Fel lösenord.");
     if (!user.isApproved && !user.isAdmin) return setAuthError("Väntar på godkännande.");
-    setCurrentUser(user); if(user.isAdmin) setActiveTab('admin');
+    setCurrentUser(user);
+    localStorage.setItem('vmt_login_session', JSON.stringify(user));
+    if(user.isAdmin) setActiveTab('admin');
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('vmt_login_session');
   };
 
   const submitTips = async () => {
-    if(isDeadlinePassed) return alert("Deadline har passerat!");
-    await setDoc(doc(db, "tips", regEmail.toLowerCase()), { name: regName, email: regEmail.toLowerCase(), goals: parseInt(regGoals), predictions: regPicks, isApproved: false, isAdmin: false, groups: ["Alla"] }, { merge: true });
-    alert("Tips sparat/uppdaterat! Emil godkänner när betalning syns.");
-    localStorage.removeItem('vmt_draft_v3'); setShowRegister(false);
+    if(!editingParticipantId && isDeadlinePassed) return alert("Deadline har passerat!");
+    const id = editingParticipantId || regEmail.toLowerCase();
+    await setDoc(doc(db, "tips", id), { 
+      name: regName, 
+      email: regEmail.toLowerCase(), 
+      goals: parseInt(regGoals), 
+      predictions: regPicks, 
+      isApproved: editingParticipantId ? true : false, 
+      isAdmin: false, 
+      groups: ["Alla"] 
+    }, { merge: true });
+    alert(editingParticipantId ? "Deltagare uppdaterad!" : "Tips sparat/uppdaterat! Emil godkänner när betalning syns.");
+    localStorage.removeItem('vmt_draft_v3'); 
+    setShowRegister(false);
+    setEditingParticipantId(null);
+  };
+
+  const startEditing = (p) => {
+    setEditingParticipantId(p.id);
+    setRegName(p.name);
+    setRegEmail(p.email);
+    setRegGoals(p.goals);
+    setRegPicks(p.predictions || {});
+    setRegStep(2);
+    setShowRegister(true);
+  };
+
+  const deleteParticipant = async (id) => {
+    if(window.confirm('Är du säker på att du vill ta bort denna deltagare?')) {
+      await deleteDoc(doc(db, "tips", id));
+    }
   };
 
   const sendChat = async (e) => {
@@ -465,7 +508,7 @@ export default function App() {
           <div className="mt-8 space-y-4 animate-in slide-in-from-right-4 duration-300">
              {regStep === 1 ? (
                <>
-                <div className="flex justify-between items-center mb-2"><h2 className="font-bold">1. Dina Uppgifter</h2><button onClick={() => setShowRegister(false)}><X/></button></div>
+                <div className="flex justify-between items-center mb-2"><h2 className="font-bold">{editingParticipantId ? 'Redigera Deltagare' : '1. Dina Uppgifter'}</h2><button onClick={() => { setShowRegister(false); setEditingParticipantId(null); }}><X/></button></div>
                 <input type="text" value={regName} onChange={e=>setRegName(e.target.value)} placeholder="Namn" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
                 <input type="email" value={regEmail} onChange={e=>setRegEmail(e.target.value)} placeholder="E-post" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
                 <input type="number" value={regGoals} onChange={e=>setRegGoals(e.target.value)} placeholder="Mål totalt i hela VM?" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
@@ -560,7 +603,7 @@ export default function App() {
               </div>
             </div>
           )}
-          <button onClick={() => setCurrentUser(null)} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors" title="Logga ut"><LogOut size={20}/></button>
+          <button onClick={handleLogout} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors" title="Logga ut"><LogOut size={20}/></button>
         </div>
       </header>
 
@@ -898,6 +941,24 @@ export default function App() {
                    </div>
                  ))}
                </div>
+
+               <div className="space-y-4 pt-8">
+                 <h3 className="font-black text-xs text-slate-400 uppercase tracking-widest">Godkända Deltagare ({activePlayers.length})</h3>
+                 <div className="grid gap-3">
+                   {activePlayers.map(p => (
+                     <div key={p.id} className="p-4 bg-white border rounded-2xl flex justify-between items-center shadow-sm">
+                       <div>
+                         <div className="font-bold text-slate-800">{p.name}</div>
+                         <div className="text-[10px] text-slate-400 font-bold uppercase">{p.email}</div>
+                       </div>
+                       <div className="flex gap-1">
+                         <button onClick={() => startEditing(p)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"><Edit size={18}/></button>
+                         <button onClick={() => deleteParticipant(p.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors"><Trash2 size={18}/></button>
+                       </div>
+                     </div>
+                   ))}
+                 </div>
+               </div>
             </div>
 
             <div className="bg-white/90 backdrop-blur-md rounded-[2.5rem] border p-8 shadow-xl">
@@ -938,7 +999,7 @@ export default function App() {
                           </div>
                           <div className="flex gap-2">
                             <input type="text" placeholder="Minut (ex 65)" defaultValue={m.minute} onBlur={e => updateMatch(m.id, { minute: e.target.value, status: e.target.value ? 'live' : 'finished' })} className="flex-1 p-2 border rounded-xl text-[10px] font-black outline-none bg-white"/>
-                            <button onClick={() => updateMatch(m.id, { status: 'upcoming', goals1: null, goals2: null, minute: null })} className="p-2 text-slate-300 hover:text-red-400 transition-colors"><X size={16}/></button>
+                       <button onClick={() => updateMatch(m.id, { status: 'upcoming', goals1: null, goals2: null, minute: null })} className="p-2 text-slate-300 hover:text-red-400 transition-colors"><X size={16}/></button>
                           </div>
                        </div>
                     </div>
@@ -965,6 +1026,12 @@ export default function App() {
                           <div className="text-slate-400 text-xs font-bold uppercase tracking-widest">{selectedUser.pts} Poäng | {selectedUser.goals} Mål</div>
                        </div>
                     </div>
+                    {currentUser.isAdmin && (
+                      <div className="flex gap-2 ml-auto">
+                        <button onClick={() => { setSelectedUser(null); startEditing(selectedUser); }} className="p-3 bg-white/10 rounded-2xl hover:bg-white/20 text-white transition-colors"><Edit size={20}/></button>
+                        <button onClick={() => { setSelectedUser(null); deleteParticipant(selectedUser.id); }} className="p-3 bg-red-500/20 rounded-2xl hover:bg-red-500/30 text-red-400 transition-colors"><Trash2 size={20}/></button>
+                      </div>
+                    )}
                  </div>
               </div>
               <div className="flex-1 overflow-y-auto p-8 no-scrollbar">
