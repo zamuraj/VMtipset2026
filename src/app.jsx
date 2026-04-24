@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+﻿import React, { useState, useMemo, useEffect } from 'react';
 import { db } from './firebase';
 import { collection, onSnapshot, doc, setDoc, addDoc, query, orderBy, serverTimestamp, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { 
@@ -700,6 +700,75 @@ export default function App() {
                   </table>
                 </div>
              </div>
+
+             {/* TIPPNINGSMATRIS */}
+             {activePlayers.length > 0 && (() => {
+               const sortedPlayers = [...activePlayers].sort((a, b) => a.name.localeCompare(b.name, 'sv'));
+               const lastPlayedMatch = matches.filter(m => m.status === 'finished' || m.status === 'live').pop();
+               return (
+                 <div className="rounded-[2rem] border bg-white shadow-xl overflow-hidden">
+                   <div className="p-4 border-b flex items-center justify-between">
+                     <h3 className="font-black text-sm flex items-center gap-2"><Grid3X3 size={16} className="text-indigo-600"/> Tippningsmatris</h3>
+                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{sortedPlayers.length} spelare &middot; {matches.length} matcher</span>
+                   </div>
+                   <div className="overflow-auto max-h-[75vh] no-scrollbar relative">
+                     <table className="text-xs text-left" style={{borderCollapse:'separate', borderSpacing:0}}>
+                       <thead className="text-[10px] uppercase text-slate-400">
+                         <tr>
+                           <th className="sticky top-0 left-0 z-50 bg-vmdark text-vmgold p-4 border-r border-b whitespace-nowrap font-black">Match</th>
+                           {sortedPlayers.map(p => (
+                             <th key={p.id} className="sticky top-0 z-40 bg-vmdark text-white p-3 border-r border-b whitespace-nowrap text-center font-black min-w-[60px]">
+                               {p.name.split(' ')[0]}
+                             </th>
+                           ))}
+                         </tr>
+                       </thead>
+                       <tbody>
+                         {matches.map(m => {
+                           const actual = get1X2(m.goals1, m.goals2);
+                           const isFinished = m.status === 'finished' || m.status === 'live';
+                           const isLastPlayed = m.id === lastPlayedMatch?.id;
+                           const matchCellClass = `sticky left-0 z-30 border-r border-b p-3 whitespace-nowrap shadow-[4px_0_10px_rgba(0,0,0,0.04)] ${isLastPlayed ? 'bg-vmgold/10 border-l-4 border-l-vmgold' : 'bg-white'}`;
+                           return (
+                             <tr key={m.id} className="hover:bg-slate-50/50 transition-colors">
+                               <td className={matchCellClass}>
+                                 <div className="flex items-center gap-2">
+                                   <span className="text-[9px] font-black text-slate-300 w-5 shrink-0">#{m.id}</span>
+                                   <Flag code={TEAMS[m.team1]?.flag}/>
+                                   <span className="font-bold" style={{color: TEAMS[m.team1]?.primary === '#FFFFFF' ? '#334155' : TEAMS[m.team1]?.primary}}>{m.team1}</span>
+                                   {isFinished && <span className="text-[10px] font-black text-slate-500 mx-1">{m.goals1}-{m.goals2}</span>}
+                                   <Flag code={TEAMS[m.team2]?.flag}/>
+                                   <span className="font-bold" style={{color: TEAMS[m.team2]?.primary === '#FFFFFF' ? '#334155' : TEAMS[m.team2]?.primary}}>{m.team2}</span>
+                                 </div>
+                               </td>
+                               {sortedPlayers.map(p => {
+                                 const pick = p.predictions?.[m.id];
+                                 const isCorrect = isFinished && actual && pick === actual;
+                                 const isWrong = isFinished && actual && pick && pick !== actual;
+                                 let bg = 'transparent';
+                                 let textCl = 'text-slate-400';
+                                 if (isCorrect) {
+                                   bg = pick === '1' ? (TEAMS[m.team1]?.primary || '#4f46e5') : pick === '2' ? (TEAMS[m.team2]?.primary || '#4f46e5') : '#64748b';
+                                   if (bg === '#FFFFFF') bg = '#64748b';
+                                   textCl = 'text-white';
+                                 } else if (isWrong) {
+                                   textCl = 'text-red-300';
+                                 }
+                                 return (
+                                   <td key={p.id} className={`border-r border-b p-3 text-center font-black transition-colors ${isWrong ? 'opacity-50' : ''}`} style={{backgroundColor: bg}}>
+                                     <span className={textCl}>{pick || <span className="text-slate-200">—</span>}</span>
+                                   </td>
+                                 );
+                               })}
+                             </tr>
+                           );
+                         })}
+                       </tbody>
+                     </table>
+                   </div>
+                 </div>
+               );
+             })()}
           </div>
         )}
 
@@ -842,7 +911,7 @@ export default function App() {
             <div className="bg-vmdark text-white rounded-[2rem] p-8 shadow-xl text-center">
               <Trophy size={48} className="text-vmgold mx-auto mb-4 drop-shadow-[0_0_12px_rgba(251,191,36,0.6)]"/>
               <h2 className="font-black text-3xl italic tracking-tight">Hall of Fame</h2>
-              <p className="text-slate-400 text-sm mt-2 font-bold">Kompisligan — Tidigare Mästare</p>
+              <p className="text-slate-400 text-sm mt-2 font-bold">Soffcoachernas Tipsliga — Tidigare Mästare</p>
             </div>
             {hallOfFame.length === 0 ? (
               <div className="bg-white/90 backdrop-blur-md rounded-[2rem] border p-12 text-center text-slate-400 font-bold shadow-sm">
