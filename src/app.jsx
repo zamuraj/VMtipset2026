@@ -865,6 +865,19 @@ export default function App() {
                            );
                          })}
                        </tbody>
+                       <tfoot>
+                         <tr>
+                           <td className="sticky bottom-0 left-0 z-50 bg-vmdark text-vmgold p-4 border-r border-t border-vmgold/20 font-black uppercase text-[10px] shadow-[0_-4px_10px_rgba(0,0,0,0.1)]">TOTALT RÄTT</td>
+                           {sortedPlayers.map(p => {
+                              const pPts = leaderboard.find(l => l.id === p.id)?.pts || 0;
+                              return (
+                                <td key={p.id} className="sticky bottom-0 z-40 bg-vmdark text-white p-3 border-r border-t border-white/10 text-center font-black text-sm shadow-[0_-4px_10px_rgba(0,0,0,0.1)]">
+                                  {pPts}
+                                </td>
+                              );
+                           })}
+                         </tr>
+                       </tfoot>
                      </table>
                    </div>
                  </div>
