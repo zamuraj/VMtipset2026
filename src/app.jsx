@@ -436,29 +436,39 @@ export default function App() {
   };
 
   const submitTips = async () => {
-    if(!editingParticipantId && isDeadlinePassed) return alert("Deadline har passerat!");
-    const id = editingParticipantId || regEmail.toLowerCase();
-    await setDoc(doc(db, "tips", id), { 
-      name: regName, 
-      email: regEmail.toLowerCase(), 
-      goals: parseInt(regGoals), 
-      predictions: regPicks, 
-      isApproved: editingParticipantId ? true : false, 
-      isAdmin: false, 
-      groups: ["Alla"] 
-    }, { merge: true });
-    alert(editingParticipantId ? "Deltagare uppdaterad!" : "Tips sparat/uppdaterat! Emil godkänner när betalning syns.");
-    localStorage.removeItem('vmt_draft_v3'); 
-    setShowRegister(false);
-    setEditingParticipantId(null);
+    try {
+      if(!editingParticipantId && isDeadlinePassed) return alert("Deadline har passerat!");
+      const id = editingParticipantId || (regEmail ? regEmail.toLowerCase().trim() : '');
+      if(!id) return alert("Kunde inte hitta ID eller e-post.");
+
+      await setDoc(doc(db, "tips", id), { 
+        name: regName || 'Okänd', 
+        email: regEmail ? regEmail.toLowerCase().trim() : id, 
+        goals: parseInt(regGoals) || 0, 
+        predictions: regPicks || {}, 
+        isApproved: editingParticipantId ? true : false, 
+        isAdmin: false, 
+        groups: ["Alla"] 
+      }, { merge: true });
+
+      alert(editingParticipantId ? "Deltagare uppdaterad!" : "Tips sparat/uppdaterat! Emil godkänner när betalning syns.");
+      localStorage.removeItem('vmt_draft_v3'); 
+      setShowRegister(false);
+      setEditingParticipantId(null);
+    } catch (e) {
+      console.error("Fel vid sparning:", e);
+      alert("Databasfel kunde inte spara: " + e.message);
+    }
   };
 
   const startEditing = (p) => {
+    setEditingUserId(p.id);
     setEditingParticipantId(p.id);
     setRegName(p.name);
     setRegEmail(p.email || p.id);
     setRegGoals(p.goals || '');
     setRegPicks(p.predictions || {});
+    setIsEditing(true);
   };
 
   const deleteParticipant = async (id) => {
@@ -959,7 +969,7 @@ export default function App() {
                </div>
 
                <div className="space-y-4 pt-8">
-                 <h3 className="font-black text-xs text-slate-400 uppercase tracking-widest">Godkända Deltagare ({activePlayers.length})</h3>
+                 <h3 className="font-black text-xs text-slate-400 uppercase tracking-widest">Hantera Deltagare ({activePlayers.length})</h3>
                  <div className="grid gap-3">
                    {activePlayers.map(p => (
                      <div key={p.id} className="p-4 bg-white border rounded-2xl flex justify-between items-center shadow-sm">
@@ -968,7 +978,7 @@ export default function App() {
                          <div className="text-[10px] text-slate-400 font-bold uppercase">{p.email}</div>
                        </div>
                        <div className="flex gap-1">
-                         <button onClick={() => startEditing(p)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"><Edit size={18}/></button>
+                         <button onClick={() => startEditing(p)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"><Settings size={18}/></button>
                          <button onClick={() => deleteParticipant(p.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors"><Trash2 size={18}/></button>
                        </div>
                      </div>
@@ -1044,8 +1054,8 @@ export default function App() {
                     </div>
                     {currentUser.isAdmin && (
                       <div className="flex gap-2 ml-auto">
-                        <button onClick={() => { setSelectedUser(null); startEditing(selectedUser); }} className="p-3 bg-white/10 rounded-2xl hover:bg-white/20 text-white transition-colors"><Edit size={20}/></button>
-                        <button onClick={() => { setSelectedUser(null); deleteParticipant(selectedUser.id); }} className="p-3 bg-red-500/20 rounded-2xl hover:bg-red-500/30 text-red-400 transition-colors"><Trash2 size={20}/></button>
+                        <button onClick={() => { setSelectedUser(null); startEditing(selectedUser); }} className="p-3 bg-white/10 rounded-2xl hover:bg-white/20 text-white transition-colors" title="Redigera"><Settings size={20}/></button>
+                        <button onClick={() => { setSelectedUser(null); deleteParticipant(selectedUser.id); }} className="p-3 bg-red-500/20 rounded-2xl hover:bg-red-500/30 text-red-400 transition-colors" title="Ta bort"><Trash2 size={20}/></button>
                       </div>
                     )}
                  </div>
@@ -1087,12 +1097,12 @@ export default function App() {
            </div>
         </div>
       )}
-      {editingParticipantId && (
+      {isEditing && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-vmdark/80 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="bg-white w-full max-w-2xl rounded-[3rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
             <div className="bg-vmdark p-6 text-white flex justify-between items-center">
-              <h2 className="font-black text-xl flex items-center gap-2"><Edit size={20} className="text-vmgold"/> Redigera Deltagare</h2>
-              <button onClick={() => setEditingParticipantId(null)} className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors"><X/></button>
+              <h2 className="font-black text-xl flex items-center gap-2"><Settings size={20} className="text-vmgold"/> Redigera Deltagare</h2>
+              <button onClick={() => setIsEditing(false)} className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors"><X/></button>
             </div>
             <div className="p-6 space-y-3 border-b">
               <input type="text" value={regName} onChange={e => setRegName(e.target.value)} placeholder="Namn" className="w-full p-3 rounded-xl bg-slate-50 border outline-none focus:border-indigo-400 font-bold text-sm"/>
@@ -1129,8 +1139,8 @@ export default function App() {
               ))}
             </div>
             <div className="p-6 flex gap-3 border-t bg-white">
-              <button onClick={() => setEditingParticipantId(null)} className="flex-1 py-3 rounded-2xl border font-bold text-slate-500 hover:bg-slate-50 transition-colors">Avbryt</button>
-              <button onClick={submitTips} className="flex-1 py-3 bg-indigo-600 text-white rounded-2xl font-black shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-colors">Spara ändringar</button>
+              <button onClick={() => setIsEditing(false)} className="flex-1 py-3 rounded-2xl border font-bold text-slate-500 hover:bg-slate-50 transition-colors">Avbryt</button>
+              <button onClick={async () => { await submitTips(); setIsEditing(false); }} className="flex-1 py-3 bg-indigo-600 text-white rounded-2xl font-black shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-colors">Spara ändringar</button>
             </div>
           </div>
         </div>
