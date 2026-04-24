@@ -188,6 +188,7 @@ export default function App() {
   const [isPrizeExpanded, setIsPrizeExpanded] = useState(false);
   const [hofYear, setHofYear] = useState('');
   const [hofName, setHofName] = useState('');
+  const [hofType, setHofType] = useState('VM');
 
   // --- FIREBASE DATA ---
   const [tips, setTips] = useState([]);
@@ -855,7 +856,7 @@ export default function App() {
                   const isLatest = idx === 0;
                   return (
                     <div key={entry.id} className={`rounded-[2rem] border p-6 shadow-sm flex flex-col items-center text-center transition-all ${isLatest ? 'bg-vmdark text-white border-vmgold/30 shadow-[0_0_30px_rgba(251,191,36,0.1)]' : 'bg-white/90 backdrop-blur-md'}`}>
-                      <div className={`text-5xl font-black italic mb-1 ${isLatest ? 'text-vmgold' : 'text-slate-200'}`}>{entry.year}</div>
+                      <div className={`text-5xl font-black italic mb-1 ${isLatest ? 'text-vmgold' : 'text-slate-200'}`}>{entry.type || 'VM'} {entry.year}</div>
                       <Trophy size={isLatest ? 32 : 20} className={isLatest ? 'text-vmgold drop-shadow-[0_0_8px_rgba(251,191,36,0.8)] mb-2' : 'text-slate-300 mb-2'}/>
                       <div className={`font-black text-lg ${isLatest ? 'text-white' : 'text-slate-800'}`}>{entry.champion}</div>
                       {isLatest && <span className="mt-2 px-3 py-1 bg-vmgold/20 text-vmgold text-[10px] font-black rounded-full uppercase tracking-widest border border-vmgold/30">Regerande Mästare</span>}
@@ -990,16 +991,20 @@ export default function App() {
             <div className="bg-white/90 backdrop-blur-md rounded-[2.5rem] border p-8 shadow-xl">
               <h2 className="text-2xl font-black mb-6 flex items-center gap-3"><History className="text-vmgold" size={28}/> Hantera Hall of Fame</h2>
               <div className="flex gap-3 mb-6">
+                <select value={hofType} onChange={e => setHofType(e.target.value)} className="p-3 border rounded-xl font-bold outline-none focus:border-vmgold text-sm bg-white">
+                  <option value="VM">VM</option>
+                  <option value="EM">EM</option>
+                </select>
                 <input type="number" placeholder="Årtal (t.ex. 2024)" value={hofYear} onChange={e => setHofYear(e.target.value)} className="flex-1 p-3 border rounded-xl font-bold outline-none focus:border-vmgold text-sm"/>
                 <input type="text" placeholder="Mästarens namn" value={hofName} onChange={e => setHofName(e.target.value)} className="flex-1 p-3 border rounded-xl font-bold outline-none focus:border-vmgold text-sm"/>
-                <button onClick={async () => { if (!hofYear || !hofName) return; await addDoc(collection(db, 'hallOfFame'), { year: parseInt(hofYear), champion: hofName }); setHofYear(''); setHofName(''); }} className="px-5 py-3 bg-vmgold text-vmdark font-black rounded-xl text-sm shadow-lg hover:brightness-105 transition-all">Spara</button>
+                <button onClick={async () => { if (!hofYear || !hofName) return; await addDoc(collection(db, 'hallOfFame'), { year: parseInt(hofYear), champion: hofName, type: hofType }); setHofYear(''); setHofName(''); setHofType('VM'); }} className="px-5 py-3 bg-vmgold text-vmdark font-black rounded-xl text-sm shadow-lg hover:brightness-105 transition-all">Spara</button>
               </div>
               <div className="space-y-3">
                 {hallOfFame.map(entry => (
                   <div key={entry.id} className="flex items-center justify-between p-4 rounded-2xl border bg-slate-50/50">
                     <div className="flex items-center gap-3">
                       <Trophy size={16} className="text-vmgold"/>
-                      <span className="font-black">{entry.year}</span>
+                      <span className="font-black">{entry.type || 'VM'} {entry.year}</span>
                       <span className="text-slate-600 font-bold">{entry.champion}</span>
                     </div>
                     <button onClick={() => deleteDoc(doc(db, 'hallOfFame', entry.id))} className="p-2 text-red-400 hover:bg-red-50 rounded-xl transition-colors"><Trash2 size={16}/></button>
