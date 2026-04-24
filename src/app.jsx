@@ -556,6 +556,11 @@ export default function App() {
              ) : (
                <div className="space-y-4">
                   <div className="flex justify-between items-center"><button onClick={() => setRegStep(1)} className="text-xs text-slate-400">← Bakåt</button><span className="text-vmgold text-xs font-black">{Object.keys(regPicks).length}/72 tippade</span></div>
+                  {timeLeft && !isDeadlinePassed && (
+                    <div className="sticky top-0 z-20 bg-vmdark/90 backdrop-blur-md p-3 rounded-2xl text-vmgold text-[10px] font-black text-center shadow-lg border border-white/5 animate-pulse">
+                      {timeLeft}
+                    </div>
+                  )}
                   <div className="max-h-[50vh] overflow-y-auto space-y-3 pr-2 no-scrollbar">
                     {initialMatchesList.map(m => (
                       <div key={m.id} className="bg-black/30 p-5 rounded-[2rem] border border-white/5 space-y-4">
