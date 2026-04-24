@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { db } from './firebase';
 import { collection, onSnapshot, doc, setDoc, addDoc, query, orderBy, serverTimestamp, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { 
@@ -949,7 +949,10 @@ export default function App() {
              <div className="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar bg-slate-50/50">
                 {chatMessages.map((msg, i) => (
                   <div key={msg.id || i} className={`flex flex-col ${msg.user === currentUser.name ? 'items-end' : 'items-start'}`}>
-                    <div className="text-[10px] font-black text-slate-400 mb-1 ml-2 mr-2 uppercase tracking-tighter">{msg.user}</div>
+                    <div className="text-[10px] font-black text-slate-400 mb-1 ml-2 mr-2 uppercase tracking-tighter flex items-center gap-1.5">
+                      {msg.user}
+                      {msg.user === 'Emil Zettergren' && <span className="bg-vmgold/20 text-vmgold px-1.5 py-0.5 rounded text-[8px] font-black tracking-widest">ADMIN</span>}
+                    </div>
                     <div className={`max-w-[80%] p-4 rounded-2xl text-sm shadow-sm ${msg.user === currentUser.name ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white border rounded-tl-none text-slate-800'}`}>
                       {msg.text.split(/(@[a-zA-ZåäöÅÄÖ\w-]+)/g).map((part, i) => {
                          if (part.startsWith('@')) {
@@ -964,6 +967,10 @@ export default function App() {
                 ))}
              </div>
              <form onSubmit={sendChat} className="p-6 bg-white border-t space-y-3">
+                <div className="flex items-center gap-1.5 ml-1">
+                   <span className="text-[10px] font-black text-slate-400 uppercase">Tippar som {currentUser.name}</span>
+                   {currentUser.name === 'Emil Zettergren' && <span className="bg-vmgold/20 text-vmgold px-1.5 py-0.5 rounded text-[8px] font-black tracking-widest">ADMIN</span>}
+                </div>
                 <div className="relative w-full">
                   <div aria-hidden="true" className="absolute inset-0 p-4 rounded-2xl text-sm pointer-events-none whitespace-pre-wrap break-words overflow-hidden text-transparent">
                     {newChatMsg.split(/(@[a-zA-ZåäöÅÄÖ\w-]+(?:\s[a-zA-ZåäöÅÄÖ\w-]+)?)/g).map((part, i) => {
@@ -1111,6 +1118,9 @@ export default function App() {
           </div>
         )}
       </main>
+      <footer className="mt-8 mb-12 flex flex-col items-center justify-center gap-1 opacity-60">
+        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest text-center">Appen är skapad och ägs av Emil Zettergren | 070-618 37 54 | zettergren.emil@gmail.com</p>
+      </footer>
 
       {selectedUser && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-vmdark/80 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setSelectedUser(null)}>
