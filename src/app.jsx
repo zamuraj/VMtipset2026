@@ -146,6 +146,81 @@ const initialMatchesList = VM_SCHEDULE.map(m => {
   return { id: parseInt(id), date, group: grp, team1: t1, team2: t2, arena, city, country, tv };
 });
 
+const MATCH_FACTS = {
+  1: "Mexiko och Sydafrika möttes redan i 2010 VM:s öppningsmatch! Tshabalala fick hela Soweto att explodera med sitt mål.",
+  2: "Kanada nådde VM-final i ishockey – kan de göra det i fotboll mot Slovakien? Deras Sigma nu är faktiskt fotbollen.",
+  3: "Sydkorea är kända för sin taktiska disciplin och publiken som sjunger i kör. Tjeckien har Schick – mannen som sköt från mittcirkeln.",
+  4: "USA spelar hemma på SoFi Stadium i LA – samma arena som Superbowl. Paraguay har inte missat ett VM sedan 1950!",
+  5: "Qatar är det enda VM-landet som aldrig vunnit en VM-match i fältet. Schweiz förlorar aldrig i gruppspel – aldrig.",
+  6: "Brasilien vs Marocko – Seleção möter det lag som chockade hela världen i 2022. Ingen förväntade sig Marocko i semifinal då!",
+  7: "Haiti deltar i sitt tredje VM någonsin. Skottland har å sin sida inte vunnit en VM-match sedan 1974. Nostalgifest!",
+  8: "Australien och Turkiet – två lag med massiva diasporor i varandras hemländer. Och båda har brutit sig ur gamla mönster!",
+  9: "Tyskland mot Curaçao – 80 000 000 vs 160 000 invånare. David och Goliat på fotbollsplanen!",
+  10: "Nederländerna vs Japan – Oranjerna skrämmer ingen längre, men Japan chockade Spanien och Tyskland i Qatar 2022.",
+  11: "Elfenbenskusten har tre landslagsspelare som heter Zaha – äkta djungelstat! Ecuador spelar alltid med hjärtat.",
+  12: "Sverige spelar i Monterrey – exakt där Maradona trillsde bollen runt halva England 1986. Historisk arena!",
+  13: "Spanien vs Kap Verde – tiqui-taka mot öarna med 550 000 invånare och ett lag som drömmer om miraklet.",
+  14: "Belgien är eviga kandidater som aldrig vinner. Egypten har Salah – men spelar han? Det är hela frågan.",
+  15: "Saudiarabien slog Argentina 2022 – kanske tidernas störtsa VM-skräll. Uruguay har 2 VM-guld och ett lejonhjärta.",
+  16: "Iran har Azmoun och ett landslag med stark europeisk träning. Nya Zeeland är VM-debytanter och bokstavligen längst bort.",
+  17: "Frankrike vs Senegal – ett postkolonialt drama! Mbappe mot Sadio Mane i drömmens match.",
+  18: "Irak i VM för första gången sedan 1986! Norge har Haaland – behöver vi säga mer?",
+  19: "Argentina vs Algeriet – Messi möter laget som tog sig till semifinal i Afrika-cupen. Storlek möter hunger!",
+  20: "Österrike är klassens tyst goda lag som ingen räknar med. Jordanien debuterar i VM – ett historiskt ögonblick!",
+  21: "Portugal vs DR Kongo – Ronaldo i skymningszonen möter ett land med 100 miljoner drömmar och otrolig talang.",
+  22: "England vs Kroatien – en rematch av 2018 VM-semifinalen! Modric är äldre nu, men fortfarande magisk.",
+  23: "Ghana har Ayew-bröderna och en publik som aldrig tystnar. Panama lärde sig av USA-chansen 2018.",
+  24: "Uzbekistan i sitt första VM! Colombia har James Rodriguéz – vars mål mot Uruguay 2014 röstades till VM:s bästa.",
+  25: "Tjeckien vs Sydafrika – Schick vs Bafana Bafana! Tjeckien älskar att komma igång sent i turneringar.",
+  26: "Schweiz vs Bosnien – alpernas disciplin mot Balkans passion. Bosnien har den bästa VM-läktarsången i historien.",
+  27: "Kanada vs Qatar – hemlandsmatchen för Kanadas mångkulturella fans möter arrangören som tog VM från Europa.",
+  28: "Mexiko vs Sydkorea – El Tri möter det lag som tog sig till final under hemma-VM 2002. Legendarisk rivalitet!",
+  29: "USA vs Australien – Sokkers vs Socceroos! Två engelsktankiga nationer som kämpar för att bli tagna på allvar.",
+  30: "Skottland vs Marocko – kiltarna möter atlaslejonen! Marocko är Afrikas nya fotbollssupermakt.",
+  31: "Brasilien vs Haiti – Seleçãos femte VM-guld möter ett land som trots allt kniper sin plats i historieböckerna.",
+  32: "Turkiet vs Paraguay – bägge lagarna kan skapa chockresultat. Turkiet var i semifinal 2002 och glömde det aldrig.",
+  33: "Nederländerna vs Sverige – Vikingakrig! Sista gången möttes de i ett VM var 1994 och Brolin sköt mål.",
+  34: "Tyskland vs Elfenbenskusten – Die Mannschaft möter laget som har gjort Didier Drogba odödlig i ett helt kontinent.",
+  35: "Ecuador vs Curaçao – Andinska höjder möter karibisk sol. Ecuador spelade öppningsmatchen i Qatar 2022!",
+  36: "Tunisien vs Japan – Nordafrika möter Asien i en match som handlar om stolthet och representation.",
+  37: "Spanien vs Saudiarabien – tiqui-taka möter ökenkrigar. Saudiarabien slog Argentina 2022. Kan de upprepa det?",
+  38: "Belgien vs Iran – Romelu Lukakus muskelkraft möter Azmoun på topp. Två lag som alltid overperformar förväntningarna.",
+  39: "Uruguay vs Kap Verde – Celeste möter öarnas soldater. Uruguay vann VM 1930 och 1950 och glömmer aldrig det.",
+  40: "Nya Zeeland vs Egypten – Salah och All Whites! Nya Zeeland spelar VM för tredje gången totalt.",
+  41: "Argentina vs Österrike – Messi möter ett lag som sist möttes av Maradona i VM-finalen 1990!",
+  42: "Frankrike vs Irak – Les Bleus möter VM-debytanterna. Frankrike har vunnit VM med spelare från 13 olika länder.",
+  43: "Norge vs Senegal – Haaland möter Mane i ett möte av giganter. Norge har inte spelat VM sedan 1998!",
+  44: "Jordanien vs Algeriet – ett arabisk derby! Bägge lagen är relativt nya på VM-scenen men fulla av stolthet.",
+  45: "Portugal vs Uzbekistan – Ronaldo vs ett lag som inte ens existerade som nation för 35 år sedan.",
+  46: "England vs Ghana – Three Lions möter Black Stars. England har en sorg mot Ghana sedan Asamoah Gyan 2010.",
+  47: "Panama vs Kroatien – Panamas lille hjälte möter kroaternas mekanik. Kroatien var VM-silvermedaljörer 2018!",
+  48: "Colombia vs DR Kongo – Sydamerika möter Centralafrika i ett möte av fotbollskulturer som aldrig möts annars.",
+  49: "Sydafrika vs Sydkorea – Africas nation möter Asiens mästare. Bafana Bafana betyder 'The Boys! The Boys!'",
+  50: "Tjeckien vs Mexiko – Azteca-arenan och 90 000 galningarna möter tjeckernas råa effektivitet.",
+  51: "Slovakien vs Qatar – Hamšík vs Almoez Ali! Qatar-lagets Al Moez Ali poängterade i varje omgång av 2019 Asien-cupen.",
+  52: "Schweiz vs Kanada – Alper möter Lönnlövet! Schweiz har aldrig förlorat tre raka VM-matcher i gruppspelet.",
+  53: "Marocko vs Haiti – Atlaslejonen möter Karibiens tuffaste utmanare. Marocko är hela Afrikas glädje.",
+  54: "Skottland vs Brasilien – Tartan Army möter Seleção. Skottland spelade mot Brasilien i 1974 och fick 0-0!",
+  55: "Paraguay vs Australien – La Albirroja möter Socceroos. Paraguay tog sig till kvartsfinal 2010 – ingen hade trott det.",
+  56: "Turkiet vs USA – Crescent möter Stars and Stripes. USA har faktiskt slagit Turkiet i alla deras möten!",
+  57: "Curaçao vs Elfenbenskusten – Curaçao spelar sitt allra första VM! Hela ön har mindre befolkning än Kungsholmen.",
+  58: "Ecuador vs Tyskland – Die Mannschaft möter Triscolors. Ecuador slog Sverige i VM 2006!",
+  59: "Sverige vs Japan – Zlatan vs Samurai Blue. 2006 möttes de i VM och Sverige vann – nu är det dags för hämnd?",
+  60: "Tunisien vs Nederländerna – Øranjerna möter Nordafrika. Tunisien är det arabiska landets mest regelbundna VM-lag.",
+  61: "Egypten vs Iran – Faraoerna möter Persien. Egypten dominerade afrikansk fotboll i åttio år men har bara 3 VM-historier.",
+  62: "Nya Zeeland vs Belgien – Röda Djävlarna möter All Whites i en match Belgien borde vinna men aldrig tar lätt.",
+  63: "Kap Verde vs Saudiarabien – öarnas underdogs möter arabernas mäktiga investering i fotboll.",
+  64: "Uruguay vs Spanien – La Celeste vs La Roja! 1950 vann Uruguay VM-titeln mot Spaniens föregångare i final-liknande match.",
+  65: "Senegal vs Irak – Lions of Teranga möter Mesopotamiens lejon! Bägge spelar med imponerande teknisk stil.",
+  66: "Norge vs Frankrike – Haaland vs Mbappe! Det här kan bli VM:s roligaste enskilda duell. Vem är bäst?",
+  67: "Algeriet vs Österrike – Nordafrika möter Centraleuropa i ett möte som aldrig har hänt i VM-historia tidigare!",
+  68: "Jordanien vs Argentina – underdogs möter mästare. Argentina har vunnit sina senaste 38 matcher i rad!",
+  69: "DR Kongo vs Uzbekistan – Centralasien möter Centralafrika. Båda lagen representerar historiska civilisationer.",
+  70: "Colombia vs Portugal – James vs Ronaldo! Colombias mål mot Uruguay 2014 av James Rodriguéz röstades till VM:s bästa mål.",
+  71: "Kroatien vs Ghana – Modric möter Black Stars. Kroatien vann sin hemmagrupp mot Ghana i 2006 VM.",
+  72: "Panama vs England – Central Amerika vs Three Lions i Torontos hetta! Panamas VM-debut 2018 slutade 6-1 mot England."
+};
+
 const TOURNAMENT_GROUPS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 
 // --- UI UTILS ---
@@ -893,7 +968,16 @@ export default function App() {
 
         {activeTab === 'matches' && (
            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 animate-in fade-in duration-300">
-              {matches.map(m => (
+              {matches.map(m => {
+                 const fact = MATCH_FACTS[m.id];
+                 const totalTips = activePlayers.filter(p => p.predictions?.[m.id]).length;
+                 const counts = { '1': 0, 'X': 0, '2': 0 };
+                 activePlayers.forEach(p => { if (p.predictions?.[m.id]) counts[p.predictions[m.id]]++; });
+                 const maxSign = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b, '1');
+                 const maxPct = totalTips ? Math.round((counts[maxSign] / totalTips) * 100) : 0;
+                 const actual = get1X2(m.goals1, m.goals2);
+                 const actualPct = (totalTips && actual && counts[actual]) ? Math.round((counts[actual] / totalTips) * 100) : 0;
+                 return (
                  <div key={m.id} className="bg-white/90 backdrop-blur-md p-6 rounded-[2rem] border shadow-sm space-y-3 relative overflow-hidden">
                     {m.status === 'live' && (
                       <div className="absolute top-4 right-4 flex items-center gap-1.5">
@@ -927,8 +1011,29 @@ export default function App() {
                          ))}
                        </div>
                     )}
+                    {fact && (
+                      <div className="mt-4 bg-slate-50/80 rounded-xl border border-slate-100 overflow-hidden text-center shadow-sm">
+                        <div className="p-3 text-[10px] font-medium text-slate-600 border-b border-slate-100 leading-relaxed">
+                           💡 <i>{fact}</i>
+                        </div>
+                        {totalTips > 0 && (
+                          <div className="p-2.5 text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
+                            {m.status === 'finished' ? (
+                               actualPct < 20 ? <span className="text-red-500">🚨 SKRÄLL! Endast {actualPct}% trodde på detta!</span> :
+                               actualPct > 75 ? <span className="text-emerald-600">✅ Favoritseger! Hela {actualPct}% hade rätt.</span> :
+                               <span className="text-slate-500">Tippades av {actualPct}% av spelarna.</span>
+                            ) : (
+                               maxPct > 75 ? <span className="text-indigo-600">🔥 {maxPct}% tror på {maxSign === '1' ? m.team1 : maxSign === '2' ? m.team2 : 'Kryss'}!</span> :
+                               maxPct < 45 ? <span className="text-amber-600">⚖️ Rysare! Publiken är helt oense.</span> :
+                               <span className="text-slate-500">Mest tippad: {maxSign} ({maxPct}%)</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
                  </div>
-              ))}
+                 );
+              })}
            </div>
         )}
 
