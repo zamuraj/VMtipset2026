@@ -167,7 +167,7 @@ const TvBadge = ({ tv }) => {
 const Logo = () => (
   <div className="flex items-center justify-center gap-3">
     <div className="relative"><Trophy className="w-10 h-10 text-vmgold relative z-10 drop-shadow-[0_0_10px_rgba(251,191,36,0.8)]" /><div className="absolute inset-0 bg-vmgold blur-xl opacity-40" /></div>
-    <div className="flex flex-col"><span className="font-black text-3xl italic leading-none tracking-tighter text-white">VM-TIPSET</span><span className="font-bold text-[10px] tracking-[0.3em] text-indigo-400 leading-none mt-1 uppercase">2026 Kompisligan</span></div>
+    <div className="flex flex-col"><span className="font-black text-3xl italic leading-none tracking-tighter text-white uppercase">Soffcoachernas Tipsliga</span><span className="font-bold text-[10px] tracking-[0.3em] text-indigo-400 leading-none mt-1 uppercase">Bara för de invigda</span></div>
   </div>
 );
 
@@ -856,7 +856,9 @@ export default function App() {
                   const isLatest = idx === 0;
                   return (
                     <div key={entry.id} className={`rounded-[2rem] border p-6 shadow-sm flex flex-col items-center text-center transition-all ${isLatest ? 'bg-vmdark text-white border-vmgold/30 shadow-[0_0_30px_rgba(251,191,36,0.1)]' : 'bg-white/90 backdrop-blur-md'}`}>
-                      <div className={`text-5xl font-black italic mb-1 ${isLatest ? 'text-vmgold' : 'text-slate-200'}`}>{entry.type || 'VM'} {entry.year}</div>
+                      <div className={`text-5xl font-black italic mb-1 ${isLatest ? 'text-vmgold' : 'text-slate-200'}`}>
+                        <span className={entry.type === 'EM' ? 'text-indigo-400' : 'text-vmgold'}>{entry.type || 'VM'}</span> {entry.year}
+                      </div>
                       <Trophy size={isLatest ? 32 : 20} className={isLatest ? 'text-vmgold drop-shadow-[0_0_8px_rgba(251,191,36,0.8)] mb-2' : 'text-slate-300 mb-2'}/>
                       <div className={`font-black text-lg ${isLatest ? 'text-white' : 'text-slate-800'}`}>{entry.champion}</div>
                       {isLatest && <span className="mt-2 px-3 py-1 bg-vmgold/20 text-vmgold text-[10px] font-black rounded-full uppercase tracking-widest border border-vmgold/30">Regerande Mästare</span>}
@@ -1004,7 +1006,7 @@ export default function App() {
                   <div key={entry.id} className="flex items-center justify-between p-4 rounded-2xl border bg-slate-50/50">
                     <div className="flex items-center gap-3">
                       <Trophy size={16} className="text-vmgold"/>
-                      <span className="font-black">{entry.type || 'VM'} {entry.year}</span>
+                      <span className="font-black"><span className={entry.type === 'EM' ? 'text-indigo-500' : 'text-vmgold'}>{entry.type || 'VM'}</span> {entry.year}</span>
                       <span className="text-slate-600 font-bold">{entry.champion}</span>
                     </div>
                     <button onClick={() => deleteDoc(doc(db, 'hallOfFame', entry.id))} className="p-2 text-red-400 hover:bg-red-50 rounded-xl transition-colors"><Trash2 size={16}/></button>
