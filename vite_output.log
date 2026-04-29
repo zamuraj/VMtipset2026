@@ -1,0 +1,10 @@
+
+> vmtipset2026@1.0.0 dev /app
+> vite
+
+
+  VITE v5.4.21  ready in 248 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+12:37:52 PM [vite] page reload src/app.jsx

@@ -224,27 +224,65 @@ const MATCH_FACTS = {
 const TOURNAMENT_GROUPS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 
 // --- UI UTILS ---
-const Flag = ({ code, className = "w-5 h-4 rounded-sm object-cover shadow-sm" }) => (
+const Flag = React.memo(({ code, className = "w-5 h-4 rounded-sm object-cover shadow-sm" }) => (
   <img 
     src={`https://flagcdn.com/w40/${code?.toLowerCase()}.png`} 
     alt={code}
     className={className}
+    loading="lazy"
     onError={(e) => { e.target.src = 'https://flagcdn.com/w40/un.png'; }}
   />
-);
+));
 
-const TvBadge = ({ tv }) => {
+const TvBadge = React.memo(({ tv }) => {
   if (tv === 'SVT') return <span className="bg-[#000030] text-white font-black text-[9px] px-1.5 py-0.5 rounded uppercase tracking-wider">SVT</span>;
   if (tv === 'TV4') return <span className="bg-[#E50000] text-white font-black text-[9px] px-1.5 py-0.5 rounded uppercase tracking-wider">TV4</span>;
   return <span className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-full text-[9px]"><Tv size={10}/> {tv}</span>;
-};
+});
 
-const Logo = () => (
+const Logo = React.memo(() => (
   <div className="flex items-center justify-center gap-3">
     <div className="relative"><Trophy className="w-10 h-10 text-vmgold relative z-10 drop-shadow-[0_0_10px_rgba(251,191,36,0.8)]" /><div className="absolute inset-0 bg-vmgold blur-xl opacity-40" /></div>
     <div className="flex flex-col"><span className="font-black text-3xl italic leading-none tracking-tighter text-white uppercase">Soffcoachernas Tipsliga</span><span className="font-bold text-[10px] tracking-[0.3em] text-indigo-400 leading-none mt-1 uppercase">Bara för de invigda</span></div>
   </div>
-);
+));
+
+// ⚡ Bolt Optimization: Extracted high-frequency state update (setInterval)
+// into an isolated, memoized component to prevent the massive root <App />
+// from re-rendering every second.
+const CountdownBanner = React.memo(({ deadline, className }) => {
+  const [timeLeft, setTimeLeft] = useState('');
+
+  useEffect(() => {
+    if (!deadline) { setTimeLeft('Deadline ej satt'); return; }
+    const calculateTimeLeft = () => {
+      const now = new Date();
+      const diff = deadline - now;
+      if (diff <= 0) {
+        setTimeLeft('Deadline passerad');
+        return false;
+      }
+      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((diff % (1000 * 60)) / 1000);
+      setTimeLeft(`${d} dagar, ${h} timmar, ${m} minuter, ${s} sekunder`);
+      return true;
+    };
+
+    if (calculateTimeLeft()) {
+      const interval = setInterval(() => {
+        if (!calculateTimeLeft()) clearInterval(interval);
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [deadline]);
+
+  if (!timeLeft) return null;
+  return <div className={className}>{timeLeft}</div>;
+});
+
+const get1X2 = (g1, g2) => { if (g1 === null || g2 === null) return null; return g1 > g2 ? '1' : g1 < g2 ? '2' : 'X'; };
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -285,27 +323,6 @@ export default function App() {
   const [regEmail, setRegEmail] = useState('');
   const [regGoals, setRegGoals] = useState('');
   const [regPicks, setRegPicks] = useState({});
-  const [timeLeft, setTimeLeft] = useState('');
-
-  // --- TIMER LOGIC ---
-  useEffect(() => {
-    if (!deadline) { setTimeLeft('Deadline ej satt'); return; }
-    const interval = setInterval(() => {
-      const now = new Date();
-      const diff = deadline - now;
-      if (diff <= 0) {
-        setTimeLeft('Deadline passerad');
-        clearInterval(interval);
-      } else {
-        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const s = Math.floor((diff % (1000 * 60)) / 1000);
-        setTimeLeft(`${d} dagar, ${h} timmar, ${m} minuter, ${s} sekunder`);
-      }
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [deadline]);
 
   // --- FIREBASE SYNC ---
   useEffect(() => {
@@ -394,7 +411,6 @@ export default function App() {
   const activeUser = useMemo(() => currentUser ? tips.find(t => t.id === currentUser.id) || currentUser : null, [currentUser, tips]);
   const activePlayers = useMemo(() => tips.filter(t => t.isApproved && !t.isAdmin), [tips]);
   const goalsSoFar = useMemo(() => matches.reduce((sum, m) => sum + (m.goals1 || 0) + (m.goals2 || 0), 0), [matches]);
-  const get1X2 = (g1, g2) => { if (g1 === null || g2 === null) return null; return g1 > g2 ? '1' : g1 < g2 ? '2' : 'X'; };
   const isDeadlinePassed = deadline && new Date() > deadline;
 
   // --- DAILY RANK NOTIFICATION ---
@@ -638,7 +654,7 @@ export default function App() {
       <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none" />
       <div className="w-full max-w-md bg-white/5 backdrop-blur-3xl p-8 rounded-[2rem] border border-white/10 shadow-2xl z-10">
         <Logo />
-        {!showRegister && timeLeft && <div className="mt-4 mb-2 p-3 bg-vmdark/50 backdrop-blur-sm border border-vmgold/20 text-vmgold text-xs font-black rounded-2xl uppercase tracking-widest text-center shadow-lg animate-pulse">{timeLeft}</div>}
+        {!showRegister && <CountdownBanner deadline={deadline} className="mt-4 mb-2 p-3 bg-vmdark/50 backdrop-blur-sm border border-vmgold/20 text-vmgold text-xs font-black rounded-2xl uppercase tracking-widest text-center shadow-lg animate-pulse" />}
         {!showRegister ? (
           <form onSubmit={handleLogin} className="mt-10 space-y-4">
             <input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} placeholder="Din e-post" className="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none" required />
@@ -665,7 +681,7 @@ export default function App() {
                <div className="space-y-4">
                   <div className="flex justify-between items-center"><button onClick={() => setRegStep(1)} className="text-xs text-slate-400">← Bakåt</button><span className="text-vmgold text-xs font-black">{Object.keys(regPicks).length}/72 tippade</span></div>
                   <div className="max-h-[50vh] overflow-y-auto space-y-3 pr-2 no-scrollbar relative">
-                    {timeLeft && <div className="sticky top-0 z-50 bg-vmdark/95 backdrop-blur-md p-4 mb-4 -mx-2 rounded-b-3xl text-vmgold text-xs font-black text-center shadow-xl border-b border-vmgold/20 animate-pulse">{timeLeft}</div>}
+                    <CountdownBanner deadline={deadline} className="sticky top-0 z-50 bg-vmdark/95 backdrop-blur-md p-4 mb-4 -mx-2 rounded-b-3xl text-vmgold text-xs font-black text-center shadow-xl border-b border-vmgold/20 animate-pulse" />
                     {initialMatchesList.map(m => (
                       <div key={m.id} className="bg-black/30 p-5 rounded-[2rem] border border-white/5 space-y-4">
                         <div className="flex flex-col items-center gap-1">
@@ -722,7 +738,7 @@ export default function App() {
       <header className="bg-vmdark/95 backdrop-blur-md text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-xl">
         <div className="scale-75 origin-left">
           <Logo />
-          {timeLeft && <div className="mt-1 px-2 py-0.5 bg-vmgold/10 text-vmgold text-[8px] font-black rounded-full uppercase tracking-widest text-center animate-pulse">{timeLeft}</div>}
+          <CountdownBanner deadline={deadline} className="mt-1 px-2 py-0.5 bg-vmgold/10 text-vmgold text-[8px] font-black rounded-full uppercase tracking-widest text-center animate-pulse" />
         </div>
         <div className="flex items-center gap-4 relative">
           <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors" aria-label="Notiser" title="Notiser">

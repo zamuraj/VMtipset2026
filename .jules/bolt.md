@@ -1,0 +1,3 @@
+## 2024-05-18 - Root-level setInterval Re-render Cascade
+**Learning:** Placing a high-frequency state update (like a `setInterval` that runs every second for a countdown timer) in the root or a high-level parent component forces the entire component tree to re-render repeatedly. In large applications like this one with heavy lists and calculations (leaderboards, match tables), this creates a massive performance bottleneck and unnecessary CPU overhead.
+**Action:** Always isolate high-frequency state updates by extracting them into their own small, isolated components. This ensures only the tiny component (e.g., `CountdownBanner`) re-renders, not the whole application.
