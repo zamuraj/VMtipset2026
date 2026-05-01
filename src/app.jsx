@@ -474,9 +474,15 @@ export default function App() {
   }, [matches, folketsTipsMode, folketsTips]);
 
   const leaderboard = useMemo(() => {
+    // ⚡ Bolt Optimization: Pre-calculate match outcomes to reduce O(P*M) function calls
+    const matchOutcomes = {};
+    matches.forEach(m => {
+      matchOutcomes[m.id] = get1X2(m.goals1, m.goals2);
+    });
+
     return activePlayers.map(u => {
       let pts = 0;
-      matches.forEach(m => { if (get1X2(m.goals1, m.goals2) === u.predictions?.[m.id]) pts++; });
+      matches.forEach(m => { if (matchOutcomes[m.id] === u.predictions?.[m.id]) pts++; });
       return { ...u, pts, diff: Math.abs((parseInt(u.goals) || 0) - goalsSoFar) };
     }).sort((a, b) => b.pts - a.pts || a.diff - b.diff).map((u, i) => ({ ...u, rank: i + 1 }));
   }, [activePlayers, matches, goalsSoFar]);
