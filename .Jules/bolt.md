@@ -1,0 +1,3 @@
+## 2024-05-03 - O(P*M) Bottleneck in React useMemo Map Operations
+**Learning:** Found an architectural pattern in `src/app.jsx` where iterating over users inside `useMemo` resulted in repeatedly executing the same calculations (like match outcomes) per user. This creates an O(P*M) (Players * Matches) complexity that severely impacts the main thread as the dataset grows.
+**Action:** When a calculation applies uniformly to an external collection, always pre-calculate those results into a fast lookup object (like an ID-indexed hash map) before entering loops over lists like players/users, reducing complexity to O(P+M).
