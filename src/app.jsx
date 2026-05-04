@@ -474,7 +474,7 @@ export default function App() {
   }, [matches, folketsTipsMode, folketsTips]);
 
   const leaderboard = useMemo(() => {
-    // ⚡ Bolt: Pre-calculate actual outcomes to reduce nested operations from O(P*M) to O(P+M)
+    // ⚡ Bolt: Pre-calculate match outcomes to reduce complexity from O(P*M) to O(P+M)
     const matchOutcomes = {};
     matches.forEach(m => {
       matchOutcomes[m.id] = get1X2(m.goals1, m.goals2);
