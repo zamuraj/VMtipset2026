@@ -474,9 +474,13 @@ export default function App() {
   }, [matches, folketsTipsMode, folketsTips]);
 
   const leaderboard = useMemo(() => {
+    const matchResults = matches.map(m => ({ id: m.id, result: get1X2(m.goals1, m.goals2) }));
     return activePlayers.map(u => {
       let pts = 0;
-      matches.forEach(m => { if (get1X2(m.goals1, m.goals2) === u.predictions?.[m.id]) pts++; });
+      const predictions = u.predictions || {};
+      matchResults.forEach(mr => {
+        if (mr.result && predictions[mr.id] === mr.result) pts++;
+      });
       return { ...u, pts, diff: Math.abs((parseInt(u.goals) || 0) - goalsSoFar) };
     }).sort((a, b) => b.pts - a.pts || a.diff - b.diff).map((u, i) => ({ ...u, rank: i + 1 }));
   }, [activePlayers, matches, goalsSoFar]);
@@ -510,15 +514,25 @@ export default function App() {
 
   const folketsLeader = useMemo(() => {
     if (!activePlayers.length) return null;
-    const simulated = activePlayers.map(u => {
+    const validFolkTips = matches
+      .map(m => ({ id: m.id, sign: folketsTips[m.id] }))
+      .filter(t => t.sign && t.sign !== '-');
+
+    let leader = null;
+    let maxPts = -1;
+
+    activePlayers.forEach(u => {
       let pts = 0;
-      matches.forEach(m => {
-        const folkSign = folketsTips[m.id];
-        if (folkSign && folkSign !== '-' && u.predictions?.[m.id] === folkSign) pts++;
+      const predictions = u.predictions || {};
+      validFolkTips.forEach(ft => {
+        if (predictions[ft.id] === ft.sign) pts++;
       });
-      return { ...u, pts };
-    }).sort((a, b) => b.pts - a.pts);
-    return simulated[0] || null;
+      if (pts > maxPts) {
+        maxPts = pts;
+        leader = { ...u, pts };
+      }
+    });
+    return leader;
   }, [activePlayers, matches, folketsTips]);
 
   const prizePool = useMemo(() => {
