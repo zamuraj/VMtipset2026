@@ -1,0 +1,3 @@
+## 2024-05-15 - Nested loop optimization in React useMemo
+**Learning:** Nested loops in React's `useMemo` (e.g., O(P*M) where P is players and M is matches) can cause noticeable UI lag as the data grows. Pre-calculating independent results or filtering datasets once before the main loop significantly reduces the work done in the inner loop. Additionally, replacing `.map().sort()[0]` with a single-pass loop reduces complexity from O(P log P) to O(P) and avoids unnecessary allocations.
+**Action:** Always check if inner loop conditions or lookups can be pre-calculated outside the loop. Avoid sorting if only the maximum/minimum element is needed.
