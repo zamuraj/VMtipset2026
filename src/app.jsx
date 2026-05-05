@@ -283,6 +283,7 @@ export default function App() {
   const [regStep, setRegStep] = useState(1);
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
+  const [regPhone, setRegPhone] = useState('');
   const [regGoals, setRegGoals] = useState('');
   const [regPicks, setRegPicks] = useState({});
   const [timeLeft, setTimeLeft] = useState('');
@@ -574,6 +575,7 @@ export default function App() {
       await setDoc(doc(db, "tips", id), { 
         name: regName || 'Okänd', 
         email: regEmail ? regEmail.toLowerCase().trim() : id, 
+        phone: regPhone,
         goals: parseInt(regGoals) || 0, 
         predictions: regPicks || {}, 
         isApproved: editingParticipantId ? true : false, 
@@ -596,6 +598,7 @@ export default function App() {
     setEditingParticipantId(p.id);
     setRegName(p.name);
     setRegEmail(p.email || p.id);
+    setRegPhone(p.phone || '');
     setRegGoals(p.goals || '');
     setRegPicks(p.predictions || {});
     setIsEditing(true);
@@ -655,7 +658,8 @@ export default function App() {
                 <div className="flex justify-between items-center mb-2"><h2 className="font-bold">{editingParticipantId ? 'Redigera Deltagare' : '1. Dina Uppgifter'}</h2><button onClick={() => { setShowRegister(false); setEditingParticipantId(null); }}><X/></button></div>
                 <input type="text" value={regName} onChange={e=>setRegName(e.target.value)} placeholder="Namn" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
                 <input type="email" value={regEmail} onChange={e=>setRegEmail(e.target.value)} placeholder="E-post" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
-                <input type="number" value={regGoals} onChange={e=>setRegGoals(e.target.value)} placeholder="Mål totalt i hela VM?" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
+                <input type="tel" value={regPhone} onChange={e=>setRegPhone(e.target.value)} placeholder="Telefonnummer" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
+                <input type="number" value={regGoals} onChange={e=>setRegGoals(e.target.value)} placeholder="Antal mål totalt i GRUPPSPELET (72 matcher)?" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
                 <div className="flex gap-2">
                    {Object.keys(regPicks).length > 0 && <button onClick={clearDraft} className="p-4 bg-red-500/20 text-red-400 rounded-2xl"><Trash2/></button>}
                    <button onClick={checkExistingUser} className="flex-1 py-4 bg-emerald-600 rounded-xl font-bold">NÄSTA: FYLL I TIPS</button>
@@ -1214,7 +1218,7 @@ export default function App() {
                    <div key={t.id} className="p-5 bg-white border rounded-[2rem] flex justify-between items-center shadow-sm">
                       <div>
                         <div className="font-black text-lg">{t.name}</div>
-                        <div className="text-xs text-slate-400 font-bold">{t.email}</div>
+                        <div className="text-xs text-slate-400 font-bold flex items-center gap-2">{t.email} {t.phone && <span className="text-[10px] text-indigo-500">({t.phone})</span>}</div>
                       </div>
                       <div className="flex gap-2">
                         <button onClick={() => deleteDoc(doc(db, "tips", t.id))} className="p-3 text-red-500 hover:bg-red-50 rounded-2xl transition-colors"><Trash2/></button>
@@ -1231,7 +1235,7 @@ export default function App() {
                      <div key={p.id} className="p-4 bg-white border rounded-2xl flex justify-between items-center shadow-sm">
                        <div>
                          <div className="font-bold text-slate-800">{p.name}</div>
-                         <div className="text-[10px] text-slate-400 font-bold uppercase">{p.email}</div>
+                         <div className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-2">{p.email} {p.phone && <span className="text-[10px] text-indigo-500">({p.phone})</span>}</div>
                        </div>
                        <div className="flex gap-1">
                          <button onClick={() => startEditing(p)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"><Settings size={18}/></button>
@@ -1375,7 +1379,8 @@ export default function App() {
             <div className="p-6 space-y-3 border-b">
               <input type="text" value={regName} onChange={e => setRegName(e.target.value)} placeholder="Namn" className="w-full p-3 rounded-xl bg-slate-50 border outline-none focus:border-indigo-400 font-bold text-sm"/>
               <input type="email" value={regEmail} onChange={e => setRegEmail(e.target.value)} placeholder="E-post" className="w-full p-3 rounded-xl bg-slate-50 border outline-none focus:border-indigo-400 font-bold text-sm"/>
-              <input type="number" value={regGoals} onChange={e => setRegGoals(e.target.value)} placeholder="Mål totalt i hela VM?" className="w-full p-3 rounded-xl bg-slate-50 border outline-none focus:border-indigo-400 font-bold text-sm"/>
+              <input type="tel" value={regPhone} onChange={e => setRegPhone(e.target.value)} placeholder="Telefonnummer" className="w-full p-3 rounded-xl bg-slate-50 border outline-none focus:border-indigo-400 font-bold text-sm"/>
+              <input type="number" value={regGoals} onChange={e => setRegGoals(e.target.value)} placeholder="Antal mål totalt i GRUPPSPELET (72 matcher)?" className="w-full p-3 rounded-xl bg-slate-50 border outline-none focus:border-indigo-400 font-bold text-sm"/>
             </div>
             <div className="flex-1 overflow-y-auto p-6 space-y-3 no-scrollbar bg-slate-50/50" style={{maxHeight:'40vh'}}>
               <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex justify-between">
