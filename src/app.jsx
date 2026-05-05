@@ -365,25 +365,53 @@ export default function App() {
   }, []);
 
   // --- AUTOSAVE LOGIC ---
-  useEffect(() => {
-    const draft = JSON.parse(localStorage.getItem('vmt_draft_v3'));
-    if(draft) { setRegName(draft.name || ''); setRegEmail(draft.email || ''); setRegGoals(draft.goals || ''); setRegPicks(draft.picks || {}); setRegStep(draft.step || 1); }
-  }, []);
-  useEffect(() => {
-    localStorage.setItem('vmt_draft_v3', JSON.stringify({ name: regName, email: regEmail, goals: regGoals, picks: regPicks, step: regStep }));
-  }, [regName, regEmail, regGoals, regPicks, regStep]);
+  const resetRegFields = () => {
+    setRegName('');
+    setRegEmail('');
+    setRegPhone('');
+    setRegGoals('');
+    setRegPicks({});
+    setRegStep(1);
+  };
 
-  const clearDraft = () => { if(window.confirm('Rensa allt och börja om?')) { localStorage.removeItem('vmt_draft_v3'); window.location.reload(); } };
+  useEffect(() => {
+    if (!currentUser?.isAdmin && regEmail) {
+      const draftKey = `vmt_draft_v3_${regEmail.toLowerCase().trim()}`;
+      localStorage.setItem(draftKey, JSON.stringify({ name: regName, email: regEmail, phone: regPhone, goals: regGoals, picks: regPicks, step: regStep }));
+    }
+  }, [regName, regEmail, regPhone, regGoals, regPicks, regStep, currentUser]);
+
+  const clearDraft = () => { 
+    if(window.confirm('Rensa allt och börja om?')) { 
+      if (regEmail) localStorage.removeItem(`vmt_draft_v3_${regEmail.toLowerCase().trim()}`);
+      window.location.reload(); 
+    } 
+  };
 
   const checkExistingUser = () => {
-    const existing = tips.find(t => t.email.toLowerCase() === regEmail.toLowerCase().trim());
-    if(existing) {
+    const email = regEmail.toLowerCase().trim();
+    const draftKey = `vmt_draft_v3_${email}`;
+    const draft = JSON.parse(localStorage.getItem(draftKey));
+    
+    const existing = tips.find(t => t.email.toLowerCase() === email);
+    
+    if (draft) {
+       setRegName(draft.name || '');
+       setRegPhone(draft.phone || '');
+       setRegGoals(draft.goals || '');
+       setRegPicks(draft.picks || {});
+       setRegStep(draft.step || 2);
+       alert("Ett sparat utkast hittades för denna e-post!");
+    } else if(existing) {
        setRegName(existing.name);
+       setRegPhone(existing.phone || '');
        setRegGoals(existing.goals);
        setRegPicks(existing.predictions || {});
        alert("Välkommen tillbaka! Ditt tidigare tips har laddats in.");
+       setRegStep(2);
+    } else {
+       setRegStep(2);
     }
-    setRegStep(2);
   };
 
   // --- CALCULATIONS ---
@@ -660,14 +688,14 @@ export default function App() {
             {loginEmail.toLowerCase().trim() === import.meta.env.VITE_ADMIN_EMAIL?.toLowerCase().trim() && <input type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} placeholder="Lösenord" className="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none" required />}
             {authError && <p className="text-red-400 text-xs font-bold text-center">{authError}</p>}
             <button type="submit" className="w-full py-4 bg-indigo-600 rounded-xl font-black shadow-lg">LOGGA IN</button>
-            {!isDeadlinePassed && <button type="button" onClick={() => setShowRegister(true)} className="w-full text-emerald-400 font-bold text-sm">LÄMNA NYTT TIPS {Object.keys(regPicks).length > 0 && " (Utkast finns)"}</button>}
+            {!isDeadlinePassed && <button type="button" onClick={() => { resetRegFields(); setShowRegister(true); }} className="w-full text-emerald-400 font-bold text-sm">LÄMNA NYTT TIPS</button>}
             {isDeadlinePassed && <p className="text-center text-xs text-slate-500 font-bold italic">Anmälan stängd</p>}
           </form>
         ) : (
           <div className="mt-8 space-y-4 animate-in slide-in-from-right-4 duration-300">
              {regStep === 1 ? (
                <>
-                <div className="flex justify-between items-center mb-2"><h2 className="font-bold">{editingParticipantId ? 'Redigera Deltagare' : '1. Dina Uppgifter'}</h2><button onClick={() => { setShowRegister(false); setEditingParticipantId(null); }}><X/></button></div>
+                <div className="flex justify-between items-center mb-2"><h2 className="font-bold">{editingParticipantId ? 'Redigera Deltagare' : '1. Dina Uppgifter'}</h2><button onClick={() => { setShowRegister(false); setEditingParticipantId(null); resetRegFields(); }}><X/></button></div>
                 <input type="text" value={regName} onChange={e=>setRegName(e.target.value)} placeholder="Namn" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
                 <input type="email" value={regEmail} onChange={e=>setRegEmail(e.target.value)} placeholder="E-post" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
                 <input type="tel" value={regPhone} onChange={e=>setRegPhone(e.target.value)} placeholder="Telefonnummer" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
