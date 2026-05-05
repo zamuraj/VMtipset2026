@@ -6,6 +6,7 @@ import {
   AlertCircle, Clock, Grid3X3, User, X, Lock, LogOut, Award, History, Star,
   Swords, Bell, PlayCircle, Banknote, MessageSquare, Send, Goal, ShieldCheck, ChevronDown, ChevronUp, MapPin, ListOrdered, Trash2, Tv, Users, Activity, Edit
 } from 'lucide-react';
+import TvBadge from './components/TvBadge';
 
 // --- DATA: LAG & SCHEMA ---
 const TEAMS = { 
@@ -232,12 +233,6 @@ const Flag = ({ code, className = "w-5 h-4 rounded-sm object-cover shadow-sm" })
     onError={(e) => { e.target.src = 'https://flagcdn.com/w40/un.png'; }}
   />
 );
-
-const TvBadge = ({ tv }) => {
-  if (tv === 'SVT') return <span className="bg-[#000030] text-white font-black text-[9px] px-1.5 py-0.5 rounded uppercase tracking-wider">SVT</span>;
-  if (tv === 'TV4') return <span className="bg-[#E50000] text-white font-black text-[9px] px-1.5 py-0.5 rounded uppercase tracking-wider">TV4</span>;
-  return <span className="flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded-full text-[9px]"><Tv size={10}/> {tv}</span>;
-};
 
 const Logo = () => (
   <div className="flex items-center justify-center gap-3">
@@ -475,9 +470,13 @@ export default function App() {
   }, [matches, folketsTipsMode, folketsTips]);
 
   const leaderboard = useMemo(() => {
+    const matchResults = matches.map(m => ({ id: m.id, result: get1X2(m.goals1, m.goals2) }));
     return activePlayers.map(u => {
       let pts = 0;
-      matches.forEach(m => { if (get1X2(m.goals1, m.goals2) === u.predictions?.[m.id]) pts++; });
+      const predictions = u.predictions || {};
+      matchResults.forEach(mr => {
+        if (mr.result && predictions[mr.id] === mr.result) pts++;
+      });
       return { ...u, pts, diff: Math.abs((parseInt(u.goals) || 0) - goalsSoFar) };
     }).sort((a, b) => b.pts - a.pts || a.diff - b.diff).map((u, i) => ({ ...u, rank: i + 1 }));
   }, [activePlayers, matches, goalsSoFar]);
@@ -511,15 +510,25 @@ export default function App() {
 
   const folketsLeader = useMemo(() => {
     if (!activePlayers.length) return null;
-    const simulated = activePlayers.map(u => {
+    const validFolkTips = matches
+      .map(m => ({ id: m.id, sign: folketsTips[m.id] }))
+      .filter(t => t.sign && t.sign !== '-');
+
+    let leader = null;
+    let maxPts = -1;
+
+    activePlayers.forEach(u => {
       let pts = 0;
-      matches.forEach(m => {
-        const folkSign = folketsTips[m.id];
-        if (folkSign && folkSign !== '-' && u.predictions?.[m.id] === folkSign) pts++;
+      const predictions = u.predictions || {};
+      validFolkTips.forEach(ft => {
+        if (predictions[ft.id] === ft.sign) pts++;
       });
-      return { ...u, pts };
-    }).sort((a, b) => b.pts - a.pts);
-    return simulated[0] || null;
+      if (pts > maxPts) {
+        maxPts = pts;
+        leader = { ...u, pts };
+      }
+    });
+    return leader;
   }, [activePlayers, matches, folketsTips]);
 
   const prizePool = useMemo(() => {
@@ -544,8 +553,11 @@ export default function App() {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (loginEmail.toLowerCase().trim() === 'zettergren.emil@gmail.com' && loginPassword === 'TELE1fon') {
-      const adminUser = tips.find(t => t.email.toLowerCase() === 'zettergren.emil@gmail.com') || { id: 'admin', name: 'Emil Zettergren', email: 'zettergren.emil@gmail.com', isAdmin: true, isApproved: true, predictions: {} };
+    const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
+    const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD;
+
+    if (loginEmail.toLowerCase().trim() === adminEmail?.toLowerCase().trim() && loginPassword === adminPassword) {
+      const adminUser = tips.find(t => t.email.toLowerCase() === adminEmail.toLowerCase().trim()) || { id: 'admin', name: 'Emil Zettergren', email: adminEmail.toLowerCase().trim(), isAdmin: true, isApproved: true, predictions: {} };
       const userObj = { ...adminUser, isAdmin: true };
       setCurrentUser(userObj);
       localStorage.setItem('vmt_login_session', JSON.stringify(userObj));
@@ -645,7 +657,7 @@ export default function App() {
         {!showRegister ? (
           <form onSubmit={handleLogin} className="mt-10 space-y-4">
             <input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} placeholder="Din e-post" className="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none" required />
-            {loginEmail.toLowerCase() === 'zettergren.emil@gmail.com' && <input type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} placeholder="Lösenord" className="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none" required />}
+            {loginEmail.toLowerCase().trim() === import.meta.env.VITE_ADMIN_EMAIL?.toLowerCase().trim() && <input type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} placeholder="Lösenord" className="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none" required />}
             {authError && <p className="text-red-400 text-xs font-bold text-center">{authError}</p>}
             <button type="submit" className="w-full py-4 bg-indigo-600 rounded-xl font-black shadow-lg">LOGGA IN</button>
             {!isDeadlinePassed && <button type="button" onClick={() => setShowRegister(true)} className="w-full text-emerald-400 font-bold text-sm">LÄMNA NYTT TIPS {Object.keys(regPicks).length > 0 && " (Utkast finns)"}</button>}
