@@ -395,6 +395,16 @@ export default function App() {
   const activePlayers = useMemo(() => tips.filter(t => t.isApproved && !t.isAdmin), [tips]);
   const goalsSoFar = useMemo(() => matches.reduce((sum, m) => sum + (m.goals1 || 0) + (m.goals2 || 0), 0), [matches]);
   const get1X2 = (g1, g2) => { if (g1 === null || g2 === null) return null; return g1 > g2 ? '1' : g1 < g2 ? '2' : 'X'; };
+
+  const matchResults = useMemo(() => {
+    const results = {};
+    for (let i = 0; i < matches.length; i++) {
+      const m = matches[i];
+      results[m.id] = get1X2(m.goals1, m.goals2);
+    }
+    return results;
+  }, [matches]);
+
   const isDeadlinePassed = deadline && new Date() > deadline;
 
   // --- DAILY RANK NOTIFICATION ---
@@ -476,10 +486,15 @@ export default function App() {
   const leaderboard = useMemo(() => {
     return activePlayers.map(u => {
       let pts = 0;
-      matches.forEach(m => { if (get1X2(m.goals1, m.goals2) === u.predictions?.[m.id]) pts++; });
+      const predictions = u.predictions;
+      if (predictions) {
+        for (let j = 0; j < matches.length; j++) {
+          if (matchResults[matches[j].id] === predictions[matches[j].id]) pts++;
+        }
+      }
       return { ...u, pts, diff: Math.abs((parseInt(u.goals) || 0) - goalsSoFar) };
     }).sort((a, b) => b.pts - a.pts || a.diff - b.diff).map((u, i) => ({ ...u, rank: i + 1 }));
-  }, [activePlayers, matches, goalsSoFar]);
+  }, [activePlayers, matches, goalsSoFar, matchResults]);
 
   const optimist = useMemo(() => {
     if (!activePlayers.length) return null;
@@ -859,7 +874,7 @@ export default function App() {
                        </thead>
                        <tbody>
                          {matches.map(m => {
-                           const actual = get1X2(m.goals1, m.goals2);
+                           const actual = matchResults[m.id];
                            const isFinished = m.status === 'finished' || m.status === 'live';
                            const isLastPlayed = m.id === lastPlayedMatch?.id;
                            const matchCellClass = `sticky left-0 z-30 border-r border-b p-3 whitespace-nowrap shadow-[4px_0_10px_rgba(0,0,0,0.04)] ${isLastPlayed ? 'bg-vmgold/10 border-l-4 border-l-vmgold' : 'bg-white'}`;
@@ -980,8 +995,8 @@ export default function App() {
             {h2hUser1 && h2hUser2 && (() => {
               const u1 = activePlayers.find(u => u.id === h2hUser1);
               const u2 = activePlayers.find(u => u.id === h2hUser2);
-              const u1pts = matches.filter(m => get1X2(m.goals1,m.goals2) === u1?.predictions?.[m.id]).length;
-              const u2pts = matches.filter(m => get1X2(m.goals1,m.goals2) === u2?.predictions?.[m.id]).length;
+              const u1pts = matches.filter(m => matchResults[m.id] === u1?.predictions?.[m.id]).length;
+              const u2pts = matches.filter(m => matchResults[m.id] === u2?.predictions?.[m.id]).length;
               return (
                 <>
                   <div className="grid grid-cols-2 gap-4 mb-6">
@@ -1021,7 +1036,7 @@ export default function App() {
                  activePlayers.forEach(p => { if (p.predictions?.[m.id]) counts[p.predictions[m.id]]++; });
                  const maxSign = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b, '1');
                  const maxPct = totalTips ? Math.round((counts[maxSign] / totalTips) * 100) : 0;
-                 const actual = get1X2(m.goals1, m.goals2);
+                 const actual = matchResults[m.id];
                  const actualPct = (totalTips && actual && counts[actual]) ? Math.round((counts[actual] / totalTips) * 100) : 0;
                  return (
                  <div key={m.id} className="bg-white/90 backdrop-blur-md p-6 rounded-[2rem] border shadow-sm space-y-3 relative overflow-hidden">
@@ -1334,7 +1349,7 @@ export default function App() {
                     <div className="grid gap-3">
                        {matches.map(m => {
                           const pick = selectedUser.predictions?.[m.id];
-                          const actual = get1X2(m.goals1, m.goals2);
+                          const actual = matchResults[m.id];
                           const isCorrect = actual && pick === actual;
                           const isWrong = actual && pick !== actual;
                           return (
