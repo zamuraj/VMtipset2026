@@ -375,8 +375,8 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (!currentUser?.isAdmin && regEmail) {
-      const draftKey = `vmt_draft_v3_${regEmail.toLowerCase().trim()}`;
+    const draftKey = regEmail ? `vmt_draft_v3_${regEmail.toLowerCase().trim()}` : null;
+    if (draftKey && !currentUser?.isAdmin) {
       localStorage.setItem(draftKey, JSON.stringify({ name: regName, email: regEmail, phone: regPhone, goals: regGoals, picks: regPicks, step: regStep }));
     }
   }, [regName, regEmail, regPhone, regGoals, regPicks, regStep, currentUser]);
@@ -390,6 +390,7 @@ export default function App() {
 
   const checkExistingUser = () => {
     const email = regEmail.toLowerCase().trim();
+    if (!email) return alert("Vänligen fyll i din e-post.");
     const draftKey = `vmt_draft_v3_${email}`;
     const draft = JSON.parse(localStorage.getItem(draftKey));
     
@@ -624,7 +625,8 @@ export default function App() {
       }, { merge: true });
 
       alert(editingParticipantId ? "Deltagare uppdaterad!" : "Tips sparat/uppdaterat! Emil godkänner när betalning syns.");
-      localStorage.removeItem('vmt_draft_v3'); 
+      const draftKey = regEmail ? `vmt_draft_v3_${regEmail.toLowerCase().trim()}` : null;
+      if (draftKey) localStorage.removeItem(draftKey); 
       setShowRegister(false);
       setEditingParticipantId(null);
     } catch (e) {
@@ -693,9 +695,12 @@ export default function App() {
           </form>
         ) : (
           <div className="mt-8 space-y-4 animate-in slide-in-from-right-4 duration-300">
-             {regStep === 1 ? (
+            <div className="flex justify-between items-center mb-2">
+              <h2 className="font-bold">{editingParticipantId ? 'Redigera Deltagare' : (regStep === 1 ? '1. Dina Uppgifter' : '2. Fyll i Tips')}</h2>
+              <button onClick={() => { setShowRegister(false); setEditingParticipantId(null); resetRegFields(); }}><X/></button>
+            </div>
+            {regStep === 1 ? (
                <>
-                <div className="flex justify-between items-center mb-2"><h2 className="font-bold">{editingParticipantId ? 'Redigera Deltagare' : '1. Dina Uppgifter'}</h2><button onClick={() => { setShowRegister(false); setEditingParticipantId(null); resetRegFields(); }}><X/></button></div>
                 <input type="text" value={regName} onChange={e=>setRegName(e.target.value)} placeholder="Namn" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
                 <input type="email" value={regEmail} onChange={e=>setRegEmail(e.target.value)} placeholder="E-post" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
                 <input type="tel" value={regPhone} onChange={e=>setRegPhone(e.target.value)} placeholder="Telefonnummer" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
