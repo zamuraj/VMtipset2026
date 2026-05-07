@@ -376,7 +376,7 @@ export default function App() {
 
   useEffect(() => {
     const draftKey = regEmail ? `vmt_draft_v3_${regEmail.toLowerCase().trim()}` : null;
-    if (draftKey && !currentUser?.isAdmin) {
+    if (draftKey && !currentUser?.isAdmin && Object.keys(regPicks).length > 0) {
       localStorage.setItem(draftKey, JSON.stringify({ name: regName, email: regEmail, phone: regPhone, goals: regGoals, picks: regPicks, step: regStep }));
     }
   }, [regName, regEmail, regPhone, regGoals, regPicks, regStep, currentUser]);
@@ -396,14 +396,14 @@ export default function App() {
     
     const existing = tips.find(t => t.email.toLowerCase() === email);
     
-    if (draft) {
+    if (draft && draft.picks && Object.keys(draft.picks).length > 0) {
        setRegName(draft.name || '');
        setRegPhone(draft.phone || '');
        setRegGoals(draft.goals || '');
        setRegPicks(draft.picks || {});
        setRegStep(draft.step || 2);
        alert("Ett sparat utkast hittades för denna e-post!");
-    } else if(existing) {
+    } else if(existing && existing.predictions && Object.keys(existing.predictions).length > 0) {
        setRegName(existing.name);
        setRegPhone(existing.phone || '');
        setRegGoals(existing.goals);
