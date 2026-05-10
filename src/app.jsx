@@ -1198,7 +1198,7 @@ export default function App() {
                    {currentUser.name === 'Emil Zettergren' && <span className="bg-vmgold/20 text-vmgold px-1.5 py-0.5 rounded text-[8px] font-black tracking-widest">ADMIN</span>}
                 </div>
                 <div className="relative w-full">
-                  <div aria-hidden="true" className="absolute inset-0 p-4 rounded-2xl text-sm font-sans leading-normal pointer-events-none whitespace-pre-wrap break-words overflow-hidden text-transparent">
+                  <div aria-hidden="true" className="absolute inset-0 font-sans text-sm leading-normal border-none p-4 rounded-2xl pointer-events-none whitespace-pre-wrap break-words overflow-hidden opacity-0">
                     {newChatMsg.split(/(@[a-zA-ZåäöÅÄÖ\w-]+(?:\s[a-zA-ZåäöÅÄÖ\w-]+)?)/g).map((part, i) => {
                       const isTag = part.startsWith('@') && activePlayers.some(p => part.substring(1).toLowerCase() === p.name.toLowerCase() || part.substring(1).toLowerCase() === p.name.split(' ')[0].toLowerCase());
                       return <span key={i} style={isTag ? {color:'#3b82f6', fontWeight:700} : {color:'transparent'}}>{part}</span>;
@@ -1214,7 +1214,7 @@ export default function App() {
                     } else {
                       setShowMentions(false);
                     }
-                  }} placeholder="Skriv nåt till gruppen..." className="relative w-full bg-slate-100 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm font-sans leading-normal" style={{background:'transparent', caretColor:'#0f172a'}} />
+                  }} placeholder="Skriv nåt till gruppen..." className="relative w-full bg-slate-100 font-sans text-sm leading-normal border-none p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" style={{background:'transparent', caretColor:'#0f172a'}} />
                 </div>
                 {showMentions && (
                    <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
