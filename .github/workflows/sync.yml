@@ -25,8 +25,11 @@ jobs:
           corepack enable
           corepack prepare pnpm@latest --activate
 
-      - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+      - name: Create .npmrc
+        run: echo "only-allow-trusted-dependencies=false" > .npmrc
+
+      - name: Install production dependencies
+        run: pnpm install --prod --no-frozen-lockfile --aggregate-output
 
       - name: Run sync script
         env:
