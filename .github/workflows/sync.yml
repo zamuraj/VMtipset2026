@@ -1,12 +1,12 @@
 name: Sync Matches
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 on:
   schedule:
     # Körs var 30:e minut
     - cron: '*/30 * * * *'
   workflow_dispatch:
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   sync:
@@ -25,11 +25,12 @@ jobs:
           corepack enable
           corepack prepare pnpm@latest --activate
 
-      - name: Install production dependencies
-        run: pnpm install --prod --frozen-lockfile
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
 
       - name: Run sync script
         env:
           FIREBASE_SERVICE_ACCOUNT_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
           FOOTBALL_DATA_API_KEY: ${{ secrets.FOOTBALL_DATA_API_KEY }}
+          DEBUG: "*"
         run: node scripts/sync.js
