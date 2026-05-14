@@ -336,7 +336,7 @@ export default function App() {
       }
       if (!response.ok) throw new Error('API-fel: ' + response.status);
       const data = await response.json();
-      const map = { 'Mexico':'Mexiko', 'Canada':'Kanada', 'Slovakia':'Slovakien', 'Italy':'Italien', 'Morocco':'Marocko', 'Spain':'Spanien', 'Japan':'Japan', 'Brazil':'Brasilien', 'South Korea':'Sydkorea', 'Sweden':'Sverige', 'Jordan':'Jordanien', 'Germany':'Tyskland', 'Norway':'Norge', 'France':'Frankrike', 'Uzbekistan':'Uzbekistan', 'Uruguay':'Uruguay', 'Cameroon':'Kamerun', 'Netherlands':'Nederländerna', 'Australia':'Australien', 'Argentina':'Argentina', 'Belgium':'Belgien', 'Portugal':'Portugal', 'Denmark':'Danmark', 'South Africa':'Sydafrika', 'Czech Republic':'Tjeckien', 'Bosnia-Herzegovina':'Bosnien', 'Turkey':'Turkiet', 'Ivory Coast':'Elfenbenskusten', 'Tunisia':'Tunisien', 'Cape Verde':'Kap Verde', 'Egypt':'Egypten', 'Saudi Arabia':'Saudiarabien', 'New Zealand':'Nya Zeeland', 'Iraq':'Irak', 'Algeria':'Algeriet', 'Austria':'Österrike', 'DR Congo':'DR Kongo', 'Colombia':'Colombia', 'Croatia':'Kroatien', 'Ghana':'Ghana' };
+      const map = { 'Mexico':'Mexiko', 'Ecuador':'Ecuador', 'Canada':'Kanada', 'Slovakia':'Slovakien', 'Italy':'Italien', 'Togo':'Togo', 'United States':'USA', 'Morocco':'Marocko', 'Spain':'Spanien', 'Japan':'Japan', 'Brazil':'Brasilien', 'South Korea':'Sydkorea', 'Sweden':'Sverige', 'Jordan':'Jordanien', 'England':'England', 'Peru':'Peru', 'Germany':'Tyskland', 'Norway':'Norge', 'France':'Frankrike', 'Uzbekistan':'Uzbekistan', 'Uruguay':'Uruguay', 'Cameroon':'Kamerun', 'Netherlands':'Nederländerna', 'Australia':'Australien', 'Argentina':'Argentina', 'Haiti':'Haiti', 'Belgium':'Belgien', 'Panama':'Panama', 'Portugal':'Portugal', 'Senegal':'Senegal', 'Denmark':'Danmark', 'Nigeria':'Nigeria', 'South Africa':'Sydafrika', 'Czech Republic':'Tjeckien', 'Bosnia-Herzegovina':'Bosnien', 'Paraguay':'Paraguay', 'Qatar':'Qatar', 'Switzerland':'Schweiz', 'Scotland':'Skottland', 'Turkey':'Turkiet', 'Curaçao':'Curaçao', 'Ivory Coast':'Elfenbenskusten', 'Tunisia':'Tunisien', 'Cape Verde':'Kap Verde', 'Egypt':'Egypten', 'Saudi Arabia':'Saudiarabien', 'Iran':'Iran', 'New Zealand':'Nya Zeeland', 'Iraq':'Irak', 'Algeria':'Algeriet', 'Austria':'Österrike', 'DR Congo':'DR Kongo', 'Colombia':'Colombia', 'Croatia':'Kroatien', 'Ghana':'Ghana' };
       data.matches?.forEach(mApi => {
         const h = map[mApi.homeTeam.name] || mApi.homeTeam.name;
         const a = map[mApi.awayTeam.name] || mApi.awayTeam.name;
@@ -376,7 +376,7 @@ export default function App() {
 
   useEffect(() => {
     const draftKey = regEmail ? `vmt_draft_v3_${regEmail.toLowerCase().trim()}` : null;
-    if (draftKey && !currentUser?.isAdmin) {
+    if (draftKey && !currentUser?.isAdmin && Object.keys(regPicks).length > 0) {
       localStorage.setItem(draftKey, JSON.stringify({ name: regName, email: regEmail, phone: regPhone, goals: regGoals, picks: regPicks, step: regStep }));
     }
   }, [regName, regEmail, regPhone, regGoals, regPicks, regStep, currentUser]);
@@ -396,14 +396,14 @@ export default function App() {
     
     const existing = tips.find(t => t.email.toLowerCase() === email);
     
-    if (draft) {
+    if (draft && draft.picks && Object.keys(draft.picks).length > 0) {
        setRegName(draft.name || '');
        setRegPhone(draft.phone || '');
        setRegGoals(draft.goals || '');
        setRegPicks(draft.picks || {});
        setRegStep(draft.step || 2);
        alert("Ett sparat utkast hittades för denna e-post!");
-    } else if(existing) {
+    } else if(existing && existing.predictions && Object.keys(existing.predictions).length > 0) {
        setRegName(existing.name);
        setRegPhone(existing.phone || '');
        setRegGoals(existing.goals);
@@ -1198,10 +1198,10 @@ export default function App() {
                    {currentUser.name === 'Emil Zettergren' && <span className="bg-vmgold/20 text-vmgold px-1.5 py-0.5 rounded text-[8px] font-black tracking-widest">ADMIN</span>}
                 </div>
                 <div className="relative w-full">
-                  <div aria-hidden="true" className="absolute inset-0 p-4 rounded-2xl text-sm pointer-events-none whitespace-pre-wrap break-words overflow-hidden text-transparent">
+                  <div aria-hidden="true" className="absolute inset-0 font-sans text-sm leading-normal border-none p-4 rounded-2xl pointer-events-none whitespace-pre-wrap break-words overflow-hidden opacity-0">
                     {newChatMsg.split(/(@[a-zA-ZåäöÅÄÖ\w-]+(?:\s[a-zA-ZåäöÅÄÖ\w-]+)?)/g).map((part, i) => {
                       const isTag = part.startsWith('@') && activePlayers.some(p => part.substring(1).toLowerCase() === p.name.toLowerCase() || part.substring(1).toLowerCase() === p.name.split(' ')[0].toLowerCase());
-                      return <span key={i} style={isTag ? {color:'#3b82f6', fontWeight:700, textShadow:'0 0 0 #3b82f6'} : {color:'transparent'}}>{part}</span>;
+                      return <span key={i} style={isTag ? {color:'#3b82f6', fontWeight:700} : {color:'transparent'}}>{part}</span>;
                     })}
                   </div>
                   <input id="chat-input" value={newChatMsg} onChange={e => {
@@ -1214,7 +1214,7 @@ export default function App() {
                     } else {
                       setShowMentions(false);
                     }
-                  }} placeholder="Skriv nåt till gruppen..." className="relative w-full bg-slate-100 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm" style={{background:'transparent', caretColor:'#0f172a'}} />
+                  }} placeholder="Skriv nåt till gruppen..." className="relative w-full bg-slate-100 font-sans text-sm leading-normal border-none p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" style={{background:'transparent', caretColor:'#0f172a'}} />
                 </div>
                 {showMentions && (
                    <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
