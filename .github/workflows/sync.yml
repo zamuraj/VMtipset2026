@@ -18,14 +18,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24.15.0'
+          node-version: '24'
 
       - name: Enable corepack and install pnpm
         run: |
           corepack enable
           corepack prepare pnpm@latest --activate
 
-      - name: Trust Dependencies
+      - name: Allow trusted builds
         run: pnpm config set only-allow-trusted-dependencies false
 
       - name: Install dependencies
