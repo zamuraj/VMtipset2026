@@ -28,7 +28,7 @@ jobs:
           corepack prepare pnpm@latest --activate
 
       - name: Allow trusted dependencies
-        run: pnpm config set only-allow-trusted-dependencies false
+        run: echo "only-allow-trusted-dependencies=false" >> .npmrc
 
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
