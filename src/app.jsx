@@ -697,7 +697,7 @@ export default function App() {
           <div className="mt-8 space-y-4 animate-in slide-in-from-right-4 duration-300">
             <div className="flex justify-between items-center mb-2">
               <h2 className="font-bold">{editingParticipantId ? 'Redigera Deltagare' : (regStep === 1 ? '1. Dina Uppgifter' : '2. Fyll i Tips')}</h2>
-              <button onClick={() => { setShowRegister(false); setEditingParticipantId(null); resetRegFields(); }}><X/></button>
+              <button onClick={() => { setShowRegister(false); setEditingParticipantId(null); resetRegFields(); }} aria-label="Stäng" title="Stäng"><X/></button>
             </div>
             {regStep === 1 ? (
                <>
@@ -706,7 +706,7 @@ export default function App() {
                 <input type="tel" value={regPhone} onChange={e=>setRegPhone(e.target.value)} placeholder="Telefonnummer" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
                 <input type="number" value={regGoals} onChange={e=>setRegGoals(e.target.value)} placeholder="Antal mål totalt i GRUPPSPELET (72 matcher)?" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
                 <div className="flex gap-2">
-                   {Object.keys(regPicks).length > 0 && <button onClick={clearDraft} className="p-4 bg-red-500/20 text-red-400 rounded-2xl"><Trash2/></button>}
+                   {Object.keys(regPicks).length > 0 && <button onClick={clearDraft} aria-label="Rensa utkast" title="Rensa utkast" className="p-4 bg-red-500/20 text-red-400 rounded-2xl"><Trash2/></button>}
                    <button onClick={checkExistingUser} className="flex-1 py-4 bg-emerald-600 rounded-xl font-bold">NÄSTA: FYLL I TIPS</button>
                 </div>
                </>
@@ -774,7 +774,7 @@ export default function App() {
           {timeLeft && <div className="mt-1 px-2 py-0.5 bg-vmgold/10 text-vmgold text-[8px] font-black rounded-full uppercase tracking-widest text-center animate-pulse">{timeLeft}</div>}
         </div>
         <div className="flex items-center gap-4 relative">
-          <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors">
+          <button onClick={() => setShowNotifications(!showNotifications)} aria-label="Notiser" title="Notiser" className="relative p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors">
             <Bell size={20} />
             {activeUser?.notifications?.filter(n => !n.isRead).length > 0 && (
                <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border border-vmdark"></span>
@@ -800,18 +800,18 @@ export default function App() {
               </div>
             </div>
           )}
-          <button onClick={handleLogout} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors" title="Logga ut"><LogOut size={20}/></button>
+          <button onClick={handleLogout} aria-label="Logga ut" title="Logga ut" className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors"><LogOut size={20}/></button>
         </div>
       </header>
 
       <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t z-40 flex justify-around p-1 sm:sticky sm:top-[72px] sm:max-w-5xl sm:mx-auto sm:my-4 sm:rounded-3xl sm:border shadow-xl">
-        <button onClick={() => navigateTab('leaderboard')} className={`p-4 transition-colors ${activeTab==='leaderboard'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><Trophy/></button>
-        <button onClick={() => navigateTab('groups')} className={`p-4 transition-colors ${activeTab==='groups'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><ListOrdered/></button>
-        <button onClick={() => navigateTab('h2h')} className={`p-4 transition-colors ${activeTab==='h2h'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><Swords/></button>
-        <button onClick={() => navigateTab('chat')} className={`p-4 transition-colors ${activeTab==='chat'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><MessageSquare/></button>
-        <button onClick={() => navigateTab('matches')} className={`p-4 transition-colors ${activeTab==='matches'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><CalendarDays/></button>
-        <button onClick={() => navigateTab('hof')} className={`p-4 transition-colors ${activeTab==='hof'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><History/></button>
-        {currentUser.isAdmin && <button onClick={() => navigateTab('admin')} className={`p-4 transition-colors ${activeTab==='admin'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><Settings/></button>}
+        <button onClick={() => navigateTab('leaderboard')} aria-label="Leaderboard" title="Leaderboard" className={`p-4 transition-colors ${activeTab==='leaderboard'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><Trophy/></button>
+        <button onClick={() => navigateTab('groups')} aria-label="Grupper" title="Grupper" className={`p-4 transition-colors ${activeTab==='groups'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><ListOrdered/></button>
+        <button onClick={() => navigateTab('h2h')} aria-label="Head 2 Head" title="Head 2 Head" className={`p-4 transition-colors ${activeTab==='h2h'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><Swords/></button>
+        <button onClick={() => navigateTab('chat')} aria-label="Snackis" title="Snackis" className={`p-4 transition-colors ${activeTab==='chat'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><MessageSquare/></button>
+        <button onClick={() => navigateTab('matches')} aria-label="Matcher" title="Matcher" className={`p-4 transition-colors ${activeTab==='matches'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><CalendarDays/></button>
+        <button onClick={() => navigateTab('hof')} aria-label="Hall of Fame" title="Hall of Fame" className={`p-4 transition-colors ${activeTab==='hof'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><History/></button>
+        {currentUser.isAdmin && <button onClick={() => navigateTab('admin')} aria-label="Admin" title="Admin" className={`p-4 transition-colors ${activeTab==='admin'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><Settings/></button>}
       </nav>
 
       <main className="max-w-5xl mx-auto p-4 space-y-6">
@@ -1266,7 +1266,7 @@ export default function App() {
                         <div className="text-xs text-slate-400 font-bold flex items-center gap-2">{t.email} {t.phone && <span className="text-[10px] text-indigo-500">({t.phone})</span>}</div>
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={() => deleteDoc(doc(db, "tips", t.id))} className="p-3 text-red-500 hover:bg-red-50 rounded-2xl transition-colors"><Trash2/></button>
+                        <button onClick={() => deleteDoc(doc(db, "tips", t.id))} aria-label="Ta bort" title="Ta bort" className="p-3 text-red-500 hover:bg-red-50 rounded-2xl transition-colors"><Trash2/></button>
                         <button onClick={() => updateDoc(doc(db, "tips", t.id), { isApproved: true })} className="px-6 py-3 bg-emerald-600 text-white rounded-2xl font-black shadow-lg shadow-emerald-600/20">GODKÄNN</button>
                       </div>
                    </div>
@@ -1283,8 +1283,8 @@ export default function App() {
                          <div className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-2">{p.email} {p.phone && <span className="text-[10px] text-indigo-500">({p.phone})</span>}</div>
                        </div>
                        <div className="flex gap-1">
-                         <button onClick={() => startEditing(p)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"><Settings size={18}/></button>
-                         <button onClick={() => deleteParticipant(p.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors"><Trash2 size={18}/></button>
+                         <button onClick={() => startEditing(p)} aria-label="Redigera" title="Redigera" className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"><Settings size={18}/></button>
+                         <button onClick={() => deleteParticipant(p.id)} aria-label="Ta bort" title="Ta bort" className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors"><Trash2 size={18}/></button>
                        </div>
                      </div>
                    ))}
@@ -1311,7 +1311,7 @@ export default function App() {
                       <span className="font-black"><span className={entry.type === 'EM' ? 'text-indigo-500' : 'text-vmgold'}>{entry.type || 'VM'}</span> {entry.year}</span>
                       <span className="text-slate-600 font-bold">{entry.champion}</span>
                     </div>
-                    <button onClick={() => deleteDoc(doc(db, 'hallOfFame', entry.id))} className="p-2 text-red-400 hover:bg-red-50 rounded-xl transition-colors"><Trash2 size={16}/></button>
+                    <button onClick={() => deleteDoc(doc(db, 'hallOfFame', entry.id))} aria-label="Ta bort" title="Ta bort" className="p-2 text-red-400 hover:bg-red-50 rounded-xl transition-colors"><Trash2 size={16}/></button>
                   </div>
                 ))}
               </div>
@@ -1339,7 +1339,7 @@ export default function App() {
                           </div>
                           <div className="flex gap-2">
                              <input type="text" disabled={isLiveSyncActive} placeholder="Minut (ex 65)" defaultValue={m.minute} onBlur={e => updateMatch(m.id, { minute: e.target.value, status: e.target.value ? 'live' : 'finished' })} className="flex-1 p-2 border rounded-xl text-[10px] font-black outline-none bg-white disabled:opacity-50"/>
-                             <button disabled={isLiveSyncActive} onClick={() => updateMatch(m.id, { status: 'upcoming', goals1: null, goals2: null, minute: null })} className="p-2 text-slate-300 hover:text-red-400 transition-colors disabled:opacity-30"><X size={16}/></button>
+                             <button disabled={isLiveSyncActive} onClick={() => updateMatch(m.id, { status: 'upcoming', goals1: null, goals2: null, minute: null })} aria-label="Återställ match" title="Återställ match" className="p-2 text-slate-300 hover:text-red-400 transition-colors disabled:opacity-30"><X size={16}/></button>
                           </div>
                        </div>
                     </div>
@@ -1357,7 +1357,7 @@ export default function App() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-vmdark/80 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setSelectedUser(null)}>
            <div className="bg-white w-full max-w-2xl rounded-[3rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
               <div className="bg-vmdark p-8 text-white relative">
-                 <button onClick={() => setSelectedUser(null)} className="absolute top-6 right-6 p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors"><X/></button>
+                 <button onClick={() => setSelectedUser(null)} aria-label="Stäng" title="Stäng" className="absolute top-6 right-6 p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors"><X/></button>
                  <div className="flex items-center gap-6">
                     <div className="w-20 h-20 bg-vmgold rounded-[2rem] flex items-center justify-center text-vmdark shadow-[0_0_20px_rgba(251,191,36,0.4)]">
                        <User size={40} />
@@ -1371,8 +1371,8 @@ export default function App() {
                     </div>
                     {currentUser.isAdmin && (
                       <div className="flex gap-2 ml-auto">
-                        <button onClick={() => { setSelectedUser(null); startEditing(selectedUser); }} className="p-3 bg-white/10 rounded-2xl hover:bg-white/20 text-white transition-colors" title="Redigera"><Settings size={20}/></button>
-                        <button onClick={() => { setSelectedUser(null); deleteParticipant(selectedUser.id); }} className="p-3 bg-red-500/20 rounded-2xl hover:bg-red-500/30 text-red-400 transition-colors" title="Ta bort"><Trash2 size={20}/></button>
+                        <button onClick={() => { setSelectedUser(null); startEditing(selectedUser); }} aria-label="Redigera" title="Redigera" className="p-3 bg-white/10 rounded-2xl hover:bg-white/20 text-white transition-colors"><Settings size={20}/></button>
+                        <button onClick={() => { setSelectedUser(null); deleteParticipant(selectedUser.id); }} aria-label="Ta bort" title="Ta bort" className="p-3 bg-red-500/20 rounded-2xl hover:bg-red-500/30 text-red-400 transition-colors"><Trash2 size={20}/></button>
                       </div>
                     )}
                  </div>
@@ -1419,7 +1419,7 @@ export default function App() {
           <div className="bg-white w-full max-w-2xl rounded-[3rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
             <div className="bg-vmdark p-6 text-white flex justify-between items-center">
               <h2 className="font-black text-xl flex items-center gap-2"><Settings size={20} className="text-vmgold"/> Redigera Deltagare</h2>
-              <button onClick={() => setIsEditing(false)} className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors"><X/></button>
+              <button onClick={() => setIsEditing(false)} aria-label="Stäng" title="Stäng" className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors"><X/></button>
             </div>
             <div className="p-6 space-y-3 border-b">
               <input type="text" value={regName} onChange={e => setRegName(e.target.value)} placeholder="Namn" className="w-full p-3 rounded-xl bg-slate-50 border outline-none focus:border-indigo-400 font-bold text-sm"/>
