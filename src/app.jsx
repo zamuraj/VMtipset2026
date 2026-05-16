@@ -697,7 +697,7 @@ export default function App() {
           <div className="mt-8 space-y-4 animate-in slide-in-from-right-4 duration-300">
             <div className="flex justify-between items-center mb-2">
               <h2 className="font-bold">{editingParticipantId ? 'Redigera Deltagare' : (regStep === 1 ? '1. Dina Uppgifter' : '2. Fyll i Tips')}</h2>
-              <button onClick={() => { setShowRegister(false); setEditingParticipantId(null); resetRegFields(); }}><X/></button>
+              <button aria-label="Stäng" onClick={() => { setShowRegister(false); setEditingParticipantId(null); resetRegFields(); }}><X/></button>
             </div>
             {regStep === 1 ? (
                <>
@@ -706,7 +706,7 @@ export default function App() {
                 <input type="tel" value={regPhone} onChange={e=>setRegPhone(e.target.value)} placeholder="Telefonnummer" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
                 <input type="number" value={regGoals} onChange={e=>setRegGoals(e.target.value)} placeholder="Antal mål totalt i GRUPPSPELET (72 matcher)?" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
                 <div className="flex gap-2">
-                   {Object.keys(regPicks).length > 0 && <button onClick={clearDraft} className="p-4 bg-red-500/20 text-red-400 rounded-2xl"><Trash2/></button>}
+                   {Object.keys(regPicks).length > 0 && <button aria-label="Rensa tips" onClick={clearDraft} className="p-4 bg-red-500/20 text-red-400 rounded-2xl"><Trash2/></button>}
                    <button onClick={checkExistingUser} className="flex-1 py-4 bg-emerald-600 rounded-xl font-bold">NÄSTA: FYLL I TIPS</button>
                 </div>
                </>
@@ -774,7 +774,7 @@ export default function App() {
           {timeLeft && <div className="mt-1 px-2 py-0.5 bg-vmgold/10 text-vmgold text-[8px] font-black rounded-full uppercase tracking-widest text-center animate-pulse">{timeLeft}</div>}
         </div>
         <div className="flex items-center gap-4 relative">
-          <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors">
+          <button aria-label="Notiser" onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors">
             <Bell size={20} />
             {activeUser?.notifications?.filter(n => !n.isRead).length > 0 && (
                <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border border-vmdark"></span>
@@ -800,18 +800,18 @@ export default function App() {
               </div>
             </div>
           )}
-          <button onClick={handleLogout} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors" title="Logga ut"><LogOut size={20}/></button>
+          <button aria-label="Logga ut" onClick={handleLogout} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors" title="Logga ut"><LogOut size={20}/></button>
         </div>
       </header>
 
       <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t z-40 flex justify-around p-1 sm:sticky sm:top-[72px] sm:max-w-5xl sm:mx-auto sm:my-4 sm:rounded-3xl sm:border shadow-xl">
-        <button onClick={() => navigateTab('leaderboard')} className={`p-4 transition-colors ${activeTab==='leaderboard'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><Trophy/></button>
-        <button onClick={() => navigateTab('groups')} className={`p-4 transition-colors ${activeTab==='groups'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><ListOrdered/></button>
-        <button onClick={() => navigateTab('h2h')} className={`p-4 transition-colors ${activeTab==='h2h'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><Swords/></button>
-        <button onClick={() => navigateTab('chat')} className={`p-4 transition-colors ${activeTab==='chat'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><MessageSquare/></button>
-        <button onClick={() => navigateTab('matches')} className={`p-4 transition-colors ${activeTab==='matches'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><CalendarDays/></button>
-        <button onClick={() => navigateTab('hof')} className={`p-4 transition-colors ${activeTab==='hof'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><History/></button>
-        {currentUser.isAdmin && <button onClick={() => navigateTab('admin')} className={`p-4 transition-colors ${activeTab==='admin'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><Settings/></button>}
+        <button aria-label="Ledartavla" onClick={() => navigateTab('leaderboard')} className={`p-4 transition-colors ${activeTab==='leaderboard'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><Trophy/></button>
+        <button aria-label="Grupper" onClick={() => navigateTab('groups')} className={`p-4 transition-colors ${activeTab==='groups'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><ListOrdered/></button>
+        <button aria-label="Head to Head" onClick={() => navigateTab('h2h')} className={`p-4 transition-colors ${activeTab==='h2h'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><Swords/></button>
+        <button aria-label="Chatt" onClick={() => navigateTab('chat')} className={`p-4 transition-colors ${activeTab==='chat'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><MessageSquare/></button>
+        <button aria-label="Matcher" onClick={() => navigateTab('matches')} className={`p-4 transition-colors ${activeTab==='matches'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><CalendarDays/></button>
+        <button aria-label="Hall of Fame" onClick={() => navigateTab('hof')} className={`p-4 transition-colors ${activeTab==='hof'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><History/></button>
+        {currentUser.isAdmin && <button aria-label="Inställningar" onClick={() => navigateTab('admin')} className={`p-4 transition-colors ${activeTab==='admin'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><Settings/></button>}
       </nav>
 
       <main className="max-w-5xl mx-auto p-4 space-y-6">
