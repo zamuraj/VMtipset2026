@@ -4,7 +4,7 @@ import { collection, onSnapshot, doc, setDoc, addDoc, query, orderBy, serverTime
 import { 
   Trophy, BarChart3, Settings, CalendarDays, Check, 
   AlertCircle, Clock, Grid3X3, User, X, Lock, LogOut, Award, History, Star,
-  Swords, Bell, PlayCircle, Banknote, MessageSquare, Send, Goal, ShieldCheck, ChevronDown, ChevronUp, MapPin, ListOrdered, Trash2, Tv, Users, Activity, Edit
+  Swords, Bell, PlayCircle, Banknote, MessageSquare, Send, Goal, ShieldCheck, ChevronDown, ChevronUp, MapPin, ListOrdered, Trash2, Tv, Users, Activity, Edit, Loader2
 } from 'lucide-react';
 import TvBadge from './components/TvBadge';
 
@@ -247,6 +247,8 @@ export default function App() {
   const [loginPassword, setLoginPassword] = useState('');
   const [authError, setAuthError] = useState('');
   const [showRegister, setShowRegister] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState('leaderboard');
   const [selectedUser, setSelectedUser] = useState(null);
   const [folketsTipsMode, setFolketsTipsMode] = useState(0); 
@@ -580,26 +582,36 @@ export default function App() {
     }
   }, [activePlayers.length, adminFee]);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
-    const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD;
+    setIsLoggingIn(true);
+    setAuthError("");
 
-    if (loginEmail.toLowerCase().trim() === adminEmail?.toLowerCase().trim() && loginPassword === adminPassword) {
-      const adminUser = tips.find(t => t.email.toLowerCase() === adminEmail.toLowerCase().trim()) || { id: 'admin', name: 'Emil Zettergren', email: adminEmail.toLowerCase().trim(), isAdmin: true, isApproved: true, predictions: {} };
-      const userObj = { ...adminUser, isAdmin: true };
-      setCurrentUser(userObj);
-      localStorage.setItem('vmt_login_session', JSON.stringify(userObj));
-      setActiveTab('admin');
-      return;
+    // Simulate a brief network delay for UX
+    await new Promise(resolve => setTimeout(resolve, 600));
+
+    try {
+      const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
+      const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD;
+
+      if (loginEmail.toLowerCase().trim() === adminEmail?.toLowerCase().trim() && loginPassword === adminPassword) {
+        const adminUser = tips.find(t => t.email.toLowerCase() === adminEmail.toLowerCase().trim()) || { id: 'admin', name: 'Emil Zettergren', email: adminEmail.toLowerCase().trim(), isAdmin: true, isApproved: true, predictions: {} };
+        const userObj = { ...adminUser, isAdmin: true };
+        setCurrentUser(userObj);
+        localStorage.setItem('vmt_login_session', JSON.stringify(userObj));
+        setActiveTab('admin');
+        return;
+      }
+      const user = tips.find(t => t.email.toLowerCase() === loginEmail.toLowerCase().trim());
+      if (!user) return setAuthError("E-post ej hittad.");
+      if (user.isAdmin && loginPassword !== user.password) return setAuthError("Fel lösenord.");
+      if (!user.isApproved && !user.isAdmin) return setAuthError("Väntar på godkännande.");
+      setCurrentUser(user);
+      localStorage.setItem('vmt_login_session', JSON.stringify(user));
+      if(user.isAdmin) setActiveTab('admin');
+    } finally {
+      setIsLoggingIn(false);
     }
-    const user = tips.find(t => t.email.toLowerCase() === loginEmail.toLowerCase().trim());
-    if (!user) return setAuthError("E-post ej hittad.");
-    if (user.isAdmin && loginPassword !== user.password) return setAuthError("Fel lösenord.");
-    if (!user.isApproved && !user.isAdmin) return setAuthError("Väntar på godkännande.");
-    setCurrentUser(user);
-    localStorage.setItem('vmt_login_session', JSON.stringify(user));
-    if(user.isAdmin) setActiveTab('admin');
   };
 
   const handleLogout = () => {
@@ -608,10 +620,17 @@ export default function App() {
   };
 
   const submitTips = async () => {
+    setIsSubmitting(true);
     try {
-      if(!editingParticipantId && isDeadlinePassed) return alert("Deadline har passerat!");
+      if(!editingParticipantId && isDeadlinePassed) {
+        setIsSubmitting(false);
+        return alert("Deadline har passerat!");
+      }
       const id = editingParticipantId || (regEmail ? regEmail.toLowerCase().trim() : '');
-      if(!id) return alert("Kunde inte hitta ID eller e-post.");
+      if(!id) {
+        setIsSubmitting(false);
+        return alert("Kunde inte hitta ID eller e-post.");
+      }
 
       await setDoc(doc(db, "tips", id), { 
         name: regName || 'Okänd', 
@@ -632,6 +651,8 @@ export default function App() {
     } catch (e) {
       console.error("Fel vid sparning:", e);
       alert("Databasfel kunde inte spara: " + e.message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -686,10 +707,20 @@ export default function App() {
         {!showRegister && timeLeft && <div className="mt-4 mb-2 p-3 bg-vmdark/50 backdrop-blur-sm border border-vmgold/20 text-vmgold text-xs font-black rounded-2xl uppercase tracking-widest text-center shadow-lg animate-pulse">{timeLeft}</div>}
         {!showRegister ? (
           <form onSubmit={handleLogin} className="mt-10 space-y-4">
-            <input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} placeholder="Din e-post" className="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none" required />
-            {loginEmail.toLowerCase().trim() === import.meta.env.VITE_ADMIN_EMAIL?.toLowerCase().trim() && <input type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} placeholder="Lösenord" className="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none" required />}
+            <div>
+              <label htmlFor="login-email" className="sr-only">Din e-post</label>
+              <input id="login-email" type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} placeholder="Din e-post" className="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none" required />
+            </div>
+            {loginEmail.toLowerCase().trim() === import.meta.env.VITE_ADMIN_EMAIL?.toLowerCase().trim() && (
+              <div>
+                <label htmlFor="login-password" className="sr-only">Lösenord</label>
+                <input id="login-password" type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} placeholder="Lösenord" className="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none" required />
+              </div>
+            )}
             {authError && <p className="text-red-400 text-xs font-bold text-center">{authError}</p>}
-            <button type="submit" className="w-full py-4 bg-indigo-600 rounded-xl font-black shadow-lg">LOGGA IN</button>
+            <button type="submit" disabled={isLoggingIn} className="w-full py-4 bg-indigo-600 disabled:opacity-50 flex items-center justify-center gap-2 rounded-xl font-black shadow-lg">
+              {isLoggingIn && <Loader2 className="animate-spin" size={20} />} LOGGA IN
+            </button>
             {!isDeadlinePassed && <button type="button" onClick={() => { resetRegFields(); setShowRegister(true); }} className="w-full text-emerald-400 font-bold text-sm">LÄMNA NYTT TIPS</button>}
             {isDeadlinePassed && <p className="text-center text-xs text-slate-500 font-bold italic">Anmälan stängd</p>}
           </form>
@@ -701,10 +732,22 @@ export default function App() {
             </div>
             {regStep === 1 ? (
                <>
-                <input type="text" value={regName} onChange={e=>setRegName(e.target.value)} placeholder="Namn" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
-                <input type="email" value={regEmail} onChange={e=>setRegEmail(e.target.value)} placeholder="E-post" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
-                <input type="tel" value={regPhone} onChange={e=>setRegPhone(e.target.value)} placeholder="Telefonnummer" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
-                <input type="number" value={regGoals} onChange={e=>setRegGoals(e.target.value)} placeholder="Antal mål totalt i GRUPPSPELET (72 matcher)?" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
+                <div>
+                  <label htmlFor="reg-name" className="sr-only">Namn</label>
+                  <input id="reg-name" type="text" value={regName} onChange={e=>setRegName(e.target.value)} placeholder="Namn" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
+                </div>
+                <div>
+                  <label htmlFor="reg-email" className="sr-only">E-post</label>
+                  <input id="reg-email" type="email" value={regEmail} onChange={e=>setRegEmail(e.target.value)} placeholder="E-post" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
+                </div>
+                <div>
+                  <label htmlFor="reg-phone" className="sr-only">Telefonnummer</label>
+                  <input id="reg-phone" type="tel" value={regPhone} onChange={e=>setRegPhone(e.target.value)} placeholder="Telefonnummer" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
+                </div>
+                <div>
+                  <label htmlFor="reg-goals" className="sr-only">Antal mål totalt i GRUPPSPELET (72 matcher)?</label>
+                  <input id="reg-goals" type="number" value={regGoals} onChange={e=>setRegGoals(e.target.value)} placeholder="Antal mål totalt i GRUPPSPELET (72 matcher)?" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
+                </div>
                 <div className="flex gap-2">
                    {Object.keys(regPicks).length > 0 && <button onClick={clearDraft} aria-label="Rensa utkast" title="Rensa utkast" className="p-4 bg-red-500/20 text-red-400 rounded-2xl"><Trash2/></button>}
                    <button onClick={checkExistingUser} className="flex-1 py-4 bg-emerald-600 rounded-xl font-bold">NÄSTA: FYLL I TIPS</button>
@@ -755,7 +798,8 @@ export default function App() {
                       </div>
                     ))}
                   </div>
-                  <button onClick={submitTips} disabled={Object.keys(regPicks).length < 72 || isDeadlinePassed} className="w-full py-5 bg-indigo-600 disabled:opacity-30 rounded-2xl font-black shadow-[0_10px_20px_rgba(79,70,229,0.3)] mt-2">
+                  <button onClick={submitTips} disabled={Object.keys(regPicks).length < 72 || isDeadlinePassed || isSubmitting} className="w-full py-5 bg-indigo-600 disabled:opacity-30 flex items-center justify-center gap-2 rounded-2xl font-black shadow-[0_10px_20px_rgba(79,70,229,0.3)] mt-2">
+                    {isSubmitting && <Loader2 className="animate-spin" size={20} />}
                     {isDeadlinePassed ? 'DEADLINE PASSERAD' : 'SKICKA IN ANMÄLAN'}
                   </button>
                </div>
@@ -1016,15 +1060,21 @@ export default function App() {
           <div className="bg-white/90 backdrop-blur-md rounded-[2rem] border p-6 shadow-sm min-h-[60vh] animate-in fade-in duration-300">
             <h2 className="font-black text-xl mb-6 flex items-center gap-2"><Swords className="text-indigo-600"/> Head 2 Head</h2>
             <div className="flex gap-4 mb-4">
-              <select className="flex-1 p-3 bg-slate-50 border rounded-xl font-bold outline-none focus:border-indigo-400 transition-colors" value={h2hUser1} onChange={e => setH2hUser1(e.target.value)}>
-                <option value="">Välj Spelare 1...</option>
-                {activePlayers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
-              </select>
+              <div className="flex-1">
+                <label htmlFor="h2h-user1" className="sr-only">Välj Spelare 1</label>
+                <select id="h2h-user1" className="w-full p-3 bg-slate-50 border rounded-xl font-bold outline-none focus:border-indigo-400 transition-colors" value={h2hUser1} onChange={e => setH2hUser1(e.target.value)}>
+                  <option value="">Välj Spelare 1...</option>
+                  {activePlayers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                </select>
+              </div>
               <div className="flex items-center font-black text-slate-300">VS</div>
-              <select className="flex-1 p-3 bg-slate-50 border rounded-xl font-bold outline-none focus:border-indigo-400 transition-colors" value={h2hUser2} onChange={e => setH2hUser2(e.target.value)}>
-                <option value="">Välj Spelare 2...</option>
-                {activePlayers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
-              </select>
+              <div className="flex-1">
+                <label htmlFor="h2h-user2" className="sr-only">Välj Spelare 2</label>
+                <select id="h2h-user2" className="w-full p-3 bg-slate-50 border rounded-xl font-bold outline-none focus:border-indigo-400 transition-colors" value={h2hUser2} onChange={e => setH2hUser2(e.target.value)}>
+                  <option value="">Välj Spelare 2...</option>
+                  {activePlayers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                </select>
+              </div>
             </div>
             {h2hUser1 && h2hUser2 && (() => {
               const u1 = activePlayers.find(u => u.id === h2hUser1);
@@ -1198,6 +1248,7 @@ export default function App() {
                    {currentUser.name === 'Emil Zettergren' && <span className="bg-vmgold/20 text-vmgold px-1.5 py-0.5 rounded text-[8px] font-black tracking-widest">ADMIN</span>}
                 </div>
                 <div className="relative w-full">
+                  <label htmlFor="chat-input" className="sr-only">Skriv nåt till gruppen...</label>
                   <div aria-hidden="true" className="absolute inset-0 font-sans text-sm leading-normal border-none p-4 rounded-2xl pointer-events-none whitespace-pre-wrap break-words overflow-hidden opacity-0">
                     {newChatMsg.split(/(@[a-zA-ZåäöÅÄÖ\w-]+(?:\s[a-zA-ZåäöÅÄÖ\w-]+)?)/g).map((part, i) => {
                       const isTag = part.startsWith('@') && activePlayers.some(p => part.substring(1).toLowerCase() === p.name.toLowerCase() || part.substring(1).toLowerCase() === p.name.split(' ')[0].toLowerCase());
@@ -1241,10 +1292,11 @@ export default function App() {
                  <div className="p-6 bg-slate-50 rounded-3xl border space-y-4">
                    <h3 className="font-black text-xs text-slate-400 uppercase tracking-widest">Systeminställningar</h3>
                    <div className="flex gap-2 items-center">
-                     <input type="datetime-local" onChange={e => setDoc(doc(db, "settings", "appConfig"), { deadline: new Date(e.target.value) }, { merge: true })} className="bg-white border p-2 rounded-xl text-xs font-bold outline-none"/>
+                     <label htmlFor="settings-deadline" className="sr-only">Deadline</label>
+                     <input id="settings-deadline" type="datetime-local" onChange={e => setDoc(doc(db, "settings", "appConfig"), { deadline: new Date(e.target.value) }, { merge: true })} className="bg-white border p-2 rounded-xl text-xs font-bold outline-none"/>
                      <div className="flex items-center gap-2">
-                       <span className="text-[10px] font-black text-slate-400 uppercase">Gravering (kr)</span>
-                       <input type="number" min="0" step="50" defaultValue={adminFee} onBlur={e => { const v = parseInt(e.target.value) || 0; setAdminFee(v); setDoc(doc(db, "settings", "appConfig"), { adminFee: v }, { merge: true }); }} className="w-20 bg-white border p-2 rounded-xl text-xs font-bold outline-none"/>
+                       <label htmlFor="settings-admin-fee" className="text-[10px] font-black text-slate-400 uppercase">Gravering (kr)</label>
+                       <input id="settings-admin-fee" type="number" min="0" step="50" defaultValue={adminFee} onBlur={e => { const v = parseInt(e.target.value) || 0; setAdminFee(v); setDoc(doc(db, "settings", "appConfig"), { adminFee: v }, { merge: true }); }} className="w-20 bg-white border p-2 rounded-xl text-xs font-bold outline-none"/>
                      </div>
                    </div>
                  </div>
@@ -1295,12 +1347,15 @@ export default function App() {
             <div className="bg-white/90 backdrop-blur-md rounded-[2.5rem] border p-8 shadow-xl">
               <h2 className="text-2xl font-black mb-6 flex items-center gap-3"><History className="text-vmgold" size={28}/> Hantera Hall of Fame</h2>
               <div className="flex gap-3 mb-6">
-                <select value={hofType} onChange={e => setHofType(e.target.value)} className="p-3 border rounded-xl font-bold outline-none focus:border-vmgold text-sm bg-white">
+                <label htmlFor="hof-type" className="sr-only">Turnering</label>
+                <select id="hof-type" value={hofType} onChange={e => setHofType(e.target.value)} className="p-3 border rounded-xl font-bold outline-none focus:border-vmgold text-sm bg-white">
                   <option value="VM">VM</option>
                   <option value="EM">EM</option>
                 </select>
-                <input type="number" placeholder="Årtal (t.ex. 2024)" value={hofYear} onChange={e => setHofYear(e.target.value)} className="flex-1 p-3 border rounded-xl font-bold outline-none focus:border-vmgold text-sm"/>
-                <input type="text" placeholder="Mästarens namn" value={hofName} onChange={e => setHofName(e.target.value)} className="flex-1 p-3 border rounded-xl font-bold outline-none focus:border-vmgold text-sm"/>
+                <label htmlFor="hof-year" className="sr-only">Årtal</label>
+                <input id="hof-year" type="number" placeholder="Årtal (t.ex. 2024)" value={hofYear} onChange={e => setHofYear(e.target.value)} className="flex-1 p-3 border rounded-xl font-bold outline-none focus:border-vmgold text-sm"/>
+                <label htmlFor="hof-name" className="sr-only">Mästarens namn</label>
+                <input id="hof-name" type="text" placeholder="Mästarens namn" value={hofName} onChange={e => setHofName(e.target.value)} className="flex-1 p-3 border rounded-xl font-bold outline-none focus:border-vmgold text-sm"/>
                 <button onClick={async () => { if (!hofYear || !hofName) return; await addDoc(collection(db, 'hallOfFame'), { year: parseInt(hofYear), champion: hofName, type: hofType }); setHofYear(''); setHofName(''); setHofType('VM'); }} className="px-5 py-3 bg-vmgold text-vmdark font-black rounded-xl text-sm shadow-lg hover:brightness-105 transition-all">Spara</button>
               </div>
               <div className="space-y-3">
@@ -1331,14 +1386,17 @@ export default function App() {
                        <div className="space-y-3">
                           <div className="flex items-center justify-between gap-2">
                              <div className="flex items-center gap-2 flex-1"><Flag code={TEAMS[m.team1]?.flag}/><span className="text-xs font-black truncate">{m.team1}</span></div>
-                             <input type="number" disabled={isLiveSyncActive} defaultValue={m.goals1} onBlur={e => updateMatch(m.id, { goals1: parseInt(e.target.value) || 0, status: 'finished' })} className="w-12 p-2 border rounded-xl text-center font-black outline-none bg-white disabled:opacity-50"/>
+                             <label htmlFor={`match-goals1-${m.id}`} className="sr-only">Mål {m.team1}</label>
+                             <input id={`match-goals1-${m.id}`} type="number" disabled={isLiveSyncActive} defaultValue={m.goals1} onBlur={e => updateMatch(m.id, { goals1: parseInt(e.target.value) || 0, status: 'finished' })} className="w-12 p-2 border rounded-xl text-center font-black outline-none bg-white disabled:opacity-50"/>
                           </div>
                           <div className="flex items-center justify-between gap-2">
                              <div className="flex items-center gap-2 flex-1"><Flag code={TEAMS[m.team2]?.flag}/><span className="text-xs font-black truncate">{m.team2}</span></div>
-                             <input type="number" disabled={isLiveSyncActive} defaultValue={m.goals2} onBlur={e => updateMatch(m.id, { goals2: parseInt(e.target.value) || 0, status: 'finished' })} className="w-12 p-2 border rounded-xl text-center font-black outline-none bg-white disabled:opacity-50"/>
+                             <label htmlFor={`match-goals2-${m.id}`} className="sr-only">Mål {m.team2}</label>
+                             <input id={`match-goals2-${m.id}`} type="number" disabled={isLiveSyncActive} defaultValue={m.goals2} onBlur={e => updateMatch(m.id, { goals2: parseInt(e.target.value) || 0, status: 'finished' })} className="w-12 p-2 border rounded-xl text-center font-black outline-none bg-white disabled:opacity-50"/>
                           </div>
                           <div className="flex gap-2">
-                             <input type="text" disabled={isLiveSyncActive} placeholder="Minut (ex 65)" defaultValue={m.minute} onBlur={e => updateMatch(m.id, { minute: e.target.value, status: e.target.value ? 'live' : 'finished' })} className="flex-1 p-2 border rounded-xl text-[10px] font-black outline-none bg-white disabled:opacity-50"/>
+                             <label htmlFor={`match-minute-${m.id}`} className="sr-only">Minut</label>
+                             <input id={`match-minute-${m.id}`} type="text" disabled={isLiveSyncActive} placeholder="Minut (ex 65)" defaultValue={m.minute} onBlur={e => updateMatch(m.id, { minute: e.target.value, status: e.target.value ? 'live' : 'finished' })} className="flex-1 p-2 border rounded-xl text-[10px] font-black outline-none bg-white disabled:opacity-50"/>
                              <button disabled={isLiveSyncActive} onClick={() => updateMatch(m.id, { status: 'upcoming', goals1: null, goals2: null, minute: null })} aria-label="Återställ match" title="Återställ match" className="p-2 text-slate-300 hover:text-red-400 transition-colors disabled:opacity-30"><X size={16}/></button>
                           </div>
                        </div>
@@ -1422,10 +1480,22 @@ export default function App() {
               <button onClick={() => setIsEditing(false)} aria-label="Stäng" title="Stäng" className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors"><X/></button>
             </div>
             <div className="p-6 space-y-3 border-b">
-              <input type="text" value={regName} onChange={e => setRegName(e.target.value)} placeholder="Namn" className="w-full p-3 rounded-xl bg-slate-50 border outline-none focus:border-indigo-400 font-bold text-sm"/>
-              <input type="email" value={regEmail} onChange={e => setRegEmail(e.target.value)} placeholder="E-post" className="w-full p-3 rounded-xl bg-slate-50 border outline-none focus:border-indigo-400 font-bold text-sm"/>
-              <input type="tel" value={regPhone} onChange={e => setRegPhone(e.target.value)} placeholder="Telefonnummer" className="w-full p-3 rounded-xl bg-slate-50 border outline-none focus:border-indigo-400 font-bold text-sm"/>
-              <input type="number" value={regGoals} onChange={e => setRegGoals(e.target.value)} placeholder="Antal mål totalt i GRUPPSPELET (72 matcher)?" className="w-full p-3 rounded-xl bg-slate-50 border outline-none focus:border-indigo-400 font-bold text-sm"/>
+              <div>
+                <label htmlFor="edit-name" className="sr-only">Namn</label>
+                <input id="edit-name" type="text" value={regName} onChange={e => setRegName(e.target.value)} placeholder="Namn" className="w-full p-3 rounded-xl bg-slate-50 border outline-none focus:border-indigo-400 font-bold text-sm"/>
+              </div>
+              <div>
+                <label htmlFor="edit-email" className="sr-only">E-post</label>
+                <input id="edit-email" type="email" value={regEmail} onChange={e => setRegEmail(e.target.value)} placeholder="E-post" className="w-full p-3 rounded-xl bg-slate-50 border outline-none focus:border-indigo-400 font-bold text-sm"/>
+              </div>
+              <div>
+                <label htmlFor="edit-phone" className="sr-only">Telefonnummer</label>
+                <input id="edit-phone" type="tel" value={regPhone} onChange={e => setRegPhone(e.target.value)} placeholder="Telefonnummer" className="w-full p-3 rounded-xl bg-slate-50 border outline-none focus:border-indigo-400 font-bold text-sm"/>
+              </div>
+              <div>
+                <label htmlFor="edit-goals" className="sr-only">Antal mål totalt i GRUPPSPELET (72 matcher)?</label>
+                <input id="edit-goals" type="number" value={regGoals} onChange={e => setRegGoals(e.target.value)} placeholder="Antal mål totalt i GRUPPSPELET (72 matcher)?" className="w-full p-3 rounded-xl bg-slate-50 border outline-none focus:border-indigo-400 font-bold text-sm"/>
+              </div>
             </div>
             <div className="flex-1 overflow-y-auto p-6 space-y-3 no-scrollbar bg-slate-50/50" style={{maxHeight:'40vh'}}>
               <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex justify-between">
@@ -1458,7 +1528,9 @@ export default function App() {
             </div>
             <div className="p-6 flex gap-3 border-t bg-white">
               <button onClick={() => setIsEditing(false)} className="flex-1 py-3 rounded-2xl border font-bold text-slate-500 hover:bg-slate-50 transition-colors">Avbryt</button>
-              <button onClick={async () => { await submitTips(); setIsEditing(false); }} className="flex-1 py-3 bg-indigo-600 text-white rounded-2xl font-black shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-colors">Spara ändringar</button>
+              <button onClick={async () => { await submitTips(); setIsEditing(false); }} disabled={isSubmitting} className="flex-1 py-3 bg-indigo-600 disabled:opacity-50 text-white rounded-2xl font-black flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-colors">
+                {isSubmitting && <Loader2 className="animate-spin" size={20} />} Spara ändringar
+              </button>
             </div>
           </div>
         </div>
