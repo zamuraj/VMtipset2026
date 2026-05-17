@@ -1,3 +1,3 @@
-## 2024-05-16 - Icon-only buttons accessibility pattern
-**Learning:** Found multiple icon-only buttons lacking accessible names in the main navigation and application header.
-**Action:** Always add descriptive, localized `aria-label` attributes to any `<button>` element that only contains an icon (e.g. from `lucide-react`) to ensure screen readers can accurately interpret the interface.
+## 2024-05-19 - Added ARIA labels to navigation and modal buttons
+**Learning:** Found multiple icon-only buttons (`<Trophy/>`, `<Settings/>`, `<X/>`, `<Trash2/>`) without ARIA labels or titles. This is a common pattern in rapid React development with Lucide icons where developers forget that screen readers and mouse users need textual context for icons.
+**Action:** When implementing icon-only buttons across the app, always enforce `aria-label` for screen readers and `title` for mouse hover tooltips to ensure accessibility for all users.
