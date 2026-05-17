@@ -1,3 +1,6 @@
 ## 2024-05-19 - Added ARIA labels to navigation and modal buttons
 **Learning:** Found multiple icon-only buttons (`<Trophy/>`, `<Settings/>`, `<X/>`, `<Trash2/>`) without ARIA labels or titles. This is a common pattern in rapid React development with Lucide icons where developers forget that screen readers and mouse users need textual context for icons.
 **Action:** When implementing icon-only buttons across the app, always enforce `aria-label` for screen readers and `title` for mouse hover tooltips to ensure accessibility for all users.
+## 2026-05-17 - Added Loading States and Labels
+**Learning:** It's common for inputs to lack explicit labels for screen readers when placeholder text is relied upon exclusively. We can improve this without affecting the visual design by using visually hidden `sr-only` labels. Also, operations that are completely synchronous and rely on local state could benefit from an artificial micro-delay (e.g. 600ms) paired with a loading spinner to communicate to users that processing is occurring, enhancing the perceived experience.
+**Action:** Always ensure inputs have `<label>` elements, even if hidden with `sr-only`. If an action has no inherent delay but triggers a significant UI change (like login), adding a brief loading state can improve the 'UX feel'.
