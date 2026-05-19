@@ -1076,7 +1076,13 @@ export default function App() {
                 </select>
               </div>
             </div>
-            {h2hUser1 && h2hUser2 && (() => {
+            {!(h2hUser1 && h2hUser2) ? (
+              <div className="flex flex-col items-center justify-center p-12 text-center text-slate-400 border-2 border-dashed border-slate-200 rounded-3xl mt-8">
+                <Swords size={48} className="mb-4 opacity-20" />
+                <h3 className="font-black text-lg text-slate-500 mb-2">Välj två spelare</h3>
+                <p className="text-sm font-medium">Välj vilka två spelare du vill jämföra i rullistorna ovan för att se hur deras tips skiljer sig åt match för match.</p>
+              </div>
+            ) : (() => {
               const u1 = activePlayers.find(u => u.id === h2hUser1);
               const u2 = activePlayers.find(u => u.id === h2hUser2);
               const u1pts = matches.filter(m => get1X2(m.goals1,m.goals2) === u1?.predictions?.[m.id]).length;

@@ -7,3 +7,6 @@
 ## 2024-05-20 - Added Focus Visible Styles
 **Learning:** Inputs that use `outline-none` without replacement styling remove visual focus indication, making keyboard navigation difficult. This is a common accessibility issue.
 **Action:** Always provide explicit focus styles (e.g. `focus:ring-2`) when overriding the browser's default `outline` to maintain keyboard accessibility.
+## 2024-05-18 - [Added Empty State to Head-2-Head View]
+**Learning:** The Head-2-Head view was showing a blank space below the selection dropdowns when players hadn't been selected, leading to a potentially confusing experience. Implementing a styled empty state with clear instructions and an illustrative icon enhances the UI.
+**Action:** Always verify what the UI displays when required state variables (like selected items in a comparison view) are empty or uninitialized, and proactively add helpful "empty states" using existing design tokens.
