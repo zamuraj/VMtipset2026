@@ -709,12 +709,12 @@ export default function App() {
           <form onSubmit={handleLogin} className="mt-10 space-y-4">
             <div>
               <label htmlFor="login-email" className="sr-only">Din e-post</label>
-              <input id="login-email" type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} placeholder="Din e-post" className="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none" required />
+              <input id="login-email" type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} placeholder="Din e-post" className="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all" required />
             </div>
             {loginEmail.toLowerCase().trim() === import.meta.env.VITE_ADMIN_EMAIL?.toLowerCase().trim() && (
               <div>
                 <label htmlFor="login-password" className="sr-only">Lösenord</label>
-                <input id="login-password" type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} placeholder="Lösenord" className="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none" required />
+                <input id="login-password" type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} placeholder="Lösenord" className="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all" required />
               </div>
             )}
             {authError && <p className="text-red-400 text-xs font-bold text-center">{authError}</p>}
@@ -734,19 +734,19 @@ export default function App() {
                <>
                 <div>
                   <label htmlFor="reg-name" className="sr-only">Namn</label>
-                  <input id="reg-name" type="text" value={regName} onChange={e=>setRegName(e.target.value)} placeholder="Namn" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
+                  <input id="reg-name" type="text" value={regName} onChange={e=>setRegName(e.target.value)} placeholder="Namn" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all" />
                 </div>
                 <div>
                   <label htmlFor="reg-email" className="sr-only">E-post</label>
-                  <input id="reg-email" type="email" value={regEmail} onChange={e=>setRegEmail(e.target.value)} placeholder="E-post" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
+                  <input id="reg-email" type="email" value={regEmail} onChange={e=>setRegEmail(e.target.value)} placeholder="E-post" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all" />
                 </div>
                 <div>
                   <label htmlFor="reg-phone" className="sr-only">Telefonnummer</label>
-                  <input id="reg-phone" type="tel" value={regPhone} onChange={e=>setRegPhone(e.target.value)} placeholder="Telefonnummer" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
+                  <input id="reg-phone" type="tel" value={regPhone} onChange={e=>setRegPhone(e.target.value)} placeholder="Telefonnummer" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all" />
                 </div>
                 <div>
                   <label htmlFor="reg-goals" className="sr-only">Antal mål totalt i GRUPPSPELET (72 matcher)?</label>
-                  <input id="reg-goals" type="number" value={regGoals} onChange={e=>setRegGoals(e.target.value)} placeholder="Antal mål totalt i GRUPPSPELET (72 matcher)?" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none" />
+                  <input id="reg-goals" type="number" value={regGoals} onChange={e=>setRegGoals(e.target.value)} placeholder="Antal mål totalt i GRUPPSPELET (72 matcher)?" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all" />
                 </div>
                 <div className="flex gap-2">
                    {Object.keys(regPicks).length > 0 && <button onClick={clearDraft} aria-label="Rensa utkast" title="Rensa utkast" className="p-4 bg-red-500/20 text-red-400 rounded-2xl"><Trash2/></button>}
