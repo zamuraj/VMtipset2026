@@ -1062,7 +1062,7 @@ export default function App() {
             <div className="flex gap-4 mb-4">
               <div className="flex-1">
                 <label htmlFor="h2h-user1" className="sr-only">Välj Spelare 1</label>
-                <select id="h2h-user1" className="w-full p-3 bg-slate-50 border rounded-xl font-bold outline-none focus:border-indigo-400 transition-colors" value={h2hUser1} onChange={e => setH2hUser1(e.target.value)}>
+                <select id="h2h-user1" className="w-full p-3 bg-slate-50 border rounded-xl font-bold outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent transition-colors" value={h2hUser1} onChange={e => setH2hUser1(e.target.value)}>
                   <option value="">Välj Spelare 1...</option>
                   {activePlayers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
                 </select>
@@ -1070,7 +1070,7 @@ export default function App() {
               <div className="flex items-center font-black text-slate-300">VS</div>
               <div className="flex-1">
                 <label htmlFor="h2h-user2" className="sr-only">Välj Spelare 2</label>
-                <select id="h2h-user2" className="w-full p-3 bg-slate-50 border rounded-xl font-bold outline-none focus:border-indigo-400 transition-colors" value={h2hUser2} onChange={e => setH2hUser2(e.target.value)}>
+                <select id="h2h-user2" className="w-full p-3 bg-slate-50 border rounded-xl font-bold outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent transition-colors" value={h2hUser2} onChange={e => setH2hUser2(e.target.value)}>
                   <option value="">Välj Spelare 2...</option>
                   {activePlayers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
                 </select>
@@ -1299,10 +1299,10 @@ export default function App() {
                    <h3 className="font-black text-xs text-slate-400 uppercase tracking-widest">Systeminställningar</h3>
                    <div className="flex gap-2 items-center">
                      <label htmlFor="settings-deadline" className="sr-only">Deadline</label>
-                     <input id="settings-deadline" type="datetime-local" onChange={e => setDoc(doc(db, "settings", "appConfig"), { deadline: new Date(e.target.value) }, { merge: true })} className="bg-white border p-2 rounded-xl text-xs font-bold outline-none"/>
+                     <input id="settings-deadline" type="datetime-local" onChange={e => setDoc(doc(db, "settings", "appConfig"), { deadline: new Date(e.target.value) }, { merge: true })} className="bg-white border p-2 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent"/>
                      <div className="flex items-center gap-2">
                        <label htmlFor="settings-admin-fee" className="text-[10px] font-black text-slate-400 uppercase">Gravering (kr)</label>
-                       <input id="settings-admin-fee" type="number" min="0" step="50" defaultValue={adminFee} onBlur={e => { const v = parseInt(e.target.value) || 0; setAdminFee(v); setDoc(doc(db, "settings", "appConfig"), { adminFee: v }, { merge: true }); }} className="w-20 bg-white border p-2 rounded-xl text-xs font-bold outline-none"/>
+                       <input id="settings-admin-fee" type="number" min="0" step="50" defaultValue={adminFee} onBlur={e => { const v = parseInt(e.target.value) || 0; setAdminFee(v); setDoc(doc(db, "settings", "appConfig"), { adminFee: v }, { merge: true }); }} className="w-20 bg-white border p-2 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent"/>
                      </div>
                    </div>
                  </div>
@@ -1354,14 +1354,14 @@ export default function App() {
               <h2 className="text-2xl font-black mb-6 flex items-center gap-3"><History className="text-vmgold" size={28}/> Hantera Hall of Fame</h2>
               <div className="flex gap-3 mb-6">
                 <label htmlFor="hof-type" className="sr-only">Turnering</label>
-                <select id="hof-type" value={hofType} onChange={e => setHofType(e.target.value)} className="p-3 border rounded-xl font-bold outline-none focus:border-vmgold text-sm bg-white">
+                <select id="hof-type" value={hofType} onChange={e => setHofType(e.target.value)} className="p-3 border rounded-xl font-bold outline-none focus:ring-2 focus:ring-vmgold focus:border-transparent text-sm bg-white">
                   <option value="VM">VM</option>
                   <option value="EM">EM</option>
                 </select>
                 <label htmlFor="hof-year" className="sr-only">Årtal</label>
-                <input id="hof-year" type="number" placeholder="Årtal (t.ex. 2024)" value={hofYear} onChange={e => setHofYear(e.target.value)} className="flex-1 p-3 border rounded-xl font-bold outline-none focus:border-vmgold text-sm"/>
+                <input id="hof-year" type="number" placeholder="Årtal (t.ex. 2024)" value={hofYear} onChange={e => setHofYear(e.target.value)} className="flex-1 p-3 border rounded-xl font-bold outline-none focus:ring-2 focus:ring-vmgold focus:border-transparent text-sm"/>
                 <label htmlFor="hof-name" className="sr-only">Mästarens namn</label>
-                <input id="hof-name" type="text" placeholder="Mästarens namn" value={hofName} onChange={e => setHofName(e.target.value)} className="flex-1 p-3 border rounded-xl font-bold outline-none focus:border-vmgold text-sm"/>
+                <input id="hof-name" type="text" placeholder="Mästarens namn" value={hofName} onChange={e => setHofName(e.target.value)} className="flex-1 p-3 border rounded-xl font-bold outline-none focus:ring-2 focus:ring-vmgold focus:border-transparent text-sm"/>
                 <button onClick={async () => { if (!hofYear || !hofName) return; await addDoc(collection(db, 'hallOfFame'), { year: parseInt(hofYear), champion: hofName, type: hofType }); setHofYear(''); setHofName(''); setHofType('VM'); }} className="px-5 py-3 bg-vmgold text-vmdark font-black rounded-xl text-sm shadow-lg hover:brightness-105 transition-all">Spara</button>
               </div>
               <div className="space-y-3">
@@ -1393,16 +1393,16 @@ export default function App() {
                           <div className="flex items-center justify-between gap-2">
                              <div className="flex items-center gap-2 flex-1"><Flag code={TEAMS[m.team1]?.flag}/><span className="text-xs font-black truncate">{m.team1}</span></div>
                              <label htmlFor={`match-goals1-${m.id}`} className="sr-only">Mål {m.team1}</label>
-                             <input id={`match-goals1-${m.id}`} type="number" disabled={isLiveSyncActive} defaultValue={m.goals1} onBlur={e => updateMatch(m.id, { goals1: parseInt(e.target.value) || 0, status: 'finished' })} className="w-12 p-2 border rounded-xl text-center font-black outline-none bg-white disabled:opacity-50"/>
+                             <input id={`match-goals1-${m.id}`} type="number" disabled={isLiveSyncActive} defaultValue={m.goals1} onBlur={e => updateMatch(m.id, { goals1: parseInt(e.target.value) || 0, status: 'finished' })} className="w-12 p-2 border rounded-xl text-center font-black outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent bg-white disabled:opacity-50"/>
                           </div>
                           <div className="flex items-center justify-between gap-2">
                              <div className="flex items-center gap-2 flex-1"><Flag code={TEAMS[m.team2]?.flag}/><span className="text-xs font-black truncate">{m.team2}</span></div>
                              <label htmlFor={`match-goals2-${m.id}`} className="sr-only">Mål {m.team2}</label>
-                             <input id={`match-goals2-${m.id}`} type="number" disabled={isLiveSyncActive} defaultValue={m.goals2} onBlur={e => updateMatch(m.id, { goals2: parseInt(e.target.value) || 0, status: 'finished' })} className="w-12 p-2 border rounded-xl text-center font-black outline-none bg-white disabled:opacity-50"/>
+                             <input id={`match-goals2-${m.id}`} type="number" disabled={isLiveSyncActive} defaultValue={m.goals2} onBlur={e => updateMatch(m.id, { goals2: parseInt(e.target.value) || 0, status: 'finished' })} className="w-12 p-2 border rounded-xl text-center font-black outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent bg-white disabled:opacity-50"/>
                           </div>
                           <div className="flex gap-2">
                              <label htmlFor={`match-minute-${m.id}`} className="sr-only">Minut</label>
-                             <input id={`match-minute-${m.id}`} type="text" disabled={isLiveSyncActive} placeholder="Minut (ex 65)" defaultValue={m.minute} onBlur={e => updateMatch(m.id, { minute: e.target.value, status: e.target.value ? 'live' : 'finished' })} className="flex-1 p-2 border rounded-xl text-[10px] font-black outline-none bg-white disabled:opacity-50"/>
+                             <input id={`match-minute-${m.id}`} type="text" disabled={isLiveSyncActive} placeholder="Minut (ex 65)" defaultValue={m.minute} onBlur={e => updateMatch(m.id, { minute: e.target.value, status: e.target.value ? 'live' : 'finished' })} className="flex-1 p-2 border rounded-xl text-[10px] font-black outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent bg-white disabled:opacity-50"/>
                              <button disabled={isLiveSyncActive} onClick={() => updateMatch(m.id, { status: 'upcoming', goals1: null, goals2: null, minute: null })} aria-label="Återställ match" title="Återställ match" className="p-2 text-slate-300 hover:text-red-400 transition-colors disabled:opacity-30"><X size={16}/></button>
                           </div>
                        </div>
@@ -1488,19 +1488,19 @@ export default function App() {
             <div className="p-6 space-y-3 border-b">
               <div>
                 <label htmlFor="edit-name" className="sr-only">Namn</label>
-                <input id="edit-name" type="text" value={regName} onChange={e => setRegName(e.target.value)} placeholder="Namn" className="w-full p-3 rounded-xl bg-slate-50 border outline-none focus:border-indigo-400 font-bold text-sm"/>
+                <input id="edit-name" type="text" value={regName} onChange={e => setRegName(e.target.value)} placeholder="Namn" className="w-full p-3 rounded-xl bg-slate-50 border outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent font-bold text-sm"/>
               </div>
               <div>
                 <label htmlFor="edit-email" className="sr-only">E-post</label>
-                <input id="edit-email" type="email" value={regEmail} onChange={e => setRegEmail(e.target.value)} placeholder="E-post" className="w-full p-3 rounded-xl bg-slate-50 border outline-none focus:border-indigo-400 font-bold text-sm"/>
+                <input id="edit-email" type="email" value={regEmail} onChange={e => setRegEmail(e.target.value)} placeholder="E-post" className="w-full p-3 rounded-xl bg-slate-50 border outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent font-bold text-sm"/>
               </div>
               <div>
                 <label htmlFor="edit-phone" className="sr-only">Telefonnummer</label>
-                <input id="edit-phone" type="tel" value={regPhone} onChange={e => setRegPhone(e.target.value)} placeholder="Telefonnummer" className="w-full p-3 rounded-xl bg-slate-50 border outline-none focus:border-indigo-400 font-bold text-sm"/>
+                <input id="edit-phone" type="tel" value={regPhone} onChange={e => setRegPhone(e.target.value)} placeholder="Telefonnummer" className="w-full p-3 rounded-xl bg-slate-50 border outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent font-bold text-sm"/>
               </div>
               <div>
                 <label htmlFor="edit-goals" className="sr-only">Antal mål totalt i GRUPPSPELET (72 matcher)?</label>
-                <input id="edit-goals" type="number" value={regGoals} onChange={e => setRegGoals(e.target.value)} placeholder="Antal mål totalt i GRUPPSPELET (72 matcher)?" className="w-full p-3 rounded-xl bg-slate-50 border outline-none focus:border-indigo-400 font-bold text-sm"/>
+                <input id="edit-goals" type="number" value={regGoals} onChange={e => setRegGoals(e.target.value)} placeholder="Antal mål totalt i GRUPPSPELET (72 matcher)?" className="w-full p-3 rounded-xl bg-slate-50 border outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent font-bold text-sm"/>
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-6 space-y-3 no-scrollbar bg-slate-50/50" style={{maxHeight:'40vh'}}>
