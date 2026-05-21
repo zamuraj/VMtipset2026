@@ -1299,10 +1299,10 @@ export default function App() {
                    <h3 className="font-black text-xs text-slate-400 uppercase tracking-widest">Systeminställningar</h3>
                    <div className="flex gap-2 items-center">
                      <label htmlFor="settings-deadline" className="sr-only">Deadline</label>
-                     <input id="settings-deadline" type="datetime-local" onChange={e => setDoc(doc(db, "settings", "appConfig"), { deadline: new Date(e.target.value) }, { merge: true })} className="bg-white border p-2 rounded-xl text-xs font-bold outline-none"/>
+                     <input id="settings-deadline" type="datetime-local" onChange={e => setDoc(doc(db, "settings", "appConfig"), { deadline: new Date(e.target.value) }, { merge: true })} className="bg-white border p-2 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"/>
                      <div className="flex items-center gap-2">
                        <label htmlFor="settings-admin-fee" className="text-[10px] font-black text-slate-400 uppercase">Gravering (kr)</label>
-                       <input id="settings-admin-fee" type="number" min="0" step="50" defaultValue={adminFee} onBlur={e => { const v = parseInt(e.target.value) || 0; setAdminFee(v); setDoc(doc(db, "settings", "appConfig"), { adminFee: v }, { merge: true }); }} className="w-20 bg-white border p-2 rounded-xl text-xs font-bold outline-none"/>
+                       <input id="settings-admin-fee" type="number" min="0" step="50" defaultValue={adminFee} onBlur={e => { const v = parseInt(e.target.value) || 0; setAdminFee(v); setDoc(doc(db, "settings", "appConfig"), { adminFee: v }, { merge: true }); }} className="w-20 bg-white border p-2 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"/>
                      </div>
                    </div>
                  </div>
@@ -1393,16 +1393,16 @@ export default function App() {
                           <div className="flex items-center justify-between gap-2">
                              <div className="flex items-center gap-2 flex-1"><Flag code={TEAMS[m.team1]?.flag}/><span className="text-xs font-black truncate">{m.team1}</span></div>
                              <label htmlFor={`match-goals1-${m.id}`} className="sr-only">Mål {m.team1}</label>
-                             <input id={`match-goals1-${m.id}`} type="number" disabled={isLiveSyncActive} defaultValue={m.goals1} onBlur={e => updateMatch(m.id, { goals1: parseInt(e.target.value) || 0, status: 'finished' })} className="w-12 p-2 border rounded-xl text-center font-black outline-none bg-white disabled:opacity-50"/>
+                             <input id={`match-goals1-${m.id}`} type="number" disabled={isLiveSyncActive} defaultValue={m.goals1} onBlur={e => updateMatch(m.id, { goals1: parseInt(e.target.value) || 0, status: 'finished' })} className="w-12 p-2 border rounded-xl text-center font-black outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all bg-white disabled:opacity-50"/>
                           </div>
                           <div className="flex items-center justify-between gap-2">
                              <div className="flex items-center gap-2 flex-1"><Flag code={TEAMS[m.team2]?.flag}/><span className="text-xs font-black truncate">{m.team2}</span></div>
                              <label htmlFor={`match-goals2-${m.id}`} className="sr-only">Mål {m.team2}</label>
-                             <input id={`match-goals2-${m.id}`} type="number" disabled={isLiveSyncActive} defaultValue={m.goals2} onBlur={e => updateMatch(m.id, { goals2: parseInt(e.target.value) || 0, status: 'finished' })} className="w-12 p-2 border rounded-xl text-center font-black outline-none bg-white disabled:opacity-50"/>
+                             <input id={`match-goals2-${m.id}`} type="number" disabled={isLiveSyncActive} defaultValue={m.goals2} onBlur={e => updateMatch(m.id, { goals2: parseInt(e.target.value) || 0, status: 'finished' })} className="w-12 p-2 border rounded-xl text-center font-black outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all bg-white disabled:opacity-50"/>
                           </div>
                           <div className="flex gap-2">
                              <label htmlFor={`match-minute-${m.id}`} className="sr-only">Minut</label>
-                             <input id={`match-minute-${m.id}`} type="text" disabled={isLiveSyncActive} placeholder="Minut (ex 65)" defaultValue={m.minute} onBlur={e => updateMatch(m.id, { minute: e.target.value, status: e.target.value ? 'live' : 'finished' })} className="flex-1 p-2 border rounded-xl text-[10px] font-black outline-none bg-white disabled:opacity-50"/>
+                             <input id={`match-minute-${m.id}`} type="text" disabled={isLiveSyncActive} placeholder="Minut (ex 65)" defaultValue={m.minute} onBlur={e => updateMatch(m.id, { minute: e.target.value, status: e.target.value ? 'live' : 'finished' })} className="flex-1 p-2 border rounded-xl text-[10px] font-black outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all bg-white disabled:opacity-50"/>
                              <button disabled={isLiveSyncActive} onClick={() => updateMatch(m.id, { status: 'upcoming', goals1: null, goals2: null, minute: null })} aria-label="Återställ match" title="Återställ match" className="p-2 text-slate-300 hover:text-red-400 transition-colors disabled:opacity-30"><X size={16}/></button>
                           </div>
                        </div>
