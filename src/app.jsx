@@ -274,6 +274,7 @@ export default function App() {
   const [isEditing, setIsEditing] = useState(false);
   const [editingUserId, setEditingUserId] = useState(null);
   const [isLiveSyncActive, setIsLiveSyncActive] = useState(false);
+  const [isSendingChat, setIsSendingChat] = useState(false);
   const API_KEY = '4df5d7b0f4f2445d992db758adf311cc';
 
   // --- REGISTRATION DRAFT ---
@@ -675,19 +676,24 @@ export default function App() {
 
   const sendChat = async (e) => {
     e.preventDefault(); if(!newChatMsg.trim()) return;
-    await addDoc(collection(db, "chat"), { user: currentUser.name, text: newChatMsg, createdAt: serverTimestamp() });
-    
-    activePlayers.forEach(p => {
-      const firstName = p.name.split(' ')[0].toLowerCase();
-      if (newChatMsg.toLowerCase().includes(`@${firstName}`) || newChatMsg.toLowerCase().includes(`@${p.name.toLowerCase()}`)) {
-        if (p.id !== currentUser.id) {
-          const notifs = p.notifications || [];
-          notifs.unshift({ id: Date.now().toString() + Math.random(), type: 'mention', text: `${currentUser.name} har nämnt dig i Snackis`, isRead: false, createdAt: new Date().toISOString() });
-          updateDoc(doc(db, "tips", p.id), { notifications: notifs });
+    setIsSendingChat(true);
+    try {
+      await addDoc(collection(db, "chat"), { user: currentUser.name, text: newChatMsg, createdAt: serverTimestamp() });
+
+      activePlayers.forEach(p => {
+        const firstName = p.name.split(' ')[0].toLowerCase();
+        if (newChatMsg.toLowerCase().includes(`@${firstName}`) || newChatMsg.toLowerCase().includes(`@${p.name.toLowerCase()}`)) {
+          if (p.id !== currentUser.id) {
+            const notifs = p.notifications || [];
+            notifs.unshift({ id: Date.now().toString() + Math.random(), type: 'mention', text: `${currentUser.name} har nämnt dig i Snackis`, isRead: false, createdAt: new Date().toISOString() });
+            updateDoc(doc(db, "tips", p.id), { notifications: notifs });
+          }
         }
-      }
-    });
-    setNewChatMsg('');
+      });
+      setNewChatMsg('');
+    } finally {
+      setIsSendingChat(false);
+    }
   };
 
   const updateMatch = async (id, data) => {
@@ -1229,24 +1235,36 @@ export default function App() {
                 <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{chatMessages.length} Meddelanden</div>
              </div>
              <div className="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar bg-slate-50/50">
-                {chatMessages.map((msg, i) => (
-                  <div key={msg.id || i} className={`flex flex-col ${msg.user === currentUser.name ? 'items-end' : 'items-start'}`}>
-                    <div className="text-[10px] font-black text-slate-400 mb-1 ml-2 mr-2 uppercase tracking-tighter flex items-center gap-1.5">
-                      {msg.user}
-                      {msg.user === 'Emil Zettergren' && <span className="bg-vmgold/20 text-vmgold px-1.5 py-0.5 rounded text-[8px] font-black tracking-widest">ADMIN</span>}
+                {chatMessages.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-center text-slate-400 space-y-4">
+                    <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-300">
+                      <MessageSquare size={32} />
                     </div>
-                    <div className={`max-w-[80%] p-4 rounded-2xl text-sm shadow-sm ${msg.user === currentUser.name ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white border rounded-tl-none text-slate-800'}`}>
-                      {msg.text.split(/(@[a-zA-ZåäöÅÄÖ\w-]+)/g).map((part, i) => {
-                         if (part.startsWith('@')) {
-                           const name = part.substring(1).toLowerCase();
-                           const isReal = activePlayers.some(p => p.name.toLowerCase().startsWith(name));
-                           if (isReal) return <span key={i} className="text-blue-400 font-bold underline cursor-pointer">{part}</span>;
-                         }
-                         return part;
-                      })}
+                    <div>
+                      <h3 className="font-black text-lg text-slate-500 mb-1">Inga meddelanden än</h3>
+                      <p className="text-sm font-medium">Börja snacket! Skriv ditt första meddelande nedan.</p>
                     </div>
                   </div>
-                ))}
+                ) : (
+                  chatMessages.map((msg, i) => (
+                    <div key={msg.id || i} className={`flex flex-col ${msg.user === currentUser.name ? 'items-end' : 'items-start'}`}>
+                      <div className="text-[10px] font-black text-slate-400 mb-1 ml-2 mr-2 uppercase tracking-tighter flex items-center gap-1.5">
+                        {msg.user}
+                        {msg.user === 'Emil Zettergren' && <span className="bg-vmgold/20 text-vmgold px-1.5 py-0.5 rounded text-[8px] font-black tracking-widest">ADMIN</span>}
+                      </div>
+                      <div className={`max-w-[80%] p-4 rounded-2xl text-sm shadow-sm ${msg.user === currentUser.name ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white border rounded-tl-none text-slate-800'}`}>
+                        {msg.text.split(/(@[a-zA-ZåäöÅÄÖ\w-]+)/g).map((part, i) => {
+                           if (part.startsWith('@')) {
+                             const name = part.substring(1).toLowerCase();
+                             const isReal = activePlayers.some(p => p.name.toLowerCase().startsWith(name));
+                             if (isReal) return <span key={i} className="text-blue-400 font-bold underline cursor-pointer">{part}</span>;
+                           }
+                           return part;
+                        })}
+                      </div>
+                    </div>
+                  ))
+                )}
              </div>
              <form onSubmit={sendChat} className="p-6 bg-white border-t space-y-3">
                 <div className="flex items-center gap-1.5 ml-1">
@@ -1285,7 +1303,9 @@ export default function App() {
                      ))}
                    </div>
                 )}
-                <button type="submit" className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition-all"><Send size={18}/> SKICKA</button>
+                <button type="submit" disabled={isSendingChat} className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition-all disabled:opacity-50">
+                  {isSendingChat ? <Loader2 className="animate-spin" size={18}/> : <Send size={18}/>} SKICKA
+                </button>
              </form>
           </div>
         )}

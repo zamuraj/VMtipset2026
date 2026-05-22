@@ -10,3 +10,6 @@
 ## 2024-05-18 - [Added Empty State to Head-2-Head View]
 **Learning:** The Head-2-Head view was showing a blank space below the selection dropdowns when players hadn't been selected, leading to a potentially confusing experience. Implementing a styled empty state with clear instructions and an illustrative icon enhances the UI.
 **Action:** Always verify what the UI displays when required state variables (like selected items in a comparison view) are empty or uninitialized, and proactively add helpful "empty states" using existing design tokens.
+## 2024-05-22 - Chat Loading and Empty States
+**Learning:** Using `try...finally` with a discrete state `isSendingChat` avoids double submission in asynchronous `addDoc` Firestore operations. We also verified you can bypass Firebase UI auth directly via localStorage injection to test UI states.
+**Action:** Always wrap async submit actions with `disabled={isSubmitting}` and provide a `Loader2` or visual feedback. Use explicit empty states (e.g., `MessageSquare` with helpful text) for lists that can be empty to encourage user interaction.
