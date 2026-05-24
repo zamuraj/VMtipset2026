@@ -1324,7 +1324,7 @@ export default function App() {
                         <div className="text-xs text-slate-400 font-bold flex items-center gap-2">{t.email} {t.phone && <span className="text-[10px] text-indigo-500">({t.phone})</span>}</div>
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={() => deleteDoc(doc(db, "tips", t.id))} aria-label="Ta bort" title="Ta bort" className="p-3 text-red-500 hover:bg-red-50 rounded-2xl transition-colors"><Trash2/></button>
+                        <button onClick={() => { if(window.confirm('Är du säker på att du vill ta bort denna anmälan?')) deleteDoc(doc(db, "tips", t.id)) }} aria-label="Ta bort" title="Ta bort" className="p-3 text-red-500 hover:bg-red-50 rounded-2xl transition-colors"><Trash2/></button>
                         <button onClick={() => updateDoc(doc(db, "tips", t.id), { isApproved: true })} className="px-6 py-3 bg-emerald-600 text-white rounded-2xl font-black shadow-lg shadow-emerald-600/20">GODKÄNN</button>
                       </div>
                    </div>
@@ -1372,7 +1372,7 @@ export default function App() {
                       <span className="font-black"><span className={entry.type === 'EM' ? 'text-indigo-500' : 'text-vmgold'}>{entry.type || 'VM'}</span> {entry.year}</span>
                       <span className="text-slate-600 font-bold">{entry.champion}</span>
                     </div>
-                    <button onClick={() => deleteDoc(doc(db, 'hallOfFame', entry.id))} aria-label="Ta bort" title="Ta bort" className="p-2 text-red-400 hover:bg-red-50 rounded-xl transition-colors"><Trash2 size={16}/></button>
+                    <button onClick={() => { if(window.confirm('Är du säker på att du vill ta bort detta Hall of Fame-bidrag?')) deleteDoc(doc(db, 'hallOfFame', entry.id)) }} aria-label="Ta bort" title="Ta bort" className="p-2 text-red-400 hover:bg-red-50 rounded-xl transition-colors"><Trash2 size={16}/></button>
                   </div>
                 ))}
               </div>
