@@ -249,6 +249,7 @@ export default function App() {
   const [showRegister, setShowRegister] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSendingChat, setIsSendingChat] = useState(false);
   const [activeTab, setActiveTab] = useState('leaderboard');
   const [selectedUser, setSelectedUser] = useState(null);
   const [folketsTipsMode, setFolketsTipsMode] = useState(0); 
@@ -675,19 +676,24 @@ export default function App() {
 
   const sendChat = async (e) => {
     e.preventDefault(); if(!newChatMsg.trim()) return;
-    await addDoc(collection(db, "chat"), { user: currentUser.name, text: newChatMsg, createdAt: serverTimestamp() });
-    
-    activePlayers.forEach(p => {
-      const firstName = p.name.split(' ')[0].toLowerCase();
-      if (newChatMsg.toLowerCase().includes(`@${firstName}`) || newChatMsg.toLowerCase().includes(`@${p.name.toLowerCase()}`)) {
-        if (p.id !== currentUser.id) {
-          const notifs = p.notifications || [];
-          notifs.unshift({ id: Date.now().toString() + Math.random(), type: 'mention', text: `${currentUser.name} har nämnt dig i Snackis`, isRead: false, createdAt: new Date().toISOString() });
-          updateDoc(doc(db, "tips", p.id), { notifications: notifs });
+    setIsSendingChat(true);
+    try {
+      await addDoc(collection(db, "chat"), { user: currentUser.name, text: newChatMsg, createdAt: serverTimestamp() });
+
+      activePlayers.forEach(p => {
+        const firstName = p.name.split(' ')[0].toLowerCase();
+        if (newChatMsg.toLowerCase().includes(`@${firstName}`) || newChatMsg.toLowerCase().includes(`@${p.name.toLowerCase()}`)) {
+          if (p.id !== currentUser.id) {
+            const notifs = p.notifications || [];
+            notifs.unshift({ id: Date.now().toString() + Math.random(), type: 'mention', text: `${currentUser.name} har nämnt dig i Snackis`, isRead: false, createdAt: new Date().toISOString() });
+            updateDoc(doc(db, "tips", p.id), { notifications: notifs });
+          }
         }
-      }
-    });
-    setNewChatMsg('');
+      });
+      setNewChatMsg('');
+    } finally {
+      setIsSendingChat(false);
+    }
   };
 
   const updateMatch = async (id, data) => {
@@ -1285,7 +1291,7 @@ export default function App() {
                      ))}
                    </div>
                 )}
-                <button type="submit" className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition-all"><Send size={18}/> SKICKA</button>
+                <button type="submit" disabled={isSendingChat || !newChatMsg.trim()} className="w-full py-4 bg-indigo-600 disabled:opacity-50 text-white rounded-2xl font-black flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition-all">{isSendingChat ? <Loader2 className="animate-spin" size={18}/> : <Send size={18}/>} SKICKA</button>
              </form>
           </div>
         )}
