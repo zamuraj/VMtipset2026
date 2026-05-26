@@ -25,3 +25,7 @@
 ## 2024-05-25 - Added loading state to async button
 **Learning:** Adding loading states (`isSendingChat`) to forms lacking them improves UX and prevents double submission of messages.
 **Action:** Always add loading indicators, like `Loader2`, to data submission buttons for better user feedback.
+
+## 2024-05-23 - Add Confirmation to Destructive Delete Actions
+**Learning:** Destructive actions without confirmation dialogues easily lead to accidental data loss or disruption, especially on mobile devices where fat-fingering is common.
+**Action:** When creating functionality for deleting records or documents, always include a user confirmation step (e.g. `window.confirm`) to prevent accidental actions.
