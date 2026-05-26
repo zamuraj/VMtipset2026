@@ -13,3 +13,7 @@
 ## 2024-05-18 - Missing focus ring with `outline-none`
 **Learning:** Found several input components (admin inputs, edit modal, head2head) using Tailwind `outline-none` but missing visual focus rings. When you remove default outlines, screen reader and keyboard users lose their visual focus cues.
 **Action:** Always pair `outline-none` with explicit focus classes like `focus:ring-2 focus:ring-indigo-500/50` to maintain accessibility for keyboard navigation.
+
+## 2026-05-26 - Added Empty State to Snackis (Chat)
+**Learning:** The 'Snackis' chat tab was rendering an entirely blank space when no messages existed. This can make the app feel broken or unpopulated. Implementing a clear, stylized empty state with a call-to-action improves user experience significantly by explaining the current state and encouraging interaction.
+**Action:** Always provide visually distinct 'empty states' for lists and dynamic collections (like chat messages or groups) when their length is zero to maintain a polished and user-friendly interface.

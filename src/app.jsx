@@ -1231,8 +1231,15 @@ export default function App() {
                 <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{chatMessages.length} Meddelanden</div>
              </div>
              <div className="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar bg-slate-50/50">
-                {chatMessages.map((msg, i) => (
-                  <div key={msg.id || i} className={`flex flex-col ${msg.user === currentUser.name ? 'items-end' : 'items-start'}`}>
+                {chatMessages.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-slate-400 font-bold opacity-70">
+                    <MessageSquare size={40} className="mb-4 opacity-50"/>
+                    <p>Inga meddelanden än.</p>
+                    <p className="text-xs font-normal mt-2">Bli den första att skriva i Snackis!</p>
+                  </div>
+                ) : (
+                  chatMessages.map((msg, i) => (
+                    <div key={msg.id || i} className={`flex flex-col ${msg.user === currentUser.name ? 'items-end' : 'items-start'}`}>
                     <div className="text-[10px] font-black text-slate-400 mb-1 ml-2 mr-2 uppercase tracking-tighter flex items-center gap-1.5">
                       {msg.user}
                       {msg.user === 'Emil Zettergren' && <span className="bg-vmgold/20 text-vmgold px-1.5 py-0.5 rounded text-[8px] font-black tracking-widest">ADMIN</span>}
@@ -1248,7 +1255,7 @@ export default function App() {
                       })}
                     </div>
                   </div>
-                ))}
+                )))}
              </div>
              <form onSubmit={sendChat} className="p-6 bg-white border-t space-y-3">
                 <div className="flex items-center gap-1.5 ml-1">
