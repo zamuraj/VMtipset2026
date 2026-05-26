@@ -275,7 +275,6 @@ export default function App() {
   const [isEditing, setIsEditing] = useState(false);
   const [editingUserId, setEditingUserId] = useState(null);
   const [isLiveSyncActive, setIsLiveSyncActive] = useState(false);
-  const [isSendingChat, setIsSendingChat] = useState(false);
   const API_KEY = '4df5d7b0f4f2445d992db758adf311cc';
 
   // --- REGISTRATION DRAFT ---
