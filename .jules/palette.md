@@ -21,3 +21,7 @@
 ## 2024-05-22 - Chat Loading and Empty States
 **Learning:** Using `try...finally` with a discrete state `isSendingChat` avoids double submission in asynchronous `addDoc` Firestore operations. We also verified you can bypass Firebase UI auth directly via localStorage injection to test UI states.
 **Action:** Always wrap async submit actions with `disabled={isSubmitting}` and provide a `Loader2` or visual feedback. Use explicit empty states (e.g., `MessageSquare` with helpful text) for lists that can be empty to encourage user interaction.
+
+## 2024-05-25 - Added loading state to async button
+**Learning:** Adding loading states (`isSendingChat`) to forms lacking them improves UX and prevents double submission of messages.
+**Action:** Always add loading indicators, like `Loader2`, to data submission buttons for better user feedback.

@@ -249,6 +249,7 @@ export default function App() {
   const [showRegister, setShowRegister] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSendingChat, setIsSendingChat] = useState(false);
   const [activeTab, setActiveTab] = useState('leaderboard');
   const [selectedUser, setSelectedUser] = useState(null);
   const [folketsTipsMode, setFolketsTipsMode] = useState(0); 
@@ -1305,7 +1306,7 @@ export default function App() {
                      ))}
                    </div>
                 )}
-                <button type="submit" disabled={isSendingChat} className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition-all disabled:opacity-50">
+                <button type="submit" disabled={isSendingChat || !newChatMsg.trim()} className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition-all disabled:opacity-50">
                   {isSendingChat ? <Loader2 className="animate-spin" size={18}/> : <Send size={18}/>} SKICKA
                 </button>
              </form>
