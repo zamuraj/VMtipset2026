@@ -17,3 +17,7 @@
 ## 2026-05-26 - Added Empty State to Snackis (Chat)
 **Learning:** The 'Snackis' chat tab was rendering an entirely blank space when no messages existed. This can make the app feel broken or unpopulated. Implementing a clear, stylized empty state with a call-to-action improves user experience significantly by explaining the current state and encouraging interaction.
 **Action:** Always provide visually distinct 'empty states' for lists and dynamic collections (like chat messages or groups) when their length is zero to maintain a polished and user-friendly interface.
+
+## 2024-05-22 - Chat Loading and Empty States
+**Learning:** Using `try...finally` with a discrete state `isSendingChat` avoids double submission in asynchronous `addDoc` Firestore operations. We also verified you can bypass Firebase UI auth directly via localStorage injection to test UI states.
+**Action:** Always wrap async submit actions with `disabled={isSubmitting}` and provide a `Loader2` or visual feedback. Use explicit empty states (e.g., `MessageSquare` with helpful text) for lists that can be empty to encourage user interaction.
