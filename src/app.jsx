@@ -623,13 +623,13 @@ export default function App() {
     setIsSubmitting(true);
     try {
       if(!editingParticipantId && isDeadlinePassed) {
-        setIsSubmitting(false);
-        return alert("Deadline har passerat!");
+        alert("Deadline har passerat!");
+        return false;
       }
       const id = editingParticipantId || (regEmail ? regEmail.toLowerCase().trim() : '');
       if(!id) {
-        setIsSubmitting(false);
-        return alert("Kunde inte hitta ID eller e-post.");
+        alert("Kunde inte hitta ID eller e-post.");
+        return false;
       }
 
       await setDoc(doc(db, "tips", id), { 
@@ -648,9 +648,11 @@ export default function App() {
       if (draftKey) localStorage.removeItem(draftKey); 
       setShowRegister(false);
       setEditingParticipantId(null);
+      return true;
     } catch (e) {
       console.error("Fel vid sparning:", e);
       alert("Databasfel kunde inte spara: " + e.message);
+      return false;
     } finally {
       setIsSubmitting(false);
     }
@@ -1534,7 +1536,7 @@ export default function App() {
             </div>
             <div className="p-6 flex gap-3 border-t bg-white">
               <button onClick={() => setIsEditing(false)} className="flex-1 py-3 rounded-2xl border font-bold text-slate-500 hover:bg-slate-50 transition-colors">Avbryt</button>
-              <button onClick={async () => { await submitTips(); setIsEditing(false); }} disabled={isSubmitting} className="flex-1 py-3 bg-indigo-600 disabled:opacity-50 text-white rounded-2xl font-black flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-colors">
+              <button onClick={async () => { if (await submitTips()) setIsEditing(false); }} disabled={isSubmitting} className="flex-1 py-3 bg-indigo-600 disabled:opacity-50 text-white rounded-2xl font-black flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-colors">
                 {isSubmitting && <Loader2 className="animate-spin" size={20} />} Spara ändringar
               </button>
             </div>
