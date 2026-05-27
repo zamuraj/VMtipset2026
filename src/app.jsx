@@ -1093,8 +1093,12 @@ export default function App() {
             ) : (() => {
               const u1 = activePlayers.find(u => u.id === h2hUser1);
               const u2 = activePlayers.find(u => u.id === h2hUser2);
-              const u1pts = matches.filter(m => get1X2(m.goals1,m.goals2) === u1?.predictions?.[m.id]).length;
-              const u2pts = matches.filter(m => get1X2(m.goals1,m.goals2) === u2?.predictions?.[m.id]).length;
+              const { u1pts, u2pts } = matches.reduce((acc, m) => {
+                const actual = get1X2(m.goals1, m.goals2);
+                if (actual === u1?.predictions?.[m.id]) acc.u1pts++;
+                if (actual === u2?.predictions?.[m.id]) acc.u2pts++;
+                return acc;
+              }, { u1pts: 0, u2pts: 0 });
               return (
                 <>
                   <div className="grid grid-cols-2 gap-4 mb-6">
