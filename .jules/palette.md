@@ -29,3 +29,6 @@
 ## 2024-05-23 - Add Confirmation to Destructive Delete Actions
 **Learning:** Destructive actions without confirmation dialogues easily lead to accidental data loss or disruption, especially on mobile devices where fat-fingering is common.
 **Action:** When creating functionality for deleting records or documents, always include a user confirmation step (e.g. `window.confirm`) to prevent accidental actions.
+## 2026-05-27 - Unhandled Registrations Empty State and GODKÄNN Loading State
+**Learning:** Found an opportunity to improve the "Ohanterade Anmälningar" section in the admin tab by adding a rewarding "inbox zero" empty state. Also realized the "GODKÄNN" button lacked visual feedback for the async Firestore operation, creating a risk of double-clicks.
+**Action:** Always provide explicit, rewarding empty states for admin action queues when cleared. Always add state tracking (like `approvingId`) and a disabled spinner state (`Loader2`) to buttons triggering network requests.
