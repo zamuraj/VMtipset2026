@@ -274,7 +274,6 @@ export default function App() {
   const [adminFee, setAdminFee] = useState(100);
   const [editingParticipantId, setEditingParticipantId] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [editingUserId, setEditingUserId] = useState(null);
   const [isLiveSyncActive, setIsLiveSyncActive] = useState(false);
   const API_KEY = import.meta.env.VITE_FOOTBALL_API_KEY;
 
@@ -684,7 +683,6 @@ export default function App() {
   };
 
   const startEditing = (p) => {
-    setEditingUserId(p.id);
     setEditingParticipantId(p.id);
     setRegName(p.name);
     setRegEmail(p.email || p.id);
