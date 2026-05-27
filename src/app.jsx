@@ -2,9 +2,9 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { db } from './firebase';
 import { collection, onSnapshot, doc, setDoc, addDoc, query, orderBy, serverTimestamp, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { 
-  Trophy, BarChart3, Settings, CalendarDays, Check, 
-  AlertCircle, Clock, Grid3X3, User, X, Lock, LogOut, Award, History, Star,
-  Swords, Bell, PlayCircle, Banknote, MessageSquare, Send, Goal, ShieldCheck, ChevronDown, ChevronUp, MapPin, ListOrdered, Trash2, Tv, Users, Activity, Edit, Loader2
+  Trophy, Settings, CalendarDays,
+  Clock, Grid3X3, User, X, LogOut, Award, History, Star,
+  Swords, Bell, PlayCircle, MessageSquare, Send, Goal, ShieldCheck, ChevronDown, ChevronUp, MapPin, ListOrdered, Trash2, Users, Activity, Loader2
 } from 'lucide-react';
 import TvBadge from './components/TvBadge';
 
@@ -1365,7 +1365,7 @@ export default function App() {
                  {tips.filter(t => !t.isApproved).length === 0 ? (
                    <div className="bg-white border rounded-[2rem] p-8 text-center shadow-sm flex flex-col items-center gap-3">
                      <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center">
-                       <Check size={24} />
+                       <ShieldCheck size={24} />
                      </div>
                      <div>
                        <div className="font-black text-slate-700">Snyggt!</div>
