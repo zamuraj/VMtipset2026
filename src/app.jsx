@@ -615,9 +615,6 @@ export default function App() {
     setIsLoggingIn(true);
     setAuthError("");
 
-    // Simulate a brief network delay for UX
-    await new Promise(resolve => setTimeout(resolve, 600));
-
     try {
       const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
       const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD;
