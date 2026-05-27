@@ -422,6 +422,32 @@ export default function App() {
   // --- CALCULATIONS ---
   const activeUser = useMemo(() => currentUser ? tips.find(t => t.id === currentUser.id) || currentUser : null, [currentUser, tips]);
   const activePlayers = useMemo(() => tips.filter(t => t.isApproved && !t.isAdmin), [tips]);
+  const matchStats = useMemo(() => {
+    const stats = {};
+    matches.forEach(m => {
+      stats[m.id] = { totalTips: 0, counts: { '1': 0, 'X': 0, '2': 0 } };
+    });
+    activePlayers.forEach(p => {
+      if (!p.predictions) return;
+      matches.forEach(m => {
+        const sign = p.predictions[m.id];
+        if (sign) {
+          stats[m.id].totalTips++;
+          if (stats[m.id].counts[sign] !== undefined) {
+            stats[m.id].counts[sign]++;
+          }
+        }
+      });
+    });
+    matches.forEach(m => {
+      const counts = stats[m.id].counts;
+      const totalTips = stats[m.id].totalTips;
+      stats[m.id].maxSign = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b, '1');
+      stats[m.id].maxPct = totalTips ? Math.round((counts[stats[m.id].maxSign] / totalTips) * 100) : 0;
+    });
+    return stats;
+  }, [matches, activePlayers]);
+
   const goalsSoFar = useMemo(() => matches.reduce((sum, m) => sum + (m.goals1 || 0) + (m.goals2 || 0), 0), [matches]);
   const get1X2 = (g1, g2) => { if (g1 === null || g2 === null) return null; return g1 > g2 ? '1' : g1 < g2 ? '2' : 'X'; };
   const isDeadlinePassed = deadline && new Date() > deadline;
@@ -1134,11 +1160,8 @@ export default function App() {
            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 animate-in fade-in duration-300">
               {matches.map(m => {
                  const fact = MATCH_FACTS[m.id];
-                 const totalTips = activePlayers.filter(p => p.predictions?.[m.id]).length;
-                 const counts = { '1': 0, 'X': 0, '2': 0 };
-                 activePlayers.forEach(p => { if (p.predictions?.[m.id]) counts[p.predictions[m.id]]++; });
-                 const maxSign = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b, '1');
-                 const maxPct = totalTips ? Math.round((counts[maxSign] / totalTips) * 100) : 0;
+                 const stats = matchStats[m.id] || { totalTips: 0, counts: { '1': 0, 'X': 0, '2': 0 }, maxSign: '1', maxPct: 0 };
+                 const { totalTips, counts, maxSign, maxPct } = stats;
                  const actual = get1X2(m.goals1, m.goals2);
                  const actualPct = (totalTips && actual && counts[actual]) ? Math.round((counts[actual] / totalTips) * 100) : 0;
                  return (
