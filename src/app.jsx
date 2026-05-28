@@ -879,13 +879,13 @@ export default function App() {
       </header>
 
       <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t z-40 flex justify-around p-1 sm:sticky sm:top-[72px] sm:max-w-5xl sm:mx-auto sm:my-4 sm:rounded-3xl sm:border shadow-xl">
-        <button onClick={() => navigateTab('leaderboard')} aria-label="Leaderboard" title="Leaderboard" className={`p-4 transition-colors ${activeTab==='leaderboard'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><Trophy/></button>
-        <button onClick={() => navigateTab('groups')} aria-label="Grupper" title="Grupper" className={`p-4 transition-colors ${activeTab==='groups'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><ListOrdered/></button>
-        <button onClick={() => navigateTab('h2h')} aria-label="Head 2 Head" title="Head 2 Head" className={`p-4 transition-colors ${activeTab==='h2h'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><Swords/></button>
-        <button onClick={() => navigateTab('chat')} aria-label="Snackis" title="Snackis" className={`p-4 transition-colors ${activeTab==='chat'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><MessageSquare/></button>
-        <button onClick={() => navigateTab('matches')} aria-label="Matcher" title="Matcher" className={`p-4 transition-colors ${activeTab==='matches'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><CalendarDays/></button>
-        <button onClick={() => navigateTab('hof')} aria-label="Hall of Fame" title="Hall of Fame" className={`p-4 transition-colors ${activeTab==='hof'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><History/></button>
-        {currentUser.isAdmin && <button onClick={() => navigateTab('admin')} aria-label="Admin" title="Admin" className={`p-4 transition-colors ${activeTab==='admin'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><Settings/></button>}
+        <button onClick={() => navigateTab('leaderboard')} aria-label="Leaderboard" title="Leaderboard" className={`p-4 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/50 transition-colors ${activeTab==='leaderboard'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><Trophy/></button>
+        <button onClick={() => navigateTab('groups')} aria-label="Grupper" title="Grupper" className={`p-4 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/50 transition-colors ${activeTab==='groups'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><ListOrdered/></button>
+        <button onClick={() => navigateTab('h2h')} aria-label="Head 2 Head" title="Head 2 Head" className={`p-4 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/50 transition-colors ${activeTab==='h2h'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><Swords/></button>
+        <button onClick={() => navigateTab('chat')} aria-label="Snackis" title="Snackis" className={`p-4 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/50 transition-colors ${activeTab==='chat'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><MessageSquare/></button>
+        <button onClick={() => navigateTab('matches')} aria-label="Matcher" title="Matcher" className={`p-4 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/50 transition-colors ${activeTab==='matches'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><CalendarDays/></button>
+        <button onClick={() => navigateTab('hof')} aria-label="Hall of Fame" title="Hall of Fame" className={`p-4 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/50 transition-colors ${activeTab==='hof'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><History/></button>
+        {currentUser.isAdmin && <button onClick={() => navigateTab('admin')} aria-label="Admin" title="Admin" className={`p-4 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/50 transition-colors ${activeTab==='admin'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><Settings/></button>}
       </nav>
 
       <main className="max-w-5xl mx-auto p-4 space-y-6">
@@ -893,7 +893,12 @@ export default function App() {
           <div className="space-y-6 animate-in fade-in duration-300">
              {/* PRISPOTT */}
              <div className="bg-vmdark text-white rounded-[2rem] shadow-xl overflow-hidden">
-               <button onClick={() => setIsPrizeExpanded(!isPrizeExpanded)} className="w-full p-6 flex justify-between items-center">
+               <button
+                 onClick={() => setIsPrizeExpanded(!isPrizeExpanded)}
+                 aria-expanded={isPrizeExpanded}
+                 aria-label={isPrizeExpanded ? "Dölj prispott" : "Visa prispott"}
+                 className="w-full p-6 flex justify-between items-center outline-none focus:ring-2 focus:ring-vmgold/50"
+               >
                  <h3 className="font-black text-xs uppercase tracking-widest text-vmgold flex items-center gap-2"><Trophy size={14}/> Prispott &mdash; {prizePool.netPool} kr netto ({prizePool.totalPool} kr - {adminFee} kr)</h3>
                  {isPrizeExpanded ? <ChevronUp size={16} className="text-vmgold"/> : <ChevronDown size={16} className="text-vmgold"/>}
                </button>
