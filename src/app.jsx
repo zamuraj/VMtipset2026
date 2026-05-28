@@ -7,6 +7,7 @@ import {
   Swords, Bell, PlayCircle, MessageSquare, Send, Goal, ShieldCheck, ChevronDown, ChevronUp, MapPin, ListOrdered, Trash2, Users, Activity, Loader2
 } from 'lucide-react';
 import TvBadge from './components/TvBadge';
+import { get1X2 } from './utils/match';
 
 // --- DATA: LAG & SCHEMA ---
 const TEAMS = { 
@@ -448,7 +449,6 @@ export default function App() {
   }, [matches, activePlayers]);
 
   const goalsSoFar = useMemo(() => matches.reduce((sum, m) => sum + (m.goals1 || 0) + (m.goals2 || 0), 0), [matches]);
-  const get1X2 = (g1, g2) => { if (g1 === null || g2 === null) return null; return g1 > g2 ? '1' : g1 < g2 ? '2' : 'X'; };
   const isDeadlinePassed = deadline && new Date() > deadline;
 
   // --- DAILY RANK NOTIFICATION ---
