@@ -275,7 +275,7 @@ export default function App() {
   const [editingParticipantId, setEditingParticipantId] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isLiveSyncActive, setIsLiveSyncActive] = useState(false);
-  const API_KEY = import.meta.env.VITE_FOOTBALL_API_KEY;
+  const API_KEY = import.meta.env.VITE_FOOTBALL_DATA_API_KEY;
 
   // --- REGISTRATION DRAFT ---
   const [regStep, setRegStep] = useState(1);
