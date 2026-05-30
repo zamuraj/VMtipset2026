@@ -32,3 +32,7 @@
 ## 2026-05-27 - Unhandled Registrations Empty State and GODKÄNN Loading State
 **Learning:** Found an opportunity to improve the "Ohanterade Anmälningar" section in the admin tab by adding a rewarding "inbox zero" empty state. Also realized the "GODKÄNN" button lacked visual feedback for the async Firestore operation, creating a risk of double-clicks.
 **Action:** Always provide explicit, rewarding empty states for admin action queues when cleared. Always add state tracking (like `approvingId`) and a disabled spinner state (`Loader2`) to buttons triggering network requests.
+
+## 2026-05-30 - Contextual Disabled States and Navigation Accessibility
+**Learning:** Found an opportunity to improve the registration form's submit button. By default, disabled buttons provide no feedback to the user on *why* they are disabled. Adding a dynamic `title` attribute explaining the requirements (e.g. "Du måste tippa alla 72 matcher (3 kvar)") makes the interaction significantly more intuitive. Furthermore, the bottom `<nav>` bar lacked ARIA markup to indicate the active tab to screen readers, and the notification toggle lacked `aria-expanded`.
+**Action:** Always provide contextual `title` text for disabled state buttons, especially in forms. When building navigation bars and toggles, strictly enforce `aria-label`, `aria-current="page"`, and `aria-expanded` attributes for keyboard and screen reader accessibility.
