@@ -267,6 +267,8 @@ export default function App() {
   // --- FIREBASE DATA ---
   const [tips, setTips] = useState([]);
   const [matches, setMatches] = useState(initialMatchesList);
+  const matchesRef = React.useRef(matches);
+  React.useEffect(() => { matchesRef.current = matches; }, [matches]);
   const [chatMessages, setChatMessages] = useState([]);
   const [newChatMsg, setNewChatMsg] = useState('');
   const [deadline, setDeadline] = useState(null);
@@ -343,7 +345,7 @@ export default function App() {
       data.matches?.forEach(mApi => {
         const h = map[mApi.homeTeam.name] || mApi.homeTeam.name;
         const a = map[mApi.awayTeam.name] || mApi.awayTeam.name;
-        const m = matches.find(x => x.team1 === h && x.team2 === a);
+        const m = matchesRef.current.find(x => x.team1 === h && x.team2 === a);
         if (m) {
           const g1 = mApi.score.fullTime.home, g2 = mApi.score.fullTime.away;
           const st = mApi.status === 'FINISHED' ? 'finished' : (['IN_PLAY','LIVE','PAUSED'].includes(mApi.status) ? 'live' : 'upcoming');
