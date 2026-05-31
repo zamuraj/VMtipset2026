@@ -4,7 +4,7 @@ import { collection, onSnapshot, doc, setDoc, addDoc, query, orderBy, serverTime
 import { 
   Trophy, Settings, CalendarDays,
   Clock, Grid3X3, User, X, LogOut, Award, History, Star,
-  Swords, Bell, PlayCircle, MessageSquare, Send, Goal, ShieldCheck, ChevronDown, ChevronUp, MapPin, ListOrdered, Trash2, Users, Activity, Loader2
+  Swords, Bell, PlayCircle, MessageSquare, Send, Goal, ShieldCheck, ChevronDown, ChevronUp, MapPin, ListOrdered, Trash2, Users, Activity, Loader2, Unlock
 } from 'lucide-react';
 import TvBadge from './components/TvBadge';
 
@@ -407,6 +407,10 @@ export default function App() {
        setRegStep(draft.step || 2);
        alert("Ett sparat utkast hittades för denna e-post!");
     } else if(existing && existing.predictions && Object.keys(existing.predictions).length > 0) {
+       if (!existing.isUnlockedForEdit) {
+         alert("Denna e-postadress har redan lämnat in ett tips som är låst. Kontakta admin (Emil) om du behöver låsa upp det för ändringar.");
+         return;
+       }
        setRegName(existing.name);
        setRegPhone(existing.phone || '');
        setRegGoals(existing.goals);
@@ -664,6 +668,7 @@ export default function App() {
         predictions: regPicks || {}, 
         isApproved: editingParticipantId ? true : false, 
         isAdmin: false, 
+        isUnlockedForEdit: false,
         groups: ["Alla"] 
       }, { merge: true });
 
@@ -700,6 +705,7 @@ export default function App() {
 
   const sendChat = async (e) => {
     e.preventDefault(); if(!newChatMsg.trim()) return;
+    if (!currentUser?.isAdmin && newChatMsg.length > 300) return alert("Meddelandet är för långt (max 300 tecken).");
     setIsSendingChat(true);
     try {
       await addDoc(collection(db, "chat"), { user: currentUser.name, text: newChatMsg, createdAt: serverTimestamp() });
@@ -1319,8 +1325,9 @@ export default function App() {
                     } else {
                       setShowMentions(false);
                     }
-                  }} placeholder="Skriv nåt till gruppen..." className="relative w-full bg-slate-100 font-sans text-sm leading-normal border-none p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" style={{background:'transparent', caretColor:'#0f172a'}} />
+                  }} maxLength={currentUser?.isAdmin ? undefined : 300} placeholder="Skriv nåt till gruppen..." className="relative w-full bg-slate-100 font-sans text-sm leading-normal border-none p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" style={{background:'transparent', caretColor:'#0f172a'}} />
                 </div>
+                {!currentUser?.isAdmin && <div className="text-[10px] text-slate-400 font-bold ml-1 text-right">{newChatMsg.length}/300 tecken</div>}
                 {showMentions && (
                    <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
                      {activePlayers.filter(p => p.name.toLowerCase().includes(mentionSearch.toLowerCase())).map(p => (
@@ -1417,6 +1424,11 @@ export default function App() {
                          <div className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-2">{p.email} {p.phone && <span className="text-[10px] text-indigo-500">({p.phone})</span>}</div>
                        </div>
                        <div className="flex gap-1">
+                         <button onClick={async () => {
+                           if(window.confirm(`Vill du låsa upp tips för ${p.name}? Personen kommer då kunna gå in och ändra sitt tips.`)) {
+                             await updateDoc(doc(db, "tips", p.id), { isUnlockedForEdit: true });
+                           }
+                         }} aria-label="Lås upp" title="Lås upp för redigering" className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-xl transition-colors"><Unlock size={18}/></button>
                          <button onClick={() => startEditing(p)} aria-label="Redigera" title="Redigera" className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"><Settings size={18}/></button>
                          <button onClick={() => deleteParticipant(p.id)} aria-label="Ta bort" title="Ta bort" className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors"><Trash2 size={18}/></button>
                        </div>
