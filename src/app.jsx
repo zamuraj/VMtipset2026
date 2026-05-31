@@ -834,7 +834,7 @@ export default function App() {
                       </div>
                     ))}
                   </div>
-                  <button onClick={submitTips} disabled={Object.keys(regPicks).length < 72 || isDeadlinePassed || isSubmitting} title={isSubmitting ? 'Skickar in...' : isDeadlinePassed ? 'Deadline har passerat' : Object.keys(regPicks).length < 72 ? `Du måste tippa alla 72 matcher (${Object.keys(regPicks).length}/72)` : undefined} className="w-full py-5 bg-indigo-600 disabled:opacity-30 flex items-center justify-center gap-2 rounded-2xl font-black shadow-[0_10px_20px_rgba(79,70,229,0.3)] mt-2">
+                  <button onClick={submitTips} disabled={Object.keys(regPicks).length < 72 || isDeadlinePassed || isSubmitting} title={isSubmitting ? 'Skickar in...' : isDeadlinePassed ? 'Anmälan är stängd' : Object.keys(regPicks).length < 72 ? `Du måste tippa alla 72 matcher (${72 - Object.keys(regPicks).length} kvar)` : 'Klicka för att skicka in'} className="w-full py-5 bg-indigo-600 disabled:opacity-30 flex items-center justify-center gap-2 rounded-2xl font-black shadow-[0_10px_20px_rgba(79,70,229,0.3)] mt-2">
                     {isSubmitting && <Loader2 className="animate-spin" size={20} />}
                     {isDeadlinePassed ? 'DEADLINE PASSERAD' : 'SKICKA IN ANMÄLAN'}
                   </button>
@@ -854,7 +854,7 @@ export default function App() {
           {timeLeft && <div className="mt-1 px-2 py-0.5 bg-vmgold/10 text-vmgold text-[8px] font-black rounded-full uppercase tracking-widest text-center animate-pulse">{timeLeft}</div>}
         </div>
         <div className="flex items-center gap-4 relative">
-          <button onClick={() => setShowNotifications(!showNotifications)} aria-label="Notiser" title="Notiser" className="relative p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors">
+          <button onClick={() => setShowNotifications(!showNotifications)} aria-expanded={showNotifications} aria-haspopup="dialog" aria-label="Notiser" title="Notiser" className="relative p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors">
             <Bell size={20} />
             {activeUser?.notifications?.filter(n => !n.isRead).length > 0 && (
                <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border border-vmdark"></span>
@@ -884,7 +884,7 @@ export default function App() {
         </div>
       </header>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t z-40 flex justify-around p-1 sm:sticky sm:top-[72px] sm:max-w-5xl sm:mx-auto sm:my-4 sm:rounded-3xl sm:border shadow-xl">
+      <nav aria-label="Huvudmeny" className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t z-40 flex justify-around p-1 sm:sticky sm:top-[72px] sm:max-w-5xl sm:mx-auto sm:my-4 sm:rounded-3xl sm:border shadow-xl">
         <button onClick={() => navigateTab('leaderboard')} aria-label="Leaderboard" aria-current={activeTab === 'leaderboard' ? 'page' : undefined} title="Leaderboard" className={`p-4 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/50 transition-colors ${activeTab==='leaderboard'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><Trophy/></button>
         <button onClick={() => navigateTab('groups')} aria-label="Grupper" aria-current={activeTab === 'groups' ? 'page' : undefined} title="Grupper" className={`p-4 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/50 transition-colors ${activeTab==='groups'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><ListOrdered/></button>
         <button onClick={() => navigateTab('h2h')} aria-label="Head 2 Head" aria-current={activeTab === 'h2h' ? 'page' : undefined} title="Head 2 Head" className={`p-4 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/50 transition-colors ${activeTab==='h2h'?'text-indigo-600':'text-slate-300 hover:text-slate-400'}`}><Swords/></button>
