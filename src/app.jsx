@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { db } from './firebase';
 import { collection, onSnapshot, doc, setDoc, addDoc, query, orderBy, serverTimestamp, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { 
@@ -251,6 +251,8 @@ export default function App() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [approvingId, setApprovingId] = useState(null);
   const [isSendingChat, setIsSendingChat] = useState(false);
+  const [toast, setToast] = useState(null);
+  const toastTimeoutRef = useRef(null);
   const [activeTab, setActiveTab] = useState('leaderboard');
   const [selectedUser, setSelectedUser] = useState(null);
   const [folketsTipsMode, setFolketsTipsMode] = useState(0); 
@@ -393,9 +395,15 @@ export default function App() {
     } 
   };
 
+  const showToast = (message, type = 'success') => {
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    setToast({ message, type });
+    toastTimeoutRef.current = setTimeout(() => setToast(null), 3000);
+  };
+
   const checkExistingUser = () => {
     const email = regEmail.toLowerCase().trim();
-    if (!email) return alert("Vänligen fyll i din e-post.");
+    if (!email) return showToast("Vänligen fyll i din e-post.", "error");
     const draftKey = `vmt_draft_v3_${email}`;
     const draft = JSON.parse(localStorage.getItem(draftKey));
     
@@ -407,17 +415,17 @@ export default function App() {
        setRegGoals(draft.goals || '');
        setRegPicks(draft.picks || {});
        setRegStep(draft.step || 2);
-       alert("Ett sparat utkast hittades för denna e-post!");
+       showToast("Ett sparat utkast hittades för denna e-post!", "success");
     } else if(existing && existing.predictions && Object.keys(existing.predictions).length > 0) {
        if (!existing.isUnlockedForEdit) {
-         alert("Denna e-postadress har redan lämnat in ett tips som är låst. Kontakta admin (Emil) om du behöver låsa upp det för ändringar.");
+         showToast("Denna e-postadress har redan lämnat in ett tips som är låst. Kontakta admin (Emil) om du behöver låsa upp det för ändringar.", "error");
          return;
        }
        setRegName(existing.name);
        setRegPhone(existing.phone || '');
        setRegGoals(existing.goals);
        setRegPicks(existing.predictions || {});
-       alert("Välkommen tillbaka! Ditt tidigare tips har laddats in.");
+       showToast("Välkommen tillbaka! Ditt tidigare tips har laddats in.", "success");
        setRegStep(2);
     } else {
        setRegStep(2);
@@ -653,12 +661,12 @@ export default function App() {
     setIsSubmitting(true);
     try {
       if(!editingParticipantId && isDeadlinePassed) {
-        alert("Deadline har passerat!");
+        showToast("Deadline har passerat!", "error");
         return false;
       }
       const id = editingParticipantId || (regEmail ? regEmail.toLowerCase().trim() : '');
       if(!id) {
-        alert("Kunde inte hitta ID eller e-post.");
+        showToast("Kunde inte hitta ID eller e-post.", "error");
         return false;
       }
 
@@ -674,7 +682,7 @@ export default function App() {
         groups: ["Alla"] 
       }, { merge: true });
 
-      alert(editingParticipantId ? "Deltagare uppdaterad!" : "Tips sparat/uppdaterat! Emil godkänner när betalning syns.");
+      showToast(editingParticipantId ? "Deltagare uppdaterad!" : "Tips sparat/uppdaterat! Emil godkänner när betalning syns.", "success");
       const draftKey = regEmail ? `vmt_draft_v3_${regEmail.toLowerCase().trim()}` : null;
       if (draftKey) localStorage.removeItem(draftKey); 
       setShowRegister(false);
@@ -682,7 +690,7 @@ export default function App() {
       return true;
     } catch (e) {
       console.error("Fel vid sparning:", e);
-      alert("Databasfel kunde inte spara: " + e.message);
+      showToast("Databasfel kunde inte spara: " + e.message, "error");
       return false;
     } finally {
       setIsSubmitting(false);
@@ -707,7 +715,7 @@ export default function App() {
 
   const sendChat = async (e) => {
     e.preventDefault(); if(!newChatMsg.trim()) return;
-    if (!currentUser?.isAdmin && newChatMsg.length > 300) return alert("Meddelandet är för långt (max 300 tecken).");
+    if (!currentUser?.isAdmin && newChatMsg.length > 300) return showToast("Meddelandet är för långt (max 300 tecken).", "error");
     setIsSendingChat(true);
     try {
       await addDoc(collection(db, "chat"), { user: currentUser.name, text: newChatMsg, createdAt: serverTimestamp() });
@@ -1629,6 +1637,17 @@ export default function App() {
                 {isSubmitting && <Loader2 className="animate-spin" size={20} />} Spara ändringar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {toast && (
+        <div className="fixed bottom-24 right-4 z-[100] animate-in slide-in-from-bottom-4 fade-in duration-300">
+          <div className={`px-4 py-3 rounded-xl shadow-lg border text-sm font-bold flex items-center gap-2 ${
+            toast.type === 'error' ? 'bg-red-50 text-red-600 border-red-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'
+          }`}>
+            {toast.type === 'error' ? <X size={18} className="text-red-500" /> : <ShieldCheck size={18} className="text-emerald-500" />}
+            {toast.message}
           </div>
         </div>
       )}
