@@ -875,17 +875,17 @@ export default function App() {
               <div className="bg-slate-50 p-3 border-b font-black text-xs text-slate-400 uppercase tracking-wider">Notiser</div>
               <div className="max-h-64 overflow-y-auto no-scrollbar">
                 {activeUser?.notifications?.length > 0 ? activeUser.notifications.map((n, i) => (
-                  <div key={n.id || i} onClick={() => {
+                  <button key={n.id || i} onClick={() => {
                      const newNotifs = [...(activeUser.notifications)];
                      newNotifs[i].isRead = true;
                      updateDoc(doc(db, "tips", activeUser.id), { notifications: newNotifs });
                      setShowNotifications(false);
                      if (n.type === 'rank') navigateTab('leaderboard');
                      if (n.type === 'mention') navigateTab('chat');
-                  }} className={`p-4 border-b cursor-pointer transition-colors flex items-start gap-3 ${n.isRead ? 'opacity-60 bg-white hover:bg-slate-50' : 'bg-indigo-50/30 hover:bg-indigo-50/50'}`}>
+                  }} className={`w-full text-left outline-none focus:-inset-ring focus:ring-2 focus:ring-indigo-500/50 p-4 border-b cursor-pointer transition-colors flex items-start gap-3 ${n.isRead ? 'opacity-60 bg-white hover:bg-slate-50' : 'bg-indigo-50/30 hover:bg-indigo-50/50'}`}>
                     {!n.isRead && <div className="w-2 h-2 rounded-full bg-indigo-500 mt-1.5 shrink-0"></div>}
                     <div className={`text-sm ${n.isRead ? 'font-medium text-slate-600' : 'font-bold text-slate-900'}`}>{n.text}</div>
-                  </div>
+                  </button>
                 )) : <div className="p-4 text-center text-sm text-slate-400 font-bold">Inga notiser</div>}
               </div>
             </div>
@@ -968,8 +968,10 @@ export default function App() {
                       {leaderboard.map(u => (
                         <tr key={u.id} className="hover:bg-indigo-50/50 transition-colors">
                           <td className="p-5 font-black text-slate-300">#{u.rank}</td>
-                          <td className="p-5 font-bold cursor-pointer hover:text-indigo-600 transition-colors" onClick={() => setSelectedUser(u)}>
-                            <span className="flex items-center gap-1.5">{u.name}{hallOfFame.some(h => h.champion.toLowerCase() === u.name.toLowerCase()) && <span title="Tidigare mästare" className="text-vmgold"><Star size={12} fill="#fbbf24"/></span>}</span>
+                          <td className="p-0">
+                            <button className="w-full h-full p-5 text-left font-bold cursor-pointer hover:text-indigo-600 transition-colors outline-none focus:ring-2 focus:ring-indigo-500/50" onClick={() => setSelectedUser(u)}>
+                              <span className="flex items-center gap-1.5">{u.name}{hallOfFame.some(h => h.champion.toLowerCase() === u.name.toLowerCase()) && <span title="Tidigare mästare" className="text-vmgold"><Star size={12} fill="#fbbf24"/></span>}</span>
+                            </button>
                           </td>
                           <td className="p-5 text-center font-black text-indigo-600 bg-indigo-50/20">{u.pts}</td>
                         </tr>
