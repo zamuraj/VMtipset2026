@@ -800,7 +800,7 @@ export default function App() {
                               if(isWhite) cl += " text-slate-900 border border-slate-200 shadow-sm";
                             }
                             return (
-                              <button key={s} onClick={() => setRegPicks(prev => ({...prev, [m.id]: prev[m.id] === s ? null : s}))} style={style} className={`flex-1 py-4 rounded-2xl font-black transition-all duration-300 ${cl}`}>{s}</button>
+                        <button key={s} onClick={() => setRegPicks(prev => ({...prev, [m.id]: prev[m.id] === s ? null : s}))} style={style} aria-pressed={selected} className={`flex-1 py-4 rounded-2xl font-black transition-all duration-300 ${cl}`}>{s}</button>
                             );
                           })}
                         </div>
@@ -1033,7 +1033,7 @@ export default function App() {
                  <h2 className="font-black text-xl">Gruppspel</h2>
                  <div className="flex rounded-xl border bg-white overflow-hidden shadow-sm">
                    {[{label:'Verkliga', val:0},{label:'Folkets', val:1},{label:'Kombo', val:2}].map(({label, val}) => (
-                     <button key={val} onClick={() => setFolketsTipsMode(val)} className={`px-3 py-2 text-xs font-black transition-all flex items-center gap-1 ${folketsTipsMode === val ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-50'}`}>
+                     <button key={val} onClick={() => setFolketsTipsMode(val)} aria-pressed={folketsTipsMode === val} className={`px-3 py-2 text-xs font-black transition-all flex items-center gap-1 ${folketsTipsMode === val ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-50'}`}>
                        {val === 1 && <Users size={10}/>} {label}
                      </button>
                    ))}
@@ -1443,7 +1443,7 @@ export default function App() {
             <div className="bg-white/90 backdrop-blur-md rounded-[2.5rem] border p-8 shadow-xl">
                <div className="flex justify-between items-center mb-6">
                  <h2 className="text-2xl font-black flex items-center gap-3 text-slate-800"><PlayCircle className="text-indigo-600" size={28}/> Rapportera Resultat</h2>
-                 <button onClick={() => setIsLiveSyncActive(!isLiveSyncActive)} className={`px-6 py-3 rounded-2xl font-black transition-all flex items-center gap-2 ${isLiveSyncActive ? 'bg-red-500 text-white shadow-lg shadow-red-500/30 animate-pulse' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}>
+                 <button onClick={() => setIsLiveSyncActive(!isLiveSyncActive)} aria-pressed={isLiveSyncActive} className={`px-6 py-3 rounded-2xl font-black transition-all flex items-center gap-2 ${isLiveSyncActive ? 'bg-red-500 text-white shadow-lg shadow-red-500/30 animate-pulse' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}>
                     {isLiveSyncActive ? <><Activity size={18}/> 🔴 LIVE-SYNK AKTIV</> : <><PlayCircle size={18}/> ⚪ STARTA LIVE-SYNK</>}
                  </button>
                </div>
@@ -1587,7 +1587,7 @@ export default function App() {
                         ? `scale-105 shadow-md opacity-100 ring-2 ring-white/20 font-black${isWhite ? ' text-slate-900 border border-slate-300' : ' text-white'}`
                         : 'text-slate-500 font-bold opacity-70';
                       return (
-                        <button key={s} onClick={() => setRegPicks(prev => ({...prev, [m.id]: prev[m.id] === s ? null : s}))} style={style} className={`flex-1 py-2.5 rounded-xl text-sm transition-all duration-200 ${cl}`}>{s}</button>
+                        <button key={s} onClick={() => setRegPicks(prev => ({...prev, [m.id]: prev[m.id] === s ? null : s}))} style={style} aria-pressed={selected} className={`flex-1 py-2.5 rounded-xl text-sm transition-all duration-200 ${cl}`}>{s}</button>
                       );
                     })}
                   </div>
