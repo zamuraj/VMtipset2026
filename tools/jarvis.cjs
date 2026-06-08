@@ -1,4 +1,19 @@
-const puppeteer = require('puppeteer');
+// Puppeteer-resolver: söker lokalt först, sedan i D:\tools (delad installation för alla projekt på D:\)
+let puppeteer;
+try {
+    puppeteer = require('puppeteer');
+} catch (e) {
+    const sharedPath = 'D:\\tools\\node_modules\\puppeteer';
+    try {
+        puppeteer = require(sharedPath);
+    } catch (e2) {
+        console.error('❌ JARVIS FEL: puppeteer hittades inte.');
+        console.error('   Installera det delade testverktyget med:');
+        console.error('   npm install puppeteer  (kör från D:\\tools\\)');
+        console.error('   Eller installera lokalt: pnpm add -D puppeteer');
+        process.exit(1);
+    }
+}
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
