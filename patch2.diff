@@ -1,6 +1,0 @@
-<<<<<<< SEARCH
-  const [isSubmitting, setIsSubmitting] = useState(false);
-=======
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [approvingId, setApprovingId] = useState(null);
->>>>>>> REPLACE
