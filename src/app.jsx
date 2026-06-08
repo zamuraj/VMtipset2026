@@ -838,17 +838,17 @@ export default function App() {
               <div className="bg-slate-50 p-3 border-b font-black text-xs text-slate-400 uppercase tracking-wider">Notiser</div>
               <div className="max-h-64 overflow-y-auto no-scrollbar">
                 {activeUser?.notifications?.length > 0 ? activeUser.notifications.map((n, i) => (
-                  <div key={n.id || i} onClick={() => {
+                  <button key={n.id || i} onClick={() => {
                      const newNotifs = [...(activeUser.notifications)];
                      newNotifs[i].isRead = true;
                      updateDoc(doc(db, "tips", activeUser.id), { notifications: newNotifs });
                      setShowNotifications(false);
                      if (n.type === 'rank') navigateTab('leaderboard');
                      if (n.type === 'mention') navigateTab('chat');
-                  }} className={`p-4 border-b cursor-pointer transition-colors flex items-start gap-3 ${n.isRead ? 'opacity-60 bg-white hover:bg-slate-50' : 'bg-indigo-50/30 hover:bg-indigo-50/50'}`}>
+                  }} className={`w-full text-left p-4 border-b cursor-pointer transition-colors flex items-start gap-3 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 ${n.isRead ? 'opacity-60 bg-white hover:bg-slate-50' : 'bg-indigo-50/30 hover:bg-indigo-50/50'}`}>
                     {!n.isRead && <div className="w-2 h-2 rounded-full bg-indigo-500 mt-1.5 shrink-0"></div>}
                     <div className={`text-sm ${n.isRead ? 'font-medium text-slate-600' : 'font-bold text-slate-900'}`}>{n.text}</div>
-                  </div>
+                  </button>
                 )) : <div className="p-4 text-center text-sm text-slate-400 font-bold">Inga notiser</div>}
               </div>
             </div>
@@ -931,8 +931,10 @@ export default function App() {
                       {leaderboard.map(u => (
                         <tr key={u.id} className="hover:bg-indigo-50/50 transition-colors">
                           <td className="p-5 font-black text-slate-300">#{u.rank}</td>
-                          <td className="p-5 font-bold cursor-pointer hover:text-indigo-600 transition-colors" onClick={() => setSelectedUser(u)}>
-                            <span className="flex items-center gap-1.5">{u.name}{hallOfFame.some(h => h.champion.toLowerCase() === u.name.toLowerCase()) && <span title="Tidigare mästare" className="text-vmgold"><Star size={12} fill="#fbbf24"/></span>}</span>
+                          <td className="p-0 font-bold hover:text-indigo-600 transition-colors">
+                            <button onClick={() => setSelectedUser(u)} className="w-full h-full text-left flex items-center gap-1.5 p-5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+                              {u.name}{hallOfFame.some(h => h.champion.toLowerCase() === u.name.toLowerCase()) && <span title="Tidigare mästare" className="text-vmgold"><Star size={12} fill="#fbbf24"/></span>}
+                            </button>
                           </td>
                           <td className="p-5 text-center font-black text-indigo-600 bg-indigo-50/20">{u.pts}</td>
                         </tr>
@@ -1605,7 +1607,7 @@ export default function App() {
       )}
 
       {toast && (
-        <div className="fixed bottom-24 right-4 z-[100] animate-in slide-in-from-bottom-4 fade-in duration-300">
+        <div role="alert" aria-live="assertive" className="fixed bottom-24 right-4 z-[100] animate-in slide-in-from-bottom-4 fade-in duration-300">
           <div className={`px-4 py-3 rounded-xl shadow-lg border text-sm font-bold flex items-center gap-2 ${
             toast.type === 'error' ? 'bg-red-50 text-red-600 border-red-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'
           }`}>

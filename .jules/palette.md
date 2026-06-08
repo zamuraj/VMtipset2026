@@ -47,3 +47,7 @@
 ## 2026-06-03 - Missing aria-pressed on State Toggles
 **Learning:** Found multiple segmented control / toggle button groups that change state but lack the `aria-pressed` attribute (e.g. the mode toggle in the groups tab, and the prediction picks). Without this attribute, screen reader users cannot perceive which toggle state is currently active.
 **Action:** When implementing button groups that function as toggle switches or segmented controls, always enforce the `aria-pressed` attribute reflecting the button's active state.
+
+## 2026-06-04 - Semantic Buttons and Alert Roles
+**Learning:** Found several clickable elements (like table cells (`<td>`) in the Leaderboard and dropdown items (`<div>`) in Notifications) that were missing native semantic tags, making them inaccessible to keyboard users and screen readers. Additionally, the Toast notification system lacked an `aria-live` region, so screen readers wouldn't announce incoming alerts.
+**Action:** Always refactor interactive, non-semantic elements (`div`, `span`, `td`) into native `<button>` elements, applying utility classes like `w-full text-left h-full` to maintain visual layout while regaining keyboard accessibility. When implementing dynamic feedback components like toasts, strictly enforce `role="alert"` and `aria-live="assertive"` so assistive technologies can detect and announce them immediately.
