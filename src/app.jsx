@@ -609,7 +609,11 @@ export default function App() {
       if (!user.isApproved && !user.isAdmin) return setAuthError("Väntar på godkännande.");
       setCurrentUser(user);
       localStorage.setItem('vmt_login_session', JSON.stringify(user));
-      if(user.isAdmin) setActiveTab('admin');
+      if (user.isAdmin) {
+        setActiveTab('admin');
+      } else {
+        setActiveTab('leaderboard');
+      }
     } finally {
       setIsLoggingIn(false);
     }
@@ -617,6 +621,7 @@ export default function App() {
 
   const handleLogout = () => {
     setCurrentUser(null);
+    setActiveTab('leaderboard');
     localStorage.removeItem('vmt_login_session');
   };
 
@@ -794,7 +799,8 @@ export default function App() {
                             const isWhite = primaryColor?.toUpperCase() === '#FFFFFF';
                             let style = { backgroundColor: 'rgba(255,255,255,0.05)' };
                             let cl = "text-white scale-100 opacity-60";
-                            if(regPicks[m.id] === s) {
+                            const selected = regPicks[m.id] === s;
+                            if(selected) {
                               cl = "scale-105 shadow-xl opacity-100 ring-2 ring-white/20";
                               style.backgroundColor = primaryColor;
                               if(isWhite) cl += " text-slate-900 border border-slate-200 shadow-sm";
@@ -948,6 +954,7 @@ export default function App() {
              {activePlayers.length > 0 && (() => {
                const sortedPlayers = [...activePlayers].sort((a, b) => a.name.localeCompare(b.name, 'sv'));
                const lastPlayedMatch = matches.filter(m => m.status === 'finished' || m.status === 'live').pop();
+               const leaderboardMap = new Map(leaderboard.map(u => [u.id, u.pts]));
                return (
                  <div className="rounded-[2rem] border bg-white shadow-xl overflow-hidden">
                    <div className="p-4 border-b flex items-center justify-between">
