@@ -1,6 +1,3 @@
-## 2024-05-15 - Nested loop optimization in React useMemo
-**Learning:** Nested loops in React's `useMemo` (e.g., O(P*M) where P is players and M is matches) can cause noticeable UI lag as the data grows. Pre-calculating independent results or filtering datasets once before the main loop significantly reduces the work done in the inner loop. Additionally, replacing `.map().sort()[0]` with a single-pass loop reduces complexity from O(P log P) to O(P) and avoids unnecessary allocations.
-**Action:** Always check if inner loop conditions or lookups can be pre-calculated outside the loop. Avoid sorting if only the maximum/minimum element is needed.
-## 2024-05-19 - React Map Render Performance
-**Learning:** Avoid complex nested loop iterations inside React render `map` callbacks (such as iterating over all active users per every match). This creates O(M*N) time complexity on every re-render and significantly damages performance.
-**Action:** Extract nested map aggregation logic into a `useMemo` hook that pre-calculates the necessary data map and runs only when its dependencies update. The JSX map can then perform an O(1) lookup on the precalculated values, drastically reducing render times.
+## 2026-05-27 - O(N^2) render bottleneck resolution
+**Learning:** React render loops referencing `.find()` on arrays for correlated data lookups cause O(N*M) bottlenecks during re-renders, significantly degrading UI performance.
+**Action:** Always extract correlated lookups into O(1) Javascript Maps outside of the render loop (optionally cached with `useMemo` if applicable) to reduce complexity to O(N+M).

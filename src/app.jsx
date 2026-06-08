@@ -963,6 +963,7 @@ export default function App() {
              {/* TIPPNINGSMATRIS */}
              {activePlayers.length > 0 && (() => {
                const sortedPlayers = [...activePlayers].sort((a, b) => a.name.localeCompare(b.name, 'sv'));
+               const leaderboardMap = new Map(leaderboard.map(l => [l.id, l.pts]));
                const lastPlayedMatch = matches.filter(m => m.status === 'finished' || m.status === 'live').pop();
                return (
                  <div className="rounded-[2rem] border bg-white shadow-xl overflow-hidden">
@@ -1027,7 +1028,7 @@ export default function App() {
                          <tr>
                            <td className="sticky bottom-0 left-0 z-50 bg-vmdark text-vmgold p-4 border-r border-t border-vmgold/20 font-black uppercase text-[10px] shadow-[0_-4px_10px_rgba(0,0,0,0.1)]">TOTALT RÄTT</td>
                            {sortedPlayers.map(p => {
-                              const pPts = leaderboard.find(l => l.id === p.id)?.pts || 0;
+                              const pPts = leaderboardMap.get(p.id) || 0;
                               return (
                                 <td key={p.id} className="sticky bottom-0 z-40 bg-vmdark text-white p-3 border-r border-t border-white/10 text-center font-black text-sm shadow-[0_-4px_10px_rgba(0,0,0,0.1)]">
                                   {pPts}
