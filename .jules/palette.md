@@ -43,3 +43,7 @@
 ## 2026-06-01 - Avoid native alert calls for inline toasts
 **Learning:** Native \`alert()\` calls block the UI thread, halt Javascript execution, and offer no design control, looking out of place in modern, polished React apps (like this application).
 **Action:** Always replace \`alert()\` implementations with a lightweight custom state-based toast notification system (e.g. \`useState\` with \`setTimeout\`) that renders non-blocking UI components. Ensure that missing imports for any icons or tools used in the toast UI (like \`X\` or \`ShieldCheck\` from \`lucide-react\`) are added to prevent \`ReferenceError\` runtime crashes.
+
+## 2026-06-03 - Missing aria-pressed on State Toggles
+**Learning:** Found multiple segmented control / toggle button groups that change state but lack the `aria-pressed` attribute (e.g. the mode toggle in the groups tab, and the prediction picks). Without this attribute, screen reader users cannot perceive which toggle state is currently active.
+**Action:** When implementing button groups that function as toggle switches or segmented controls, always enforce the `aria-pressed` attribute reflecting the button's active state.
