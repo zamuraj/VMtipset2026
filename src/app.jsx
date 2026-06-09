@@ -8,6 +8,8 @@ import {
   Swords, Bell, PlayCircle, MessageSquare, Send, Goal, ShieldCheck, ChevronDown, ChevronUp, MapPin, ListOrdered, Trash2, Users, Activity, Loader2, Unlock
 } from 'lucide-react';
 import TvBadge from './components/TvBadge';
+import AnalyticsDashboard from './components/AnalyticsDashboard';
+import { initAnalytics, trackTab, trackEvent, initFormTracking, checkFormAbandonment } from './utils/analytics';
 
 // --- DATA: LAG & SCHEMA ---
 const TEAMS = { 
@@ -372,6 +374,12 @@ export default function App() {
     if (sessionData) setCurrentUser(JSON.parse(sessionData));
   }, []);
 
+  // --- ANALYTICS INIT ---
+  useEffect(() => {
+    initAnalytics();
+    initFormTracking('reg-form');
+  }, []);
+
   // --- AUTOSAVE LOGIC ---
   const resetRegFields = () => {
     setRegName('');
@@ -600,15 +608,26 @@ export default function App() {
         const userObj = { ...adminUser, isAdmin: true };
         setCurrentUser(userObj);
         localStorage.setItem('vmt_login_session', JSON.stringify(userObj));
+        trackEvent('login_success', 'conversion', { role: 'admin' });
         setActiveTab('admin');
         return;
       }
       const user = tips.find(t => t.email.toLowerCase() === loginEmail.toLowerCase().trim());
-      if (!user) return setAuthError("E-post ej hittad.");
-      if (user.isAdmin && loginPassword !== user.password) return setAuthError("Fel lösenord.");
-      if (!user.isApproved && !user.isAdmin) return setAuthError("Väntar på godkännande.");
+      if (!user) {
+        trackEvent('login_failed', 'friction', { reason: 'email_not_found' });
+        return setAuthError("E-post ej hittad.");
+      }
+      if (user.isAdmin && loginPassword !== user.password) {
+        trackEvent('login_failed', 'friction', { reason: 'wrong_password' });
+        return setAuthError("Fel lösenord.");
+      }
+      if (!user.isApproved && !user.isAdmin) {
+        trackEvent('login_failed', 'friction', { reason: 'awaiting_approval' });
+        return setAuthError("Väntar på godkännande.");
+      }
       setCurrentUser(user);
       localStorage.setItem('vmt_login_session', JSON.stringify(user));
+      trackEvent('login_success', 'conversion', { role: 'user' });
       if (user.isAdmin) {
         setActiveTab('admin');
       } else {
@@ -651,8 +670,12 @@ export default function App() {
       }, { merge: true });
 
       showToast(editingParticipantId ? "Deltagare uppdaterad!" : "Tips sparat/uppdaterat! Emil godkänner när betalning syns.", "success");
+      trackEvent('tip_submitted', 'conversion', {
+        picks_count: Object.keys(regPicks || {}).length,
+        is_edit: !!editingParticipantId,
+      });
       const draftKey = regEmail ? `vmt_draft_v3_${regEmail.toLowerCase().trim()}` : null;
-      if (draftKey) localStorage.removeItem(draftKey); 
+      if (draftKey) localStorage.removeItem(draftKey);
       setShowRegister(false);
       setEditingParticipantId(null);
       return true;
@@ -709,6 +732,8 @@ export default function App() {
   };
 
   const navigateTab = (tab) => {
+    checkFormAbandonment('reg-form');
+    trackTab(tab);
     setActiveTab(tab);
     window.scrollTo(0, 0);
   };
@@ -739,7 +764,7 @@ export default function App() {
             {isDeadlinePassed && <p className="text-center text-xs text-slate-500 font-bold italic">Anmälan stängd</p>}
           </form>
         ) : (
-          <div className="mt-8 space-y-4 animate-in slide-in-from-right-4 duration-300">
+          <div id="reg-form" className="mt-8 space-y-4 animate-in slide-in-from-right-4 duration-300">
             <div className="flex justify-between items-center mb-2">
               <h2 className="font-bold">{editingParticipantId ? 'Redigera Deltagare' : (regStep === 1 ? '1. Dina Uppgifter' : '2. Fyll i Tips')}</h2>
               <button onClick={() => { setShowRegister(false); setEditingParticipantId(null); resetRegFields(); }} aria-label="Stäng" title="Stäng"><X/></button>
@@ -1410,6 +1435,9 @@ export default function App() {
                    ))
                  )}
                </div>
+
+               {/* Analytics Dashboard */}
+               <AnalyticsDashboard />
 
                <div className="space-y-4 pt-8">
                  <h3 className="font-black text-xs text-slate-400 uppercase tracking-widest">Hantera Deltagare ({activePlayers.length})</h3>
