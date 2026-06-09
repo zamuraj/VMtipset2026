@@ -70,7 +70,7 @@ const TEAMS = {
 
 const VM_SCHEDULE = [
   "1|11 jun 21:00|A|Mexiko|Sydafrika|Azteca|Mexico City|Mexiko|SVT",
-  "2|12 jun 00:00|B|Kanada|Slovakien|BMO Field|Toronto|Kanada|TV4",
+  "2|12 jun 00:00|B|Kanada|Bosnien|BMO Field|Toronto|Kanada|TV4",
   "3|12 jun 15:00|A|Sydkorea|Tjeckien|Akron|Guadalajara|Mexiko|SVT",
   "4|13 jun 00:00|D|USA|Paraguay|SoFi|Los Angeles|USA|TV4",
   "5|13 jun 21:00|B|Qatar|Schweiz|Levi's|San Francisco|USA|SVT",
@@ -119,7 +119,7 @@ const VM_SCHEDULE = [
   "48|24 jun 04:00|K|Colombia|DR Kongo|Akron|Guadalajara|Mexiko|TV4",
   "49|24 jun 18:00|A|Sydafrika|Sydkorea|Mercedes|Atlanta|USA|SVT",
   "50|24 jun 21:00|A|Tjeckien|Mexiko|Azteca|Mexico City|Mexiko|TV4",
-  "51|25 jun 00:00|B|Slovakien|Qatar|BMO Field|Toronto|Kanada|SVT",
+  "51|25 jun 00:00|B|Bosnien|Qatar|BMO Field|Toronto|Kanada|SVT",
   "52|25 jun 03:00|B|Schweiz|Kanada|BC Place|Vancouver|Kanada|TV4",
   "53|25 jun 18:00|C|Marocko|Haiti|Hard Rock|Miami|USA|SVT",
   "54|25 jun 21:00|C|Skottland|Brasilien|MetLife|New Jersey|USA|TV4",
@@ -150,7 +150,7 @@ const initialMatchesList = VM_SCHEDULE.map(m => {
 
 const MATCH_FACTS = {
   1: "Mexiko och Sydafrika möttes redan i 2010 VM:s öppningsmatch! Tshabalala fick hela Soweto att explodera med sitt mål.",
-  2: "Kanada nådde VM-final i ishockey – kan de göra det i fotboll mot Slovakien? Deras Sigma nu är faktiskt fotbollen.",
+  2: "Kanada möter Bosnien-Hercegovina i öppningsmatchen! Bosnien spelade sitt enda VM 2014 – nu är de tillbaka och hungriga.",
   3: "Sydkorea är kända för sin taktiska disciplin och publiken som sjunger i kör. Tjeckien har Schick – mannen som sköt från mittcirkeln.",
   4: "USA spelar hemma på SoFi Stadium i LA – samma arena som Superbowl. Paraguay har inte missat ett VM sedan 1950!",
   5: "Qatar är det enda VM-landet som aldrig vunnit en VM-match i fältet. Schweiz förlorar aldrig i gruppspel – aldrig.",
@@ -199,7 +199,7 @@ const MATCH_FACTS = {
   48: "Colombia vs DR Kongo – Sydamerika möter Centralafrika i ett möte av fotbollskulturer som aldrig möts annars.",
   49: "Sydafrika vs Sydkorea – Africas nation möter Asiens mästare. Bafana Bafana betyder 'The Boys! The Boys!'",
   50: "Tjeckien vs Mexiko – Azteca-arenan och 90 000 galningarna möter tjeckernas råa effektivitet.",
-  51: "Slovakien vs Qatar – Hamšík vs Almoez Ali! Qatar-lagets Al Moez Ali poängterade i varje omgång av 2019 Asien-cupen.",
+  51: "Bosnien vs Qatar – den sista chansen i grupp B! Bosniens passionerade fans sjunger den kändaste VM-sången i historien.",
   52: "Schweiz vs Kanada – Alper möter Lönnlövet! Schweiz har aldrig förlorat tre raka VM-matcher i gruppspelet.",
   53: "Marocko vs Haiti – Atlaslejonen möter Karibiens tuffaste utmanare. Marocko är hela Afrikas glädje.",
   54: "Skottland vs Brasilien – Tartan Army möter Seleção. Skottland spelade mot Brasilien i 1974 och fick 0-0!",
@@ -344,7 +344,7 @@ export default function App() {
       }
       if (!response.ok) throw new Error('API-fel: ' + response.status);
       const data = await response.json();
-      const map = { 'Mexico':'Mexiko', 'Ecuador':'Ecuador', 'Canada':'Kanada', 'Slovakia':'Slovakien', 'Italy':'Italien', 'Togo':'Togo', 'United States':'USA', 'Morocco':'Marocko', 'Spain':'Spanien', 'Japan':'Japan', 'Brazil':'Brasilien', 'South Korea':'Sydkorea', 'Sweden':'Sverige', 'Jordan':'Jordanien', 'England':'England', 'Peru':'Peru', 'Germany':'Tyskland', 'Norway':'Norge', 'France':'Frankrike', 'Uzbekistan':'Uzbekistan', 'Uruguay':'Uruguay', 'Cameroon':'Kamerun', 'Netherlands':'Nederländerna', 'Australia':'Australien', 'Argentina':'Argentina', 'Haiti':'Haiti', 'Belgium':'Belgien', 'Panama':'Panama', 'Portugal':'Portugal', 'Senegal':'Senegal', 'Denmark':'Danmark', 'Nigeria':'Nigeria', 'South Africa':'Sydafrika', 'Czech Republic':'Tjeckien', 'Bosnia-Herzegovina':'Bosnien', 'Paraguay':'Paraguay', 'Qatar':'Qatar', 'Switzerland':'Schweiz', 'Scotland':'Skottland', 'Turkey':'Turkiet', 'Curaçao':'Curaçao', 'Ivory Coast':'Elfenbenskusten', 'Tunisia':'Tunisien', 'Cape Verde':'Kap Verde', 'Egypt':'Egypten', 'Saudi Arabia':'Saudiarabien', 'Iran':'Iran', 'New Zealand':'Nya Zeeland', 'Iraq':'Irak', 'Algeria':'Algeriet', 'Austria':'Österrike', 'DR Congo':'DR Kongo', 'Colombia':'Colombia', 'Croatia':'Kroatien', 'Ghana':'Ghana' };
+      const map = { 'Mexico':'Mexiko', 'Ecuador':'Ecuador', 'Canada':'Kanada', 'Italy':'Italien', 'Togo':'Togo', 'United States':'USA', 'Morocco':'Marocko', 'Spain':'Spanien', 'Japan':'Japan', 'Brazil':'Brasilien', 'South Korea':'Sydkorea', 'Sweden':'Sverige', 'Jordan':'Jordanien', 'England':'England', 'Peru':'Peru', 'Germany':'Tyskland', 'Norway':'Norge', 'France':'Frankrike', 'Uzbekistan':'Uzbekistan', 'Uruguay':'Uruguay', 'Cameroon':'Kamerun', 'Netherlands':'Nederländerna', 'Australia':'Australien', 'Argentina':'Argentina', 'Haiti':'Haiti', 'Belgium':'Belgien', 'Panama':'Panama', 'Portugal':'Portugal', 'Senegal':'Senegal', 'Denmark':'Danmark', 'Nigeria':'Nigeria', 'South Africa':'Sydafrika', 'Czech Republic':'Tjeckien', 'Bosnia-Herzegovina':'Bosnien', 'Paraguay':'Paraguay', 'Qatar':'Qatar', 'Switzerland':'Schweiz', 'Scotland':'Skottland', 'Turkey':'Turkiet', 'Curaçao':'Curaçao', 'Ivory Coast':'Elfenbenskusten', 'Tunisia':'Tunisien', 'Cape Verde':'Kap Verde', 'Egypt':'Egypten', 'Saudi Arabia':'Saudiarabien', 'Iran':'Iran', 'New Zealand':'Nya Zeeland', 'Iraq':'Irak', 'Algeria':'Algeriet', 'Austria':'Österrike', 'DR Congo':'DR Kongo', 'Colombia':'Colombia', 'Croatia':'Kroatien', 'Ghana':'Ghana' };
       data.matches?.forEach(mApi => {
         const h = map[mApi.homeTeam.name] || mApi.homeTeam.name;
         const a = map[mApi.awayTeam.name] || mApi.awayTeam.name;
@@ -955,6 +955,20 @@ export default function App() {
                const sortedPlayers = [...activePlayers].sort((a, b) => a.name.localeCompare(b.name, 'sv'));
                const lastPlayedMatch = matches.filter(m => m.status === 'finished' || m.status === 'live').pop();
                const leaderboardMap = new Map(leaderboard.map(u => [u.id, u.pts]));
+               // Show last-name initial only when first names clash
+               const firstNameCount = sortedPlayers.reduce((acc, p) => {
+                 const fn = p.name.split(' ')[0];
+                 acc[fn] = (acc[fn] || 0) + 1;
+                 return acc;
+               }, {});
+               const getDisplayName = (name) => {
+                 const parts = name.split(' ');
+                 const fn = parts[0];
+                 if (firstNameCount[fn] > 1 && parts.length > 1) {
+                   return `${fn} ${parts[parts.length - 1][0]}.`;
+                 }
+                 return fn;
+               };
                return (
                  <div className="rounded-[2rem] border bg-white shadow-xl overflow-hidden">
                    <div className="p-4 border-b flex items-center justify-between">
@@ -968,7 +982,7 @@ export default function App() {
                            <th className="sticky top-0 left-0 z-50 bg-vmdark text-vmgold p-4 border-r border-b whitespace-nowrap font-black">Match</th>
                            {sortedPlayers.map(p => (
                              <th key={p.id} className="sticky top-0 z-40 bg-vmdark text-white p-3 border-r border-b whitespace-nowrap text-center font-black min-w-[60px]">
-                               {p.name.split(' ')[0]}
+                               {getDisplayName(p.name)}
                              </th>
                            ))}
                          </tr>
@@ -978,17 +992,17 @@ export default function App() {
                            const actual = get1X2(m.goals1, m.goals2);
                            const isFinished = m.status === 'finished' || m.status === 'live';
                            const isLastPlayed = m.id === lastPlayedMatch?.id;
-                           const matchCellClass = `sticky left-0 z-30 border-r border-b p-3 whitespace-nowrap shadow-[4px_0_10px_rgba(0,0,0,0.04)] ${isLastPlayed ? 'bg-vmgold/10 border-l-4 border-l-vmgold' : 'bg-white'}`;
+                           const matchCellClass = `sticky left-0 z-30 border-r border-b p-3 whitespace-nowrap overflow-hidden max-w-[220px] shadow-[4px_0_10px_rgba(0,0,0,0.04)] ${isLastPlayed ? 'bg-vmgold/10 border-l-4 border-l-vmgold' : 'bg-white'}`;
                            return (
                              <tr key={m.id} className="hover:bg-slate-50/50 transition-colors">
                                <td className={matchCellClass}>
-                                 <div className="flex items-center gap-2">
+                                 <div className="flex items-center gap-1.5">
                                    <span className="text-[9px] font-black text-slate-300 w-5 shrink-0">#{m.id}</span>
                                    <Flag code={TEAMS[m.team1]?.flag}/>
-                                   <span className="font-bold" style={{color: TEAMS[m.team1]?.primary === '#FFFFFF' ? '#334155' : TEAMS[m.team1]?.primary}}>{m.team1}</span>
-                                   {isFinished && <span className="text-[10px] font-black text-slate-500 mx-1">{m.goals1}-{m.goals2}</span>}
+                                   <span className="font-bold truncate max-w-[55px] inline-block" title={m.team1} style={{color: TEAMS[m.team1]?.primary === '#FFFFFF' ? '#334155' : TEAMS[m.team1]?.primary}}>{m.team1}</span>
+                                   {isFinished && <span className="text-[10px] font-black text-slate-500 mx-0.5 shrink-0">{m.goals1}-{m.goals2}</span>}
                                    <Flag code={TEAMS[m.team2]?.flag}/>
-                                   <span className="font-bold" style={{color: TEAMS[m.team2]?.primary === '#FFFFFF' ? '#334155' : TEAMS[m.team2]?.primary}}>{m.team2}</span>
+                                   <span className="font-bold truncate max-w-[55px] inline-block" title={m.team2} style={{color: TEAMS[m.team2]?.primary === '#FFFFFF' ? '#334155' : TEAMS[m.team2]?.primary}}>{m.team2}</span>
                                  </div>
                                </td>
                                {sortedPlayers.map(p => {
