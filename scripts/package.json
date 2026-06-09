@@ -1,0 +1,9 @@
+{
+  "name": "vmtipset-scripts",
+  "private": true,
+  "type": "module",
+  "description": "Admin scripts for VM-tipset — run locally, never deployed.",
+  "dependencies": {
+    "firebase-admin": "^13.8.0"
+  }
+}
