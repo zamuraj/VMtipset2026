@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import TvBadge from './components/TvBadge';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
-import { initAnalytics, trackTab, trackEvent, initFormTracking, checkFormAbandonment } from './utils/analytics';
+import { initAnalytics, trackTabWithDuration, trackEvent, initFormTracking, checkFormAbandonment, setAnalyticsRole, trackChatInputFocused, trackChatMessageSent, trackKupongFormFocused } from './utils/analytics';
 
 // --- DATA: LAG & SCHEMA ---
 const TEAMS = { 
@@ -374,6 +374,15 @@ export default function App() {
     if (sessionData) setCurrentUser(JSON.parse(sessionData));
   }, []);
 
+  // --- SYNC ANALYTICS ROLE WITH CURRENT USER ---
+  useEffect(() => {
+    if (currentUser) {
+      setAnalyticsRole(!!currentUser.isAdmin);
+    } else {
+      setAnalyticsRole(false);
+    }
+  }, [currentUser]);
+
   // --- ANALYTICS INIT ---
   useEffect(() => {
     initAnalytics();
@@ -608,6 +617,7 @@ export default function App() {
         const userObj = { ...adminUser, isAdmin: true };
         setCurrentUser(userObj);
         localStorage.setItem('vmt_login_session', JSON.stringify(userObj));
+        setAnalyticsRole(true);
         trackEvent('login_success', 'conversion', { role: 'admin' });
         setActiveTab('admin');
         return;
@@ -627,6 +637,7 @@ export default function App() {
       }
       setCurrentUser(user);
       localStorage.setItem('vmt_login_session', JSON.stringify(user));
+      setAnalyticsRole(!!user.isAdmin);
       trackEvent('login_success', 'conversion', { role: 'user' });
       if (user.isAdmin) {
         setActiveTab('admin');
@@ -708,6 +719,7 @@ export default function App() {
     e.preventDefault(); if(!newChatMsg.trim()) return;
     if (!currentUser?.isAdmin && newChatMsg.length > 300) return showToast("Meddelandet är för långt (max 300 tecken).", "error");
     setIsSendingChat(true);
+    trackChatMessageSent();
     try {
       await addDoc(collection(db, "chat"), { user: currentUser.name, text: newChatMsg, createdAt: serverTimestamp() });
 
@@ -733,7 +745,7 @@ export default function App() {
 
   const navigateTab = (tab) => {
     checkFormAbandonment('reg-form');
-    trackTab(tab);
+    trackTabWithDuration(tab);
     setActiveTab(tab);
     window.scrollTo(0, 0);
   };
@@ -773,7 +785,7 @@ export default function App() {
                <>
                 <div>
                   <label htmlFor="reg-name" className="sr-only">Namn</label>
-                  <input id="reg-name" type="text" value={regName} onChange={e=>setRegName(e.target.value)} placeholder="Namn" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all" />
+                  <input id="reg-name" type="text" value={regName} onFocus={trackKupongFormFocused} onChange={e=>setRegName(e.target.value)} placeholder="Namn" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all" />
                 </div>
                 <div>
                   <label htmlFor="reg-email" className="sr-only">E-post</label>
@@ -1336,7 +1348,7 @@ export default function App() {
                       return <span key={i} style={isTag ? {color:'#3b82f6', fontWeight:700} : {color:'transparent'}}>{part}</span>;
                     })}
                   </div>
-                  <input id="chat-input" value={newChatMsg} onChange={e => {
+                  <input id="chat-input" value={newChatMsg} onFocus={trackChatInputFocused} onChange={e => {
                     const val = e.target.value;
                     setNewChatMsg(val);
                     const lastAt = val.lastIndexOf('@');

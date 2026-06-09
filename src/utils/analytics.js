@@ -24,11 +24,28 @@ const MAX_EVENTS_SESSION = 200;
 const MAX_BATCH_SIZE = 20;
 const FLUSH_INTERVAL_MS = 5000;
 const HESITATION_THRESHOLD_MS = 10_000; // 10 sekunder
+const BOUNCE_MAX_EVENTS = 2; // Sessioner med ≤2 events och inga tab-byten = bounce
 
 // --- INTERN STATE ---
 let _queue = [];
 let _sessionEventCount = 0;
 let _flushTimer = null;
+let _isAdmin = false;
+try {
+  const sessionData = localStorage.getItem('vmt_login_session');
+  if (sessionData) {
+    const user = JSON.parse(sessionData);
+    _isAdmin = !!user?.isAdmin;
+  }
+} catch (e) {
+  // Ignorera
+}
+let _sessionStartTime = null;
+let _activeTab = null;
+let _activeTabStartTime = null;
+let _tabSwitchCount = 0;
+let _chatInputFocusedThisSession = false;
+let _kupongFormFocusedThisSession = false;
 
 // PII-mönster som aldrig ska loggas
 const PII_PATTERNS = [/password/i, /passwd/i, /token/i, /secret/i, /api.?key/i, /credit.?card/i, /ssn/i, /personnummer/i];
@@ -48,16 +65,28 @@ function getOrCreateSessionId() {
   return sid;
 }
 
+// --- ADMIN-ROLL ---
+/**
+ * Sätter admin-flaggan. Anropas vid inloggning när currentUser är känd.
+ * @param {boolean} isAdmin
+ */
+export function setAnalyticsRole(isAdmin) {
+  _isAdmin = !!isAdmin;
+}
+
 // --- KÄRNMOTOR: SPÅRNING & FLUSH ---
 
 /**
  * Loggar en händelse. Läggs i kö och skickas i batchar till Firestore.
  * @param {string} name      - Händelsens namn, t.ex. 'rage_click'
- * @param {string} type      - Kategori: 'pageview' | 'friction' | 'error' | 'performance' | 'custom_event'
+ * @param {string} type      - Kategori: 'pageview' | 'friction' | 'error' | 'performance' | 'funnel' | 'custom_event'
  * @param {object} extra     - Valfri metadata
  * @param {string} [tab]     - Nuvarande aktiv flik i appen (ersätter url_path för SPA)
  */
 export function trackEvent(name, type = 'custom_event', extra = {}, tab = '') {
+  // Admin-sessioner ska aldrig loggas
+  if (_isAdmin) return;
+
   if (_sessionEventCount >= MAX_EVENTS_SESSION) return;
 
   // Filtrera bort PII från händelsenamn
@@ -68,11 +97,12 @@ export function trackEvent(name, type = 'custom_event', extra = {}, tab = '') {
     event_type: type,
     event_name: name,
     session_id: getOrCreateSessionId(),
-    url_path: tab || window.location.pathname,
+    url_path: tab || _activeTab || window.location.pathname,
     timestamp: new Date().toISOString(),
     metadata: {
       screen: `${screen.width}x${screen.height}`,
       viewport: `${window.innerWidth}x${window.innerHeight}`,
+      is_admin: _isAdmin,
       ...extra,
     },
   };
@@ -94,11 +124,38 @@ export function trackTab(tab) {
 }
 
 /**
+ * Spårar tab-byte OCH mäter hur länge man stannade på föregående flik.
+ * Byt ut trackTab() mot denna i navigateTab() i app.jsx.
+ * @param {string} newTab - Nyckel för den nya fliken
+ */
+export function trackTabWithDuration(newTab) {
+  const now = Date.now();
+
+  // Logga duration för föregående flik (om den finns)
+  if (_activeTab && _activeTabStartTime) {
+    const duration_sec = Math.round((now - _activeTabStartTime) / 1000);
+    trackEvent('tab_duration', 'pageview', { duration_sec }, _activeTab);
+  }
+
+  // Räkna tab-byten (för bounce-detektion)
+  if (_activeTab !== null) {
+    _tabSwitchCount++;
+  }
+
+  // Uppdatera aktiv flik
+  _activeTab = newTab;
+  _activeTabStartTime = now;
+
+  // Logga tab-visning
+  trackEvent('tab_view', 'pageview', {}, newTab);
+}
+
+/**
  * Skriver alla händelser i kön till Firestore i en batch.
  * Anropas automatiskt av timern och vid flikstängning.
  */
 async function _flush() {
-  if (_queue.length === 0) return;
+  if (_isAdmin || _queue.length === 0) return;
 
   const batch = _queue.splice(0, _queue.length);
   const analyticsCollection = collection(db, 'app_analytics');
@@ -106,11 +163,12 @@ async function _flush() {
   try {
     const firestoreBatch = writeBatch(db);
     batch.forEach((event) => {
-      // Varje event får ett auto-genererat doc-ID via doc() utan argument
-      const newDocRef = doc(analyticsCollection);
+      // Använd crypto.randomUUID() som doc-ID för säker auto-generering i batch-läge
+      const newDocRef = doc(analyticsCollection, crypto.randomUUID());
       firestoreBatch.set(newDocRef, event);
     });
     await firestoreBatch.commit();
+    console.debug(`[Analytics] ✓ Flushed ${batch.length} event(s) to Firestore`);
   } catch (err) {
     // Analytics ska aldrig krascha appen
     console.warn('[Analytics] Kunde inte skicka batch:', err);
@@ -123,16 +181,41 @@ async function _flush() {
  * Startar analytics-motorn. Anropas en gång vid appstart (useEffect i App).
  */
 export function initAnalytics() {
+  _sessionStartTime = Date.now();
+
   // Starta periodisk flush
   _flushTimer = setInterval(_flush, FLUSH_INTERVAL_MS);
+
+  // Logga en session_start direkt — bekräftar att pipeline fungerar
+  trackEvent('session_start', 'pageview', {
+    referrer: document.referrer || 'direct',
+    userAgent: navigator.userAgent.slice(0, 80),
+  });
 
   // Aktivera passiva UX-friktionsdetektorer
   _initRageClickDetector();
   _initFieldHesitationDetector();
 
-  // Flusha kvarvarande händelser när användaren stänger/minimerar fliken
+  // Flusha kvarvarande händelser och logga session_end när användaren stänger/minimerar fliken
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
+      // Logga duration för nuvarande aktiv flik
+      if (_activeTab && _activeTabStartTime) {
+        const duration_sec = Math.round((Date.now() - _activeTabStartTime) / 1000);
+        trackEvent('tab_duration', 'pageview', { duration_sec }, _activeTab);
+      }
+
+      // Logga session-slut med total tid
+      if (_sessionStartTime) {
+        const session_duration_sec = Math.round((Date.now() - _sessionStartTime) / 1000);
+        const is_bounce = _tabSwitchCount === 0 && _sessionEventCount <= BOUNCE_MAX_EVENTS + 1; // +1 för session_start
+        trackEvent('session_end', 'pageview', {
+          session_duration_sec,
+          tab_switch_count: _tabSwitchCount,
+          is_bounce,
+        });
+      }
+
       _flush();
     }
   });
@@ -267,4 +350,33 @@ export function checkFormAbandonment(formId) {
     });
     _formDirtyMap.delete(formId);
   }
+}
+
+// --- TRATT-HJÄLPARE ---
+
+/**
+ * Loggar att användaren fokuserade på chattfältet.
+ * Spårar bara en gång per session.
+ */
+export function trackChatInputFocused() {
+  if (_chatInputFocusedThisSession) return;
+  _chatInputFocusedThisSession = true;
+  trackEvent('chat_input_focused', 'funnel', {}, 'chat');
+}
+
+/**
+ * Loggar att ett chattmeddelande skickades.
+ */
+export function trackChatMessageSent() {
+  trackEvent('chat_message_sent', 'funnel', {}, 'chat');
+}
+
+/**
+ * Loggar att användaren fokuserade på kupong-formuläret.
+ * Spårar bara en gång per session.
+ */
+export function trackKupongFormFocused() {
+  if (_kupongFormFocusedThisSession) return;
+  _kupongFormFocusedThisSession = true;
+  trackEvent('kupong_form_focused', 'funnel', {}, 'kupong');
 }
