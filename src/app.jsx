@@ -1034,7 +1034,7 @@ export default function App() {
                            const actual = get1X2(m.goals1, m.goals2);
                            const isFinished = m.status === 'finished' || m.status === 'live';
                            const isLastPlayed = m.id === lastPlayedMatch?.id;
-                           const matchCellClass = `sticky left-0 z-30 border-r border-b ${isTableScrolled ? 'p-2 max-w-[56px]' : 'p-3 max-w-[260px]'} whitespace-nowrap overflow-hidden transition-all duration-300 shadow-[4px_0_10px_rgba(0,0,0,0.04)] ${isLastPlayed ? 'bg-vmgold/10 border-l-4 border-l-vmgold' : 'bg-white'}`;
+                           const matchCellClass = `sticky left-0 z-30 border-r border-b ${isTableScrolled ? 'p-2 max-w-[90px]' : 'p-3 max-w-[260px]'} whitespace-nowrap overflow-hidden transition-all duration-300 shadow-[4px_0_10px_rgba(0,0,0,0.04)] ${isLastPlayed ? 'bg-vmgold/10 border-l-4 border-l-vmgold' : 'bg-white'}`;
                            return (
                              <tr key={m.id} className="hover:bg-slate-50/50 transition-colors">
                                <td className={matchCellClass}>
@@ -1045,7 +1045,7 @@ export default function App() {
                                      <span className="font-bold truncate max-w-[100px] sm:max-w-none inline-block" title={m.team1} style={{color: TEAMS[m.team1]?.primary === '#FFFFFF' ? '#334155' : TEAMS[m.team1]?.primary}}>{m.team1}</span>
                                    )}
                                    {isFinished && !isTableScrolled && <span className="text-[10px] font-black text-slate-500 mx-0.5 shrink-0">{m.goals1}-{m.goals2}</span>}
-                                   {!isTableScrolled && <Flag code={TEAMS[m.team2]?.flag}/>}
+                                   <Flag code={TEAMS[m.team2]?.flag}/>
                                    {!isTableScrolled && (
                                      <span className="font-bold truncate max-w-[100px] sm:max-w-none inline-block" title={m.team2} style={{color: TEAMS[m.team2]?.primary === '#FFFFFF' ? '#334155' : TEAMS[m.team2]?.primary}}>{m.team2}</span>
                                    )}
