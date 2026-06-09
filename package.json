@@ -12,6 +12,7 @@
     "jarvis:prod": "node tools/jarvis.cjs --prod"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "firebase": "^10.11.0",
     "firebase-admin": "^13.8.0",
     "lucide-react": "^0.378.0",
