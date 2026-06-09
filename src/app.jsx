@@ -292,6 +292,11 @@ export default function App() {
   const [regGoals, setRegGoals] = useState('');
   const [regPicks, setRegPicks] = useState({});
   const [timeLeft, setTimeLeft] = useState('');
+  const [isTableScrolled, setIsTableScrolled] = useState(false);
+  const handleTableScroll = (e) => {
+    const scrolled = e.currentTarget.scrollLeft > 10;
+    if (isTableScrolled !== scrolled) setIsTableScrolled(scrolled);
+  };
 
   // --- TIMER LOGIC ---
   useEffect(() => {
@@ -1012,7 +1017,7 @@ export default function App() {
                      <h3 className="font-black text-sm flex items-center gap-2"><Grid3X3 size={16} className="text-indigo-600"/> Tippningsmatris</h3>
                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{sortedPlayers.length} spelare &middot; {matches.length} matcher</span>
                    </div>
-                   <div className="overflow-auto max-h-[75vh] no-scrollbar relative">
+                   <div onScroll={handleTableScroll} className="overflow-auto max-h-[75vh] no-scrollbar relative">
                      <table className="text-xs text-left" style={{borderCollapse:'separate', borderSpacing:0}}>
                        <thead className="text-[10px] uppercase text-slate-400">
                          <tr>
@@ -1029,17 +1034,21 @@ export default function App() {
                            const actual = get1X2(m.goals1, m.goals2);
                            const isFinished = m.status === 'finished' || m.status === 'live';
                            const isLastPlayed = m.id === lastPlayedMatch?.id;
-                           const matchCellClass = `sticky left-0 z-30 border-r border-b p-3 whitespace-nowrap overflow-hidden max-w-[220px] shadow-[4px_0_10px_rgba(0,0,0,0.04)] ${isLastPlayed ? 'bg-vmgold/10 border-l-4 border-l-vmgold' : 'bg-white'}`;
+                           const matchCellClass = `sticky left-0 z-30 border-r border-b p-3 whitespace-nowrap overflow-hidden transition-all duration-300 ${isTableScrolled ? 'max-w-[70px]' : 'max-w-[260px]'} shadow-[4px_0_10px_rgba(0,0,0,0.04)] ${isLastPlayed ? 'bg-vmgold/10 border-l-4 border-l-vmgold' : 'bg-white'}`;
                            return (
                              <tr key={m.id} className="hover:bg-slate-50/50 transition-colors">
                                <td className={matchCellClass}>
                                  <div className="flex items-center gap-1.5">
                                    <span className="text-[9px] font-black text-slate-300 w-5 shrink-0">#{m.id}</span>
                                    <Flag code={TEAMS[m.team1]?.flag}/>
-                                   <span className="font-bold truncate max-w-[55px] inline-block" title={m.team1} style={{color: TEAMS[m.team1]?.primary === '#FFFFFF' ? '#334155' : TEAMS[m.team1]?.primary}}>{m.team1}</span>
-                                   {isFinished && <span className="text-[10px] font-black text-slate-500 mx-0.5 shrink-0">{m.goals1}-{m.goals2}</span>}
+                                   {!isTableScrolled && (
+                                     <span className="font-bold truncate max-w-[100px] sm:max-w-none inline-block" title={m.team1} style={{color: TEAMS[m.team1]?.primary === '#FFFFFF' ? '#334155' : TEAMS[m.team1]?.primary}}>{m.team1}</span>
+                                   )}
+                                   {isFinished && !isTableScrolled && <span className="text-[10px] font-black text-slate-500 mx-0.5 shrink-0">{m.goals1}-{m.goals2}</span>}
                                    <Flag code={TEAMS[m.team2]?.flag}/>
-                                   <span className="font-bold truncate max-w-[55px] inline-block" title={m.team2} style={{color: TEAMS[m.team2]?.primary === '#FFFFFF' ? '#334155' : TEAMS[m.team2]?.primary}}>{m.team2}</span>
+                                   {!isTableScrolled && (
+                                     <span className="font-bold truncate max-w-[100px] sm:max-w-none inline-block" title={m.team2} style={{color: TEAMS[m.team2]?.primary === '#FFFFFF' ? '#334155' : TEAMS[m.team2]?.primary}}>{m.team2}</span>
+                                   )}
                                  </div>
                                </td>
                                {sortedPlayers.map(p => {
@@ -1067,7 +1076,9 @@ export default function App() {
                        </tbody>
                        <tfoot>
                          <tr>
-                           <td className="sticky bottom-0 left-0 z-50 bg-vmdark text-vmgold p-4 border-r border-t border-vmgold/20 font-black uppercase text-[10px] shadow-[0_-4px_10px_rgba(0,0,0,0.1)]">TOTALT RÄTT</td>
+                           <td className="sticky bottom-0 left-0 z-50 bg-vmdark text-vmgold p-4 border-r border-t border-vmgold/20 font-black uppercase text-[10px] shadow-[0_-4px_10px_rgba(0,0,0,0.1)]">
+                             {isTableScrolled ? 'Rätt' : 'Totalt Rätt'}
+                           </td>
                            {sortedPlayers.map(p => {
                               const pPts = leaderboardMap.get(p.id) || 0;
                               return (
