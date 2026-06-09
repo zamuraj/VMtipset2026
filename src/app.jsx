@@ -997,14 +997,25 @@ export default function App() {
                const sortedPlayers = [...activePlayers].sort((a, b) => a.name.localeCompare(b.name, 'sv'));
                const lastPlayedMatch = matches.filter(m => m.status === 'finished' || m.status === 'live').pop();
                const leaderboardMap = new Map(leaderboard.map(u => [u.id, u.pts]));
+               // Sanitize away "undefined" tokens (stored from old registration bugs)
+               const sanitizeName = (raw) => {
+                 if (!raw || typeof raw !== 'string') return '';
+                 return raw.split(' ')
+                   .filter(p => p && p.toLowerCase() !== 'undefined')
+                   .join(' ')
+                   .replace(/\.\s*$/, '')   // strip trailing dots
+                   .trim();
+               };
                // Show last-name initial only when first names clash
                const firstNameCount = sortedPlayers.reduce((acc, p) => {
-                 const fn = p.name.split(' ')[0];
-                 acc[fn] = (acc[fn] || 0) + 1;
+                 const fn = sanitizeName(p.name).split(' ')[0];
+                 if (fn) acc[fn] = (acc[fn] || 0) + 1;
                  return acc;
                }, {});
                const getDisplayName = (name) => {
-                 const parts = name.split(' ');
+                 const clean = sanitizeName(name);
+                 const parts = clean.split(' ').filter(Boolean);
+                 if (!parts.length) return '?';
                  const fn = parts[0];
                  if (firstNameCount[fn] > 1 && parts.length > 1) {
                    return `${fn} ${parts[parts.length - 1][0]}.`;
