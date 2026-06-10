@@ -925,28 +925,36 @@ export default function App() {
 
              <div className="bg-white/90 backdrop-blur-md rounded-[2rem] border overflow-hidden shadow-sm">
                 <div className="overflow-auto max-h-[70vh]">
-                  <table className="w-full text-left">
-                    <thead className="sticky top-0 z-40 bg-slate-50 border-b text-[10px] font-black uppercase text-slate-400">
-                      <tr>
-                        <th className="p-5">Rank</th>
-                        <th className="p-5">Namn</th>
-                        <th className="p-5 text-center">P</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                      {leaderboard.map(u => (
-                        <tr key={u.id} className="hover:bg-indigo-50/50 transition-colors">
-                          <td className="p-5 font-black text-slate-300">#{u.rank}</td>
-                          <td className="p-0 font-bold hover:text-indigo-600 transition-colors">
-                            <button onClick={() => setSelectedUser(u)} className="w-full h-full text-left flex items-center gap-1.5 p-5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
-                              {u.name}{hallOfFame.some(h => h.champion.toLowerCase() === u.name.toLowerCase()) && <span title="Tidigare mästare" className="text-vmgold"><Star size={12} fill="#fbbf24"/></span>}
-                            </button>
-                          </td>
-                          <td className="p-5 text-center font-black text-indigo-600 bg-indigo-50/20">{u.pts}</td>
+                  {leaderboard.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center p-12 text-center text-slate-400">
+                      <Trophy size={48} className="mb-4 opacity-20" />
+                      <h3 className="font-black text-lg text-slate-500 mb-2">Inga spelare ännu</h3>
+                      <p className="text-sm font-medium">När admin godkänt de första anmälningarna kommer topplistan att visas här.</p>
+                    </div>
+                  ) : (
+                    <table className="w-full text-left">
+                      <thead className="sticky top-0 z-40 bg-slate-50 border-b text-[10px] font-black uppercase text-slate-400">
+                        <tr>
+                          <th className="p-5">Rank</th>
+                          <th className="p-5">Namn</th>
+                          <th className="p-5 text-center">P</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y">
+                        {leaderboard.map(u => (
+                          <tr key={u.id} className="hover:bg-indigo-50/50 transition-colors">
+                            <td className="p-5 font-black text-slate-300">#{u.rank}</td>
+                            <td className="p-0 font-bold hover:text-indigo-600 transition-colors">
+                              <button onClick={() => setSelectedUser(u)} className="w-full h-full text-left flex items-center gap-1.5 p-5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+                                {u.name}{hallOfFame.some(h => h.champion.toLowerCase() === u.name.toLowerCase()) && <span title="Tidigare mästare" className="text-vmgold"><Star size={12} fill="#fbbf24"/></span>}
+                              </button>
+                            </td>
+                            <td className="p-5 text-center font-black text-indigo-600 bg-indigo-50/20">{u.pts}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
                 </div>
              </div>
 
@@ -962,17 +970,24 @@ export default function App() {
                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{sortedPlayers.length} spelare &middot; {matches.length} matcher</span>
                    </div>
                    <div className="overflow-auto max-h-[75vh] no-scrollbar relative">
-                     <table className="text-xs text-left" style={{borderCollapse:'separate', borderSpacing:0}}>
-                       <thead className="text-[10px] uppercase text-slate-400">
-                         <tr>
-                           <th className="sticky top-0 left-0 z-50 bg-vmdark text-vmgold p-4 border-r border-b whitespace-nowrap font-black">Match</th>
-                           {sortedPlayers.map(p => (
-                             <th key={p.id} className="sticky top-0 z-40 bg-vmdark text-white p-3 border-r border-b whitespace-nowrap text-center font-black min-w-[60px]">
-                               {p.name.split(' ')[0]}
-                             </th>
-                           ))}
-                         </tr>
-                       </thead>
+                     {sortedPlayers.length === 0 ? (
+                       <div className="flex flex-col items-center justify-center p-12 text-center text-slate-400">
+                         <Grid3X3 size={48} className="mb-4 opacity-20" />
+                         <h3 className="font-black text-lg text-slate-500 mb-2">Ingen data ännu</h3>
+                         <p className="text-sm font-medium">Matrisen fylls på när spelare är godkända.</p>
+                       </div>
+                     ) : (
+                       <table className="text-xs text-left" style={{borderCollapse:'separate', borderSpacing:0}}>
+                         <thead className="text-[10px] uppercase text-slate-400">
+                           <tr>
+                             <th className="sticky top-0 left-0 z-50 bg-vmdark text-vmgold p-4 border-r border-b whitespace-nowrap font-black">Match</th>
+                             {sortedPlayers.map(p => (
+                               <th key={p.id} className="sticky top-0 z-40 bg-vmdark text-white p-3 border-r border-b whitespace-nowrap text-center font-black min-w-[60px]">
+                                 {p.name.split(' ')[0]}
+                               </th>
+                             ))}
+                           </tr>
+                         </thead>
                        <tbody>
                          {matches.map(m => {
                            const actual = get1X2(m.goals1, m.goals2);
@@ -1028,6 +1043,7 @@ export default function App() {
                          </tr>
                        </tfoot>
                      </table>
+                     )}
                    </div>
                  </div>
                );

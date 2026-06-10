@@ -51,3 +51,7 @@
 ## 2026-06-04 - Semantic Buttons and Alert Roles
 **Learning:** Found several clickable elements (like table cells (`<td>`) in the Leaderboard and dropdown items (`<div>`) in Notifications) that were missing native semantic tags, making them inaccessible to keyboard users and screen readers. Additionally, the Toast notification system lacked an `aria-live` region, so screen readers wouldn't announce incoming alerts.
 **Action:** Always refactor interactive, non-semantic elements (`div`, `span`, `td`) into native `<button>` elements, applying utility classes like `w-full text-left h-full` to maintain visual layout while regaining keyboard accessibility. When implementing dynamic feedback components like toasts, strictly enforce `role="alert"` and `aria-live="assertive"` so assistive technologies can detect and announce them immediately.
+
+## 2026-06-09 - Added Empty States to Leaderboard and Tippningsmatris
+**Learning:** The Leaderboard and Tippningsmatris components were rendering empty tables with headers when there were no active players (e.g. before the first players are approved by an admin). This makes the application feel unpolished or broken initially.
+**Action:** Always provide distinct 'empty states' with helpful calls-to-action or explanatory text for main data tables (like the Leaderboard) to maintain a user-friendly and polished experience even when the data length is zero.
