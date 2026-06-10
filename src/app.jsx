@@ -784,7 +784,7 @@ export default function App() {
           <div id="reg-form" className="mt-8 space-y-4 animate-in slide-in-from-right-4 duration-300">
             <div className="flex justify-between items-center mb-2">
               <h2 className="font-bold">{editingParticipantId ? 'Redigera Deltagare' : (regStep === 1 ? '1. Dina Uppgifter' : '2. Fyll i Tips')}</h2>
-              <button onClick={() => { setShowRegister(false); setEditingParticipantId(null); resetRegFields(); }} aria-label="Stäng" title="Stäng"><X/></button>
+              <button onClick={() => { setShowRegister(false); setEditingParticipantId(null); resetRegFields(); }} aria-label="Stäng" title="Stäng" className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors outline-none focus:ring-2 focus:ring-indigo-500/50"><X/></button>
             </div>
             {regStep === 1 ? (
                <>
@@ -805,7 +805,7 @@ export default function App() {
                   <input id="reg-goals" type="number" value={regGoals} onChange={e=>setRegGoals(e.target.value)} placeholder="Antal mål totalt i GRUPPSPELET (72 matcher)?" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all" />
                 </div>
                 <div className="flex gap-2">
-                   {Object.keys(regPicks).length > 0 && <button onClick={clearDraft} aria-label="Rensa utkast" title="Rensa utkast" className="p-4 bg-red-500/20 text-red-400 rounded-2xl"><Trash2/></button>}
+                   {Object.keys(regPicks).length > 0 && <button onClick={clearDraft} aria-label="Rensa utkast" title="Rensa utkast" className="p-4 bg-red-500/20 text-red-400 rounded-2xl hover:bg-red-500/30 transition-colors outline-none focus:ring-2 focus:ring-red-500/50"><Trash2/></button>}
                    <button onClick={checkExistingUser} className="flex-1 py-4 bg-emerald-600 rounded-xl font-bold">NÄSTA: FYLL I TIPS</button>
                 </div>
                </>
@@ -875,7 +875,7 @@ export default function App() {
           {timeLeft && <div className="mt-1 px-2 py-0.5 bg-vmgold/10 text-vmgold text-[8px] font-black rounded-full uppercase tracking-widest text-center animate-pulse">{timeLeft}</div>}
         </div>
         <div className="flex items-center gap-4 relative">
-          <button onClick={() => setShowNotifications(!showNotifications)} aria-expanded={showNotifications} aria-haspopup="dialog" aria-label="Notiser" title="Notiser" className="relative p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors">
+          <button onClick={() => setShowNotifications(!showNotifications)} aria-expanded={showNotifications} aria-haspopup="dialog" aria-label="Notiser" title="Notiser" className="relative p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors outline-none focus:ring-2 focus:ring-indigo-500/50">
             <Bell size={20} />
             {activeUser?.notifications?.filter(n => !n.isRead).length > 0 && (
                <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border border-vmdark"></span>
@@ -901,7 +901,7 @@ export default function App() {
               </div>
             </div>
           )}
-          <button onClick={handleLogout} aria-label="Logga ut" title="Logga ut" className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors"><LogOut size={20}/></button>
+          <button onClick={handleLogout} aria-label="Logga ut" title="Logga ut" className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors outline-none focus:ring-2 focus:ring-indigo-500/50"><LogOut size={20}/></button>
         </div>
       </header>
 
@@ -1448,7 +1448,7 @@ export default function App() {
                           <div className="text-xs text-slate-400 font-bold flex items-center gap-2">{t.email} {t.phone && <span className="text-[10px] text-indigo-500">({t.phone})</span>}</div>
                         </div>
                         <div className="flex gap-2">
-                          <button onClick={() => { if(window.confirm('Är du säker på att du vill ta bort denna anmälan?')) deleteDoc(doc(db, "tips", t.id)) }} aria-label="Ta bort" title="Ta bort" className="p-3 text-red-500 hover:bg-red-50 rounded-2xl transition-colors"><Trash2/></button>
+                          <button onClick={() => { if(window.confirm('Är du säker på att du vill ta bort denna anmälan?')) deleteDoc(doc(db, "tips", t.id)) }} aria-label="Ta bort" title="Ta bort" className="p-3 text-red-500 hover:bg-red-50 rounded-2xl transition-colors outline-none focus:ring-2 focus:ring-red-500/50"><Trash2/></button>
                           <button
                             onClick={async () => {
                               setApprovingId(t.id);
@@ -1488,9 +1488,9 @@ export default function App() {
                            if(window.confirm(`Vill du låsa upp tips för ${p.name}? Personen kommer då kunna gå in och ändra sitt tips.`)) {
                              await updateDoc(doc(db, "tips", p.id), { isUnlockedForEdit: true });
                            }
-                         }} aria-label="Lås upp" title="Lås upp för redigering" className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-xl transition-colors"><Unlock size={18}/></button>
-                         <button onClick={() => startEditing(p)} aria-label="Redigera" title="Redigera" className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"><Settings size={18}/></button>
-                         <button onClick={() => deleteParticipant(p.id)} aria-label="Ta bort" title="Ta bort" className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors"><Trash2 size={18}/></button>
+                         }} aria-label="Lås upp" title="Lås upp för redigering" className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-xl transition-colors outline-none focus:ring-2 focus:ring-emerald-500/50"><Unlock size={18}/></button>
+                         <button onClick={() => startEditing(p)} aria-label="Redigera" title="Redigera" className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors outline-none focus:ring-2 focus:ring-indigo-500/50"><Settings size={18}/></button>
+                         <button onClick={() => deleteParticipant(p.id)} aria-label="Ta bort" title="Ta bort" className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors outline-none focus:ring-2 focus:ring-red-500/50"><Trash2 size={18}/></button>
                        </div>
                      </div>
                    ))}
@@ -1520,7 +1520,7 @@ export default function App() {
                       <span className="font-black"><span className={entry.type === 'EM' ? 'text-indigo-500' : 'text-vmgold'}>{entry.type || 'VM'}</span> {entry.year}</span>
                       <span className="text-slate-600 font-bold">{entry.champion}</span>
                     </div>
-                    <button onClick={() => { if(window.confirm('Är du säker på att du vill ta bort detta Hall of Fame-bidrag?')) deleteDoc(doc(db, 'hallOfFame', entry.id)) }} aria-label="Ta bort" title="Ta bort" className="p-2 text-red-400 hover:bg-red-50 rounded-xl transition-colors"><Trash2 size={16}/></button>
+                    <button onClick={() => { if(window.confirm('Är du säker på att du vill ta bort detta Hall of Fame-bidrag?')) deleteDoc(doc(db, 'hallOfFame', entry.id)) }} aria-label="Ta bort" title="Ta bort" className="p-2 text-red-400 hover:bg-red-50 rounded-xl transition-colors outline-none focus:ring-2 focus:ring-red-500/50"><Trash2 size={16}/></button>
                   </div>
                 ))}
               </div>
@@ -1551,7 +1551,7 @@ export default function App() {
                           <div className="flex gap-2">
                              <label htmlFor={`match-minute-${m.id}`} className="sr-only">Minut</label>
                              <input id={`match-minute-${m.id}`} type="text" disabled={isLiveSyncActive} placeholder="Minut (ex 65)" defaultValue={m.minute} onBlur={e => updateMatch(m.id, { minute: e.target.value, status: e.target.value ? 'live' : 'finished' })} className="flex-1 p-2 border rounded-xl text-[10px] font-black outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent bg-white disabled:opacity-50"/>
-                             <button disabled={isLiveSyncActive} onClick={() => updateMatch(m.id, { status: 'upcoming', goals1: null, goals2: null, minute: null })} aria-label="Återställ match" title="Återställ match" className="p-2 text-slate-300 hover:text-red-400 transition-colors disabled:opacity-30"><X size={16}/></button>
+                             <button disabled={isLiveSyncActive} onClick={() => updateMatch(m.id, { status: 'upcoming', goals1: null, goals2: null, minute: null })} aria-label="Återställ match" title="Återställ match" className="p-2 text-slate-300 hover:text-red-400 transition-colors disabled:opacity-30 outline-none focus:ring-2 focus:ring-red-500/50"><X size={16}/></button>
                           </div>
                        </div>
                     </div>
@@ -1569,7 +1569,7 @@ export default function App() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-vmdark/80 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setSelectedUser(null)}>
            <div className="bg-white w-full max-w-2xl rounded-[3rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
               <div className="bg-vmdark p-8 text-white relative">
-                 <button onClick={() => setSelectedUser(null)} aria-label="Stäng" title="Stäng" className="absolute top-6 right-6 p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors"><X/></button>
+                 <button onClick={() => setSelectedUser(null)} aria-label="Stäng" title="Stäng" className="absolute top-6 right-6 p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors outline-none focus:ring-2 focus:ring-white/50"><X/></button>
                  <div className="flex items-center gap-6">
                     <div className="w-20 h-20 bg-vmgold rounded-[2rem] flex items-center justify-center text-vmdark shadow-[0_0_20px_rgba(251,191,36,0.4)]">
                        <User size={40} />
@@ -1583,8 +1583,8 @@ export default function App() {
                     </div>
                     {currentUser.isAdmin && (
                       <div className="flex gap-2 ml-auto">
-                        <button onClick={() => { setSelectedUser(null); startEditing(selectedUser); }} aria-label="Redigera" title="Redigera" className="p-3 bg-white/10 rounded-2xl hover:bg-white/20 text-white transition-colors"><Settings size={20}/></button>
-                        <button onClick={() => { setSelectedUser(null); deleteParticipant(selectedUser.id); }} aria-label="Ta bort" title="Ta bort" className="p-3 bg-red-500/20 rounded-2xl hover:bg-red-500/30 text-red-400 transition-colors"><Trash2 size={20}/></button>
+                        <button onClick={() => { setSelectedUser(null); startEditing(selectedUser); }} aria-label="Redigera" title="Redigera" className="p-3 bg-white/10 rounded-2xl hover:bg-white/20 text-white transition-colors outline-none focus:ring-2 focus:ring-white/50"><Settings size={20}/></button>
+                        <button onClick={() => { setSelectedUser(null); deleteParticipant(selectedUser.id); }} aria-label="Ta bort" title="Ta bort" className="p-3 bg-red-500/20 rounded-2xl hover:bg-red-500/30 text-red-400 transition-colors outline-none focus:ring-2 focus:ring-red-500/50"><Trash2 size={20}/></button>
                       </div>
                     )}
                  </div>
@@ -1631,7 +1631,7 @@ export default function App() {
           <div className="bg-white w-full max-w-2xl rounded-[3rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
             <div className="bg-vmdark p-6 text-white flex justify-between items-center">
               <h2 className="font-black text-xl flex items-center gap-2"><Settings size={20} className="text-vmgold"/> Redigera Deltagare</h2>
-              <button onClick={() => setIsEditing(false)} aria-label="Stäng" title="Stäng" className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors"><X/></button>
+              <button onClick={() => setIsEditing(false)} aria-label="Stäng" title="Stäng" className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors outline-none focus:ring-2 focus:ring-white/50"><X/></button>
             </div>
             <div className="p-6 space-y-3 border-b">
               <div>
