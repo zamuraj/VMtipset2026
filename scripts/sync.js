@@ -161,9 +161,9 @@ async function run() {
   const isLive = await fetchAndSync();
 
   if (isLive) {
-     console.log("Minst en match är LIVE. Startar loop varje minut i 30 minuter...");
+     console.log("Minst en match är LIVE. Startar loop var 5:e minut i 30 minuter...");
      let count = 0;
-     const maxLoops = 30;
+     const maxLoops = 6;
 
      const interval = setInterval(async () => {
          count++;
@@ -181,7 +181,7 @@ async function run() {
          // "sen avsluta" implicerar att den kör alla 30 minuter, så vi kan låta den göra det.
          // Om man vill avbryta if(!stillLive) kan man göra det, men vi följer instruktionerna.
 
-     }, 60000); // 1 minut
+     }, 300000); // 5 minuter
   } else {
      console.log("Inga matcher är LIVE. Avslutar direkt.");
      process.exit(0);
