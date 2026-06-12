@@ -977,6 +977,7 @@ export default function App() {
                       <tr>
                         <th className="p-5">Rank</th>
                         <th className="p-5">Namn</th>
+                        <th className="p-5 text-center">Mål</th>
                         <th className="p-5 text-center">P</th>
                       </tr>
                     </thead>
@@ -989,6 +990,7 @@ export default function App() {
                               {u.name}{hallOfFame.some(h => h.champion.toLowerCase() === u.name.toLowerCase()) && <span title="Tidigare mästare" className="text-vmgold"><Star size={12} fill="#fbbf24"/></span>}
                             </button>
                           </td>
+                          <td className="p-5 text-center font-bold text-slate-400 text-sm">{u.goals ?? '-'}</td>
                           <td className="p-5 text-center font-black text-indigo-600 bg-indigo-50/20">{u.pts}</td>
                         </tr>
                       ))}
