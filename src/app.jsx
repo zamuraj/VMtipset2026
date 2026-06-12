@@ -485,6 +485,11 @@ export default function App() {
   }, [matches, activePlayers]);
 
   const goalsSoFar = useMemo(() => matches.reduce((sum, m) => sum + (m.goals1 || 0) + (m.goals2 || 0), 0), [matches]);
+  // Antal spelade matcher (båda lagen har mål satta)
+  const playedMatchCount = useMemo(() => matches.filter(m => m.goals1 !== null && m.goals2 !== null).length, [matches]);
+  // Projicerade totalmål: nuvarande målsnitt extrapolerat till alla 72 matcher.
+  // När turneringen är slut (72 spelade) === goalsSoFar exakt.
+  const projectedGoals = useMemo(() => playedMatchCount > 0 ? (goalsSoFar / playedMatchCount) * 72 : 0, [goalsSoFar, playedMatchCount]);
   const get1X2 = (g1, g2) => { if (g1 === null || g2 === null) return null; return g1 > g2 ? '1' : g1 < g2 ? '2' : 'X'; };
   const isDeadlinePassed = deadline && new Date() > deadline;
 
@@ -534,9 +539,9 @@ export default function App() {
       matchResults.forEach(mr => {
         if (mr.result && predictions[mr.id] === mr.result) pts++;
       });
-      return { ...u, pts, diff: Math.abs((parseInt(u.goals) || 0) - goalsSoFar) };
+      return { ...u, pts, diff: Math.abs((parseInt(u.goals) || 0) - projectedGoals) };
     }).sort((a, b) => b.pts - a.pts || a.diff - b.diff).map((u, i) => ({ ...u, rank: i + 1 }));
-  }, [activePlayers, matches, goalsSoFar]);
+  }, [activePlayers, matches, projectedGoals]);
 
   const optimist = useMemo(() => {
     if (!activePlayers.length) return null;
