@@ -72,8 +72,8 @@ const TEAMS = {
 
 const VM_SCHEDULE = [
   "1|11 jun 21:00|A|Mexiko|Sydafrika|Azteca|Mexico City|Mexiko|SVT",
-  "2|12 jun 00:00|B|Kanada|Bosnien|BMO Field|Toronto|Kanada|TV4",
-  "3|12 jun 15:00|A|Sydkorea|Tjeckien|Akron|Guadalajara|Mexiko|SVT",
+  "3|12 jun 04:00|A|Sydkorea|Tjeckien|Akron|Guadalajara|Mexiko|SVT",
+  "2|12 jun 21:00|B|Kanada|Bosnien|BMO Field|Toronto|Kanada|TV4",
   "4|13 jun 00:00|D|USA|Paraguay|SoFi|Los Angeles|USA|TV4",
   "5|13 jun 21:00|B|Qatar|Schweiz|Levi's|San Francisco|USA|SVT",
   "6|14 jun 00:00|C|Brasilien|Marocko|MetLife|New Jersey|USA|TV4",
