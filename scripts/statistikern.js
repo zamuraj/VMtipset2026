@@ -33,12 +33,10 @@ const model = genAI.getGenerativeModel({
 async function run() {
   console.log(`[${new Date().toISOString()}] Startar Statistikern...`);
 
-  // 1. Hämta matcher som är avslutade men ej uppdaterade av statistikern
-  // För att spara reads, hämtar vi alla matcher och kollar lokalt (alternativt .where, men i detta projekt är det < 72 dokument)
   const matchesSnapshot = await db.collection("matches").get();
   
   let totalTournamentGoals = 0;
-  const finishedMatchesToReport = [];
+  const matchesToProcess = [];
 
   matchesSnapshot.forEach(doc => {
     const d = doc.data();
@@ -46,65 +44,61 @@ async function run() {
       if (d.goals1 != null && d.goals2 != null) {
         totalTournamentGoals += (d.goals1 + d.goals2);
       }
-      if (!d.statsPosted) {
-        finishedMatchesToReport.push({ id: doc.id, ...d });
+      
+      // Processa om vi inte postat än, ELLER om resultatet har ändrats (t.ex. vid VAR-korrigering i efterhand)
+      const isNew = !d.statsPosted;
+      const resultChanged = d.statsPosted && (d.statsGoals1 !== d.goals1 || d.statsGoals2 !== d.goals2);
+      
+      if (isNew || resultChanged) {
+        matchesToProcess.push({ id: doc.id, isNew, ...d });
       }
     }
   });
 
-  if (finishedMatchesToReport.length === 0) {
-    console.log("Inga nya avslutade matcher att rapportera om.");
+  if (matchesToProcess.length === 0) {
+    console.log("Inga nya eller uppdaterade matcher att rapportera om.");
     process.exit(0);
   }
 
-  // Hämta alla användares tips
   const tipsSnapshot = await db.collection("tips").get();
   const allTips = tipsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-  for (const match of finishedMatchesToReport) {
-    console.log(`Bearbetar match ${match.id}: ${match.team1} - ${match.team2}`);
+  for (const match of matchesToProcess) {
+    console.log(`Bearbetar match ${match.id}: ${match.team1} - ${match.team2} (isNew: ${match.isNew})`);
 
     const team1 = match.team1 || "Lag 1";
     const team2 = match.team2 || "Lag 2";
     const g1 = match.goals1;
     const g2 = match.goals2;
     
-    // Beräkna tips
     let correctSign = "X";
     if (g1 > g2) correctSign = "1";
     if (g2 > g1) correctSign = "2";
 
-    let signCounts = { "1": 0, "X": 0, "2": 0 };
-    let correctTippers = [];
-
+    // Sammanställ hur gruppen tippade
+    const userTipsList = [];
     allTips.forEach(tipDoc => {
       const pTips = tipDoc.tips || {};
       const userSign = pTips[match.id];
       if (userSign) {
-        signCounts[userSign] = (signCounts[userSign] || 0) + 1;
-        if (userSign === correctSign) {
-          const firstName = (tipDoc.name || tipDoc.id).split(' ')[0];
-          correctTippers.push("@" + firstName);
-        }
+        const firstName = (tipDoc.name || tipDoc.id).split(' ')[0];
+        userTipsList.push(`${firstName}: ${userSign}`);
       }
     });
 
-    const totalTippers = signCounts["1"] + signCounts["X"] + signCounts["2"];
-    
-    let shoutoutText = "";
-    if (correctTippers.length > 0 && correctTippers.length <= 5) {
-      shoutoutText = `Snyggt jobbat ${correctTippers.join(', ')}! 🎯`;
-    } else if (correctTippers.length > 5) {
-      shoutoutText = `Snyggt jobbat alla ${correctTippers.length} som hade rätt! 🎯`;
-    } else {
-      shoutoutText = `Ingen hade rätt tecken! 🤯`;
-    }
+    const prompt = `Du är "Statistikern", en bot i en chatt för en intern tipsliga i Fotbolls-VM 2026. Din ton är kaxig, sarkastisk, rolig och skoningslös mot de som tippar dåligt, men du kan hylla genier.
+Matchen ${team1} mot ${team2} har precis slutat ${g1} - ${g2} (Rätt tecken: ${correctSign}).
 
-    // --- ANROPA GEMINI FÖR EXTERNA STATS ---
-    const prompt = `Du är "Statistikern", en bot som rapporterar resultat från Fotbolls-VM 2026.
-Matchen ${team1} mot ${team2} har precis slutat ${g1} - ${g2}.
-Sök information om matchen och ge mig exakta siffror för: Bollinnehav (%), Hörnor, Gula kort, Röda kort, och Frisparkar för båda lagen. Ge mig också en kort (1-3 meningar) och medryckande matchsammanfattning.
-Formatera ditt svar EXAKT så här (använd 'Okänt' om du inte hittar siffran):
+Här är vad deltagarna tippade i vår grupp (Format: Namn: Tecken):
+${userTipsList.join(', ')}
+
+Uppgift 1: Sök information om matchen och hämta verkliga siffror för Bollinnehav (%), Hörnor, Gula kort, Röda kort, och Frisparkar för båda lagen. Om nån data inte finns tillgänglig, skriv 'Okänt'.
+Uppgift 2: Skriv en rolig matchsammanfattning (ca 2 meningar).
+Uppgift 3: Analysera gruppens tips och skriv en kaxig sektion där du hänger ut de som tippade helt galet (kalla ut deras namn) eller hyllar de få som hade rätt.
+
+Formatera ditt EXAKTA svar så här:
+
+*${team1} ${g1} - ${g2} ${team2} är slutspelad!* 🏁
 
 📝 **Matchsammanfattning:**
 [Din sammanfattning]
@@ -114,38 +108,53 @@ Formatera ditt svar EXAKT så här (använd 'Okänt' om du inte hittar siffran):
 🚩 Hörnor: [X] - [Y]
 🟨 Gula kort: [X] - [Y]
 🟥 Röda kort: [X] - [Y]
-👟 Frisparkar: [X] - [Y]`;
+👟 Frisparkar: [X] - [Y]
+
+🎯 **Statistikerns Dom över Tipsligan:**
+[Din analys av deltagarnas tips. Kalla ut folk vid namn. Var rolig och hård!]
+
+*(Målsnitt-info: Totalt ${totalTournamentGoals} mål i turneringen hittills)*`;
 
     let aiText = "";
     try {
-      console.log("Anropar Gemini för fakta...");
+      console.log("Anropar Gemini för fakta och hån...");
       const result = await model.generateContent(prompt);
       aiText = result.response.text();
     } catch (err) {
       console.error("Fel vid anrop till Gemini:", err);
-      aiText = `📝 **Matchsammanfattning:**
-(Kunde inte hämta matchrapport från nätet just nu)
-
-📈 **Matchfakta:**
-(Data saknas)`;
+      aiText = `*${team1} ${g1} - ${g2} ${team2} är slutspelad!* 🏁\n\n(Ett fel uppstod när jag skulle hämta mina papper. Ni kommer undan mitt hån denna gång...)`;
     }
 
-    // --- BYGG MEDDELANDE ---
-    const finalMessage = `*${team1} ${g1} - ${g2} ${team2} är slutspelad!* 🏁\n\n${aiText}\n\n🎯 **Hur tippade gruppen?**\n- **${correctTippers.length} av ${totalTippers}** tippade rätt tecken (${correctSign}). ${shoutoutText}\n- Fördelning av tips: 1 (${signCounts["1"]}), X (${signCounts["X"]}), 2 (${signCounts["2"]})\n- Totalt har det nu gjorts **${totalTournamentGoals} mål** i VM!`;
+    const finalMessage = aiText;
 
-    // Spara till chat
-    await db.collection("chat").add({
-      text: finalMessage,
-      user: "🤖 Statistikern",
-      createdAt: new Date().toISOString()
-    });
-
-    // Markera matchen
-    await db.collection("matches").doc(match.id.toString()).update({
-      statsPosted: true
-    });
-
-    console.log(`Skickade chat-meddelande för match ${match.id}`);
+    if (match.isNew || !match.statsChatId) {
+      // Nytt inlägg
+      const chatRef = await db.collection("chat").add({
+        text: finalMessage,
+        user: "🤖 Statistikern",
+        createdAt: new Date().toISOString()
+      });
+      
+      // Spara ID och nuvarande mål för att kunna jämföra senare
+      await db.collection("matches").doc(match.id.toString()).update({
+        statsPosted: true,
+        statsChatId: chatRef.id,
+        statsGoals1: g1,
+        statsGoals2: g2
+      });
+      console.log(`Skapade NYTT chat-meddelande för match ${match.id}`);
+    } else {
+      // Uppdatera befintligt inlägg
+      await db.collection("chat").doc(match.statsChatId).update({
+        text: finalMessage + "\n\n*(Uppdaterat pga ändrat matchresultat i efterhand)*"
+      });
+      
+      await db.collection("matches").doc(match.id.toString()).update({
+        statsGoals1: g1,
+        statsGoals2: g2
+      });
+      console.log(`UPPDATERADE chat-meddelande för match ${match.id}`);
+    }
   }
 
   console.log("Klart!");
