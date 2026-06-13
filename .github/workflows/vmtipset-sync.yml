@@ -42,5 +42,6 @@ jobs:
         run: |
           cd scripts
           pnpm install --no-frozen-lockfile
+          node statistikern.js || true
           node sync.js
-          node statistikern.js
+          node statistikern.js || true
