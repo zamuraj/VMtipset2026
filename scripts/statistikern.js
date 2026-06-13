@@ -106,11 +106,11 @@ Matchen ${team1} mot ${team2} har precis slutat ${g1} - ${g2} (Rätt tecken: ${c
 Här är vad deltagarna tippade i vår grupp (Format: Namn: Tecken):
 ${tipsText}
 
-Uppgift 1: Sök på nätet efter den exakta matchen (VM 2026, ${team1} vs ${team2}) och hämta verkliga siffror för Bollinnehav (%), Hörnor, Gula kort, Röda kort, och Frisparkar. Om ett värde verkligen inte går att hitta på nätet, skriv siffran 0. Skriv INTE "Okänt".
+Uppgift 1: Sök på nätet efter den exakta matchen (VM 2026, ${team1} vs ${team2}) och hämta verkliga siffror för Bollinnehav (%), Hörnor, Gula kort, Röda kort, och Frisparkar. Ta BARA med statistikrader som du faktiskt hittar data för. Utelämna rader där data saknas helt – skriv inte "Okänt" eller "0" för saknad data.
 Uppgift 2: Skriv en rolig matchsammanfattning (ca 2 meningar).
 Uppgift 3: Analysera gruppens tips och skriv en kaxig sektion. Kalla ut folk vid namn om de tippade fel. Hylla de som hade rätt. Om inga tips finns, håna gruppen för att de inte brytt sig om att tippa.
 
-Formatera ditt EXAKTA svar så här (inga extra rubriker, ingenting utöver detta format):
+Formatera ditt EXAKTA svar så här (utelämna statistikrader som du inte hittar data för):
 
 *${team1} ${g1} - ${g2} ${team2} är slutspelad!* 🏁
 
@@ -118,6 +118,7 @@ Formatera ditt EXAKTA svar så här (inga extra rubriker, ingenting utöver dett
 [Din sammanfattning]
 
 📈 **Matchfakta (${team1} - ${team2}):**
+[Inkludera bara rader med verklig data, t.ex:]
 ⚽️ Bollinnehav: [X]% - [Y]%
 🚩 Hörnor: [X] - [Y]
 🟨 Gula kort: [X] - [Y]

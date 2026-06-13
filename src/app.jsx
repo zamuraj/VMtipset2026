@@ -1078,7 +1078,7 @@ export default function App() {
                            const actual = get1X2(m.goals1, m.goals2);
                            const isFinished = m.status === 'finished' || m.status === 'live';
                            const isLastPlayed = m.id === lastPlayedMatch?.id;
-                           const matchCellClass = `sticky left-0 z-30 border-r border-b ${isTableScrolled ? 'p-2 max-w-[88px] overflow-hidden' : 'p-3 max-w-[260px] overflow-hidden'} whitespace-nowrap transition-all duration-300 shadow-[4px_0_10px_rgba(0,0,0,0.04)] ${isLastPlayed ? 'bg-vmgold/10 border-l-4 border-l-vmgold' : 'bg-white'}`;
+                           const matchCellClass = `sticky left-0 z-30 border-r border-b ${isTableScrolled ? 'p-2 max-w-[88px] overflow-hidden' : 'p-3 max-w-[260px] overflow-hidden'} whitespace-nowrap transition-all duration-300 shadow-[4px_0_10px_rgba(0,0,0,0.04)] ${isLastPlayed ? 'bg-amber-50 border-l-4 border-l-vmgold' : 'bg-white'}`;
                            const matchCellStyle = isTableScrolled ? { minWidth: 88, maxWidth: 88, width: 88 } : {};
                            return (
                              <tr key={m.id} className="hover:bg-slate-50/50 transition-colors">
