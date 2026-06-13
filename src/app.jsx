@@ -319,7 +319,7 @@ export default function App() {
       const now = new Date();
       const upcomingMatches = matchesRef.current.filter(m => {
         const d = parseMatchDate(m.date);
-        return d && d > now && m.status !== 'FINISHED';
+        return d && d > now && m.status !== 'finished' && m.status !== 'live';
       });
 
       if (upcomingMatches.length > 0) {
@@ -336,7 +336,9 @@ export default function App() {
         if (d > 0) timeString += `${d}d `;
         timeString += `${h}h ${m}m ${s}s`;
         
-        setTimeLeft(`NÄSTA MATCH: ${timeString}`);
+        const matchInfo = `${nextMatch.team1} - ${nextMatch.team2}`;
+        const channel = nextMatch.tv ? ` · ${nextMatch.tv}` : '';
+        setTimeLeft(`NÄSTA: ${matchInfo}${channel} · ${timeString}`);
       } else {
         setTimeLeft('ALLA MATCHER SPELADE');
       }
