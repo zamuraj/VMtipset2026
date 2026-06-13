@@ -155,16 +155,20 @@ Matchen ${team1} mot ${team2} slutade ${g1} - ${g2} (rätt tecken: ${correctSign
 Tippade deltagare:
 ${tipsText}
 
-Instruktioner:
-1. Sök på nätet efter matchen (VM 2026, ${team1} vs ${team2}) och hämta verkliga matchfakta. Ta BARA med rader du hittar data för – utelämna rader du inte kan verifiera.
+INSTRUKTIONER:
+1. Sök på nätet efter matchen och hämta bara dessa EXAKTA fem statistikvärden: bollinnehav (%), hörnor, gula kort, röda kort, frisparkar. Ta BARA med rader du hittar data för.
 2. Skriv en medryckande matchsammanfattning (2-3 meningar).
 3. Skriv "Statistikerns Dom" med känsla och personlighet:
    - Om fler än 5 hade rätt: Beröm gruppen kortfattat, nämn inga individuella namn.
-   - Om 1-5 hade rätt: Lyft fram dem med @-omnämnande (t.ex. @Emil), de förtjänar heder.
-   - Om ingen hade rätt: Håna gruppen med glimt i ögat.
-   - Nämn 1-3 individer som stack ut negativt med @omnämnande om det är intressant/roligt.
-   - Undvik att rabbla långa namnlistor – berätta en historia istället.
-   - Använd ALLTID @Förnamn (med stor bokstav) för att omnämna deltagare.
+   - Om 1-5 hade rätt: Lyft fram dem med @Förnamn (stor bokstav), de förtjänar heder.
+   - Nämn 1-3 individer som stack ut negativt med @Förnamn om det är roligt/intressant.
+   - Undvik långa namnlistor – berätta en historia istället.
+
+VIKTIGT FORMAT – följ detta EXAKT, avvik inte:
+- Inga bullet points (-)
+- Inga asterisk-listor (*)  
+- Inga extra fält som målskyttar, arena, datum, publik etc.
+- Matchfakta-sektionen innehåller ENBART de fem ikon-raderna nedan
 
 Formatera svaret EXAKT så här:
 
@@ -174,7 +178,11 @@ Formatera svaret EXAKT så här:
 [sammanfattning]
 
 📈 **Matchfakta (${team1} - ${team2}):**
-[bara rader med verifierad data]
+⚽️ Bollinnehav: X% - Y%
+🚩 Hörnor: X - Y
+🟨 Gula kort: X - Y
+🟥 Röda kort: X - Y
+👟 Frisparkar: X - Y
 
 🎯 **Statistikerns Dom:**
 [din analys]
