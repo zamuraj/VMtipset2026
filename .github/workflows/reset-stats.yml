@@ -29,6 +29,11 @@ jobs:
           cd scripts
           pnpm install --no-frozen-lockfile
 
+      - name: Ta bort dåliga inlägg (Lag 1/Lag 2)
+        run: |
+          cd scripts
+          node purge-bad-stats.mjs
+
       - name: Reset statsPosted flags
         run: |
           cd scripts
