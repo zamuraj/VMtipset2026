@@ -300,23 +300,43 @@ export default function App() {
 
   // --- TIMER LOGIC ---
   useEffect(() => {
-    if (!deadline) { setTimeLeft('Deadline ej satt'); return; }
+    const parseMatchDate = (dateStr) => {
+      const parts = dateStr.split(' ');
+      if (parts.length !== 3) return null;
+      const [day, monthStr, time] = parts;
+      const monthMap = { 'jun': 5, 'jul': 6 };
+      const [hours, minutes] = time.split(':');
+      return new Date(2026, monthMap[monthStr.toLowerCase()], parseInt(day), parseInt(hours), parseInt(minutes));
+    };
+
     const interval = setInterval(() => {
       const now = new Date();
-      const diff = deadline - now;
-      if (diff <= 0) {
-        setTimeLeft('Deadline passerad');
-        clearInterval(interval);
-      } else {
+      const upcomingMatches = matchesRef.current.filter(m => {
+        const d = parseMatchDate(m.date);
+        return d && d > now && m.status !== 'FINISHED';
+      });
+
+      if (upcomingMatches.length > 0) {
+        const nextMatch = upcomingMatches[0];
+        const targetDate = parseMatchDate(nextMatch.date);
+        const diff = targetDate - now;
+
         const d = Math.floor(diff / (1000 * 60 * 60 * 24));
         const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const s = Math.floor((diff % (1000 * 60)) / 1000);
-        setTimeLeft(`${d} dagar, ${h} timmar, ${m} minuter, ${s} sekunder`);
+        
+        let timeString = "";
+        if (d > 0) timeString += `${d}d `;
+        timeString += `${h}h ${m}m ${s}s`;
+        
+        setTimeLeft(`NÄSTA MATCH: ${timeString}`);
+      } else {
+        setTimeLeft('ALLA MATCHER SPELADE');
       }
     }, 1000);
     return () => clearInterval(interval);
-  }, [deadline]);
+  }, []);
 
   // --- FIREBASE SYNC ---
   useEffect(() => {
@@ -765,7 +785,7 @@ export default function App() {
       <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none" />
       <div className="w-full max-w-md bg-white/5 backdrop-blur-3xl p-8 rounded-[2rem] border border-white/10 shadow-2xl z-10">
         <Logo />
-        {!showRegister && timeLeft && <div className="mt-4 mb-2 p-3 bg-vmdark/50 backdrop-blur-sm border border-vmgold/20 text-vmgold text-xs font-black rounded-2xl uppercase tracking-widest text-center shadow-lg animate-pulse">{timeLeft}</div>}
+        {!showRegister && timeLeft && <div className="mt-4 mb-2 p-3 bg-vmdark/50 backdrop-blur-sm border border-vmgold/20 text-vmgold text-xs font-black rounded-2xl uppercase tracking-widest text-center shadow-lg">{timeLeft}</div>}
         {!showRegister ? (
           <form onSubmit={handleLogin} className="mt-10 space-y-4">
             <div>
@@ -818,7 +838,7 @@ export default function App() {
                <div className="space-y-4">
                   <div className="flex justify-between items-center"><button onClick={() => setRegStep(1)} className="text-xs text-slate-400">← Bakåt</button><span className="text-vmgold text-xs font-black">{Object.keys(regPicks).length}/72 tippade</span></div>
                   <div className="max-h-[50vh] overflow-y-auto space-y-3 pr-2 no-scrollbar relative">
-                    {timeLeft && <div className="sticky top-0 z-50 bg-vmdark/95 backdrop-blur-md p-4 mb-4 -mx-2 rounded-b-3xl text-vmgold text-xs font-black text-center shadow-xl border-b border-vmgold/20 animate-pulse">{timeLeft}</div>}
+                    {timeLeft && <div className="sticky top-0 z-50 bg-vmdark/95 backdrop-blur-md p-4 mb-4 -mx-2 rounded-b-3xl text-vmgold text-xs font-black text-center shadow-xl border-b border-vmgold/20">{timeLeft}</div>}
                     {initialMatchesList.map(m => (
                       <div key={m.id} className="bg-black/30 p-5 rounded-[2rem] border border-white/5 space-y-4">
                         <div className="flex flex-col items-center gap-1">
@@ -877,7 +897,7 @@ export default function App() {
       <header className="bg-vmdark/95 backdrop-blur-md text-white p-4 sticky top-0 z-50 flex justify-between items-center shadow-xl">
         <div className="scale-75 origin-left">
           <Logo />
-          {timeLeft && <div className="mt-1 px-2 py-0.5 bg-vmgold/10 text-vmgold text-[8px] font-black rounded-full uppercase tracking-widest text-center animate-pulse">{timeLeft}</div>}
+          {timeLeft && <div className="mt-1 px-2 py-0.5 bg-vmgold/10 text-vmgold text-[8px] font-black rounded-full uppercase tracking-widest text-center">{timeLeft}</div>}
         </div>
         <div className="flex items-center gap-4 relative">
           <button onClick={() => setShowNotifications(!showNotifications)} aria-expanded={showNotifications} aria-haspopup="dialog" aria-label="Notiser" title="Notiser" className="relative p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors outline-none focus:ring-2 focus:ring-indigo-500/50">
