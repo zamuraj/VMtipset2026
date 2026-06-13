@@ -190,14 +190,34 @@ Formatera svaret EXAKT så här:
 *(Totalt ${totalTournamentGoals} mål i turneringen hittills)*`;
 
     let aiText = "";
-    try {
-      console.log("Anropar Gemini...");
-      const result = await model.generateContent(prompt);
-      aiText = result.response.text();
-    } catch (err) {
-      console.error("Fel vid anrop till Gemini:", err);
-      aiText = `*${team1} ${g1} - ${g2} ${team2} är slutspelad!* 🏁\n\n(Tekniskt fel – ni slipper mitt hån den här gången. Men bara den här gången.)`;
+    let geminiSuccess = false;
+    const maxRetries = 3;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`Anropar Gemini (försök ${attempt}/${maxRetries})...`);
+        if (attempt > 1) {
+          const waitMs = attempt * 10000; // 10s, 20s
+          console.log(`Väntar ${waitMs/1000}s innan nytt försök...`);
+          await new Promise(r => setTimeout(r, waitMs));
+        }
+        const result = await model.generateContent(prompt);
+        aiText = result.response.text();
+        geminiSuccess = true;
+        break;
+      } catch (err) {
+        console.error(`Gemini-fel vid försök ${attempt}:`, err.message || err);
+        if (attempt === maxRetries) {
+          console.error("Alla Gemini-försök misslyckades. Hoppar över denna match.");
+        }
+      }
     }
+
+    if (!geminiSuccess) {
+      console.log(`Skipping match ${match.id} – postar inte felmeddelandeett till chatten.`);
+      continue; // hoppar till nästa match utan att posta
+    }
+
 
     if (match.isNew || !match.statsChatId) {
       const chatRef = await db.collection("chat").add({
