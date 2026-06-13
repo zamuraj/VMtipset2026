@@ -275,6 +275,12 @@ export default function App() {
   const matchesRef = React.useRef(matches);
   React.useEffect(() => { matchesRef.current = matches; }, [matches]);
   const [chatMessages, setChatMessages] = useState([]);
+  const chatEndRef = React.useRef(null);
+  React.useEffect(() => {
+    if (activeTab === 'chat' && chatEndRef.current) {
+      chatEndRef.current.scrollIntoView();
+    }
+  }, [chatMessages, activeTab]);
   const [newChatMsg, setNewChatMsg] = useState('');
   const [deadline, setDeadline] = useState(null);
   const [hallOfFame, setHallOfFame] = useState([]);
@@ -1384,6 +1390,7 @@ export default function App() {
                     </div>
                   ))
                 )}
+                <div ref={chatEndRef} />
              </div>
              <form onSubmit={sendChat} className="p-6 bg-white border-t space-y-3">
                 <div className="flex items-center gap-1.5 ml-1">
