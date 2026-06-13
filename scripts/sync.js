@@ -216,6 +216,9 @@ async function fetchAndSync() {
         let needsUpdate = false;
         let updateData = {};
 
+        // Alltid spara lagnamn så att statistikern kan hämta dem
+        if (mDb.team1 !== homeTeam) { updateData.team1 = homeTeam; needsUpdate = true; }
+        if (mDb.team2 !== awayTeam) { updateData.team2 = awayTeam; needsUpdate = true; }
         if (mDb.goals1 !== apiGoalsHome) { updateData.goals1 = apiGoalsHome; needsUpdate = true; }
         if (mDb.goals2 !== apiGoalsAway) { updateData.goals2 = apiGoalsAway; needsUpdate = true; }
         if (mDb.status !== apiStatus) { updateData.status = apiStatus; needsUpdate = true; }
