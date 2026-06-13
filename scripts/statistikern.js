@@ -30,6 +30,39 @@ const model = genAI.getGenerativeModel({
   tools: [{ googleSearch: {} }]
 });
 
+// Skicka @-notis till omnämnda deltagare
+async function sendMentionNotifications(aiText, allTips) {
+  const mentionedNames = [];
+  const mentionRegex = /@([\wÅÄÖåäö-]+)/g;
+  let match;
+  while ((match = mentionRegex.exec(aiText)) !== null) {
+    mentionedNames.push(match[1].toLowerCase());
+  }
+  if (mentionedNames.length === 0) return;
+
+  const notifPromises = [];
+  allTips.forEach(tipDoc => {
+    if (!tipDoc.isApproved || tipDoc.isAdmin) return;
+    const firstName = (tipDoc.name || '').split(' ')[0].toLowerCase();
+    const fullName = (tipDoc.name || '').toLowerCase();
+    if (mentionedNames.some(n => n === firstName || n === fullName.replace(' ', ''))) {
+      const notifs = tipDoc.notifications || [];
+      notifs.unshift({
+        id: Date.now().toString() + Math.random(),
+        type: 'mention',
+        text: `🤖 Statistikern har nämnt dig i Snackis`,
+        isRead: false,
+        createdAt: new Date().toISOString()
+      });
+      notifPromises.push(
+        db.collection("tips").doc(tipDoc.id).update({ notifications: notifs })
+      );
+      console.log(`📬 Notis skickad till ${tipDoc.name}`);
+    }
+  });
+  await Promise.all(notifPromises);
+}
+
 async function run() {
   console.log(`[${new Date().toISOString()}] Startar Statistikern...`);
 
@@ -61,8 +94,6 @@ async function run() {
 
   console.log(`Hittade ${matchesToProcess.length} match(er) att rapportera.`);
 
-  // Tips sparas under fältet "predictions" i "tips"-kollektionen
-  // Nyckeln är matchens numeriska ID (t.ex. 1, 49, 72)
   const tipsSnapshot = await db.collection("tips").get();
   const allTips = tipsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   console.log(`Hämtade ${allTips.length} tipsdeltagare från databasen.`);
@@ -79,54 +110,74 @@ async function run() {
     if (g1 > g2) correctSign = "1";
     if (g2 > g1) correctSign = "2";
 
-    // Tips sparas som predictions[matchId] där matchId är ett NUMBER
+    // Tips sparas som predictions[matchId] – matchId är ett nummer
     const matchIdNum = parseInt(match.id);
     const userTipsList = [];
 
     allTips.forEach(tipDoc => {
-      // Fältet heter "predictions" (inte "tips")
+      if (!tipDoc.isApproved || tipDoc.isAdmin) return;
       const predictions = tipDoc.predictions || {};
-      // Nyckeln kan vara nummer eller sträng beroende på hur det sparats
       const userSign = predictions[matchIdNum] || predictions[match.id] || predictions[String(matchIdNum)];
       if (userSign) {
         const firstName = (tipDoc.name || tipDoc.id).split(' ')[0];
-        userTipsList.push(`${firstName}: ${userSign}`);
+        userTipsList.push({ name: firstName, sign: userSign, correct: userSign === correctSign });
       }
     });
 
-    console.log(`Hittade ${userTipsList.length} tips för match ${match.id} (${team1} vs ${team2}). matchIdNum=${matchIdNum}`);
+    console.log(`Hittade ${userTipsList.length} tips för match ${match.id}`);
 
-    const tipsText = userTipsList.length > 0
-      ? userTipsList.join(', ')
-      : '(Inga tips registrerade för denna match ännu)';
+    const correctTippers = userTipsList.filter(t => t.correct).map(t => `@${t.name}`);
+    const wrongTippers = userTipsList.filter(t => !t.correct);
+    // Gruppera felaktiga per tecken
+    const wrongGroups = {};
+    wrongTippers.forEach(t => {
+      if (!wrongGroups[t.sign]) wrongGroups[t.sign] = [];
+      wrongGroups[t.sign].push(`@${t.name}`);
+    });
 
-    const prompt = `Du är "Statistikern", en bot i en chatt för en intern tipsliga i Fotbolls-VM 2026. Din ton är kaxig, sarkastisk, rolig och skoningslös mot de som tippar dåligt, men du kan hylla genier.
-Matchen ${team1} mot ${team2} har precis slutat ${g1} - ${g2} (Rätt tecken: ${correctSign}).
+    // Bygg tipstext – AI:n får en kompakt men informativ bild
+    let tipsText = '';
+    if (userTipsList.length === 0) {
+      tipsText = '(Inga tips registrerade för denna match)';
+    } else {
+      if (correctTippers.length > 0) {
+        tipsText += `Rätt (${correctSign}): ${correctTippers.join(', ')}\n`;
+      }
+      Object.entries(wrongGroups).forEach(([sign, names]) => {
+        tipsText += `Fel (${sign}): ${names.join(', ')}\n`;
+      });
+    }
 
-Här är vad deltagarna tippade i vår grupp (Format: Namn: Tecken):
+    const prompt = `Du är "Statistikern", en bot i en intern tipsliga för Fotbolls-VM 2026. Din personlighet: vass, rolig, lite elak men med hjärta. Du kommenterar som en sarkastisk fotbollsexpert, inte som en robot som listar namn.
+
+Matchen ${team1} mot ${team2} slutade ${g1} - ${g2} (rätt tecken: ${correctSign}).
+
+Tippade deltagare:
 ${tipsText}
 
-Uppgift 1: Sök på nätet efter den exakta matchen (VM 2026, ${team1} vs ${team2}) och hämta verkliga siffror för Bollinnehav (%), Hörnor, Gula kort, Röda kort, och Frisparkar. Ta BARA med statistikrader som du faktiskt hittar data för. Utelämna rader där data saknas helt – skriv inte "Okänt" eller "0" för saknad data.
-Uppgift 2: Skriv en rolig matchsammanfattning (ca 2 meningar).
-Uppgift 3: Analysera gruppens tips och skriv en kaxig sektion. Kalla ut folk vid namn om de tippade fel. Hylla de som hade rätt. Om inga tips finns, håna gruppen för att de inte brytt sig om att tippa.
+Instruktioner:
+1. Sök på nätet efter matchen (VM 2026, ${team1} vs ${team2}) och hämta verkliga matchfakta. Ta BARA med rader du hittar data för – utelämna rader du inte kan verifiera.
+2. Skriv en medryckande matchsammanfattning (2-3 meningar).
+3. Skriv "Statistikerns Dom" med känsla och personlighet:
+   - Om fler än 5 hade rätt: Beröm gruppen kortfattat, nämn inga individuella namn.
+   - Om 1-5 hade rätt: Lyft fram dem med @-omnämnande (t.ex. @Emil), de förtjänar heder.
+   - Om ingen hade rätt: Håna gruppen med glimt i ögat.
+   - Nämn 1-3 individer som stack ut negativt med @omnämnande om det är intressant/roligt.
+   - Undvik att rabbla långa namnlistor – berätta en historia istället.
+   - Använd ALLTID @Förnamn (med stor bokstav) för att omnämna deltagare.
 
-Formatera ditt EXAKTA svar så här (utelämna statistikrader som du inte hittar data för):
+Formatera svaret EXAKT så här:
 
 *${team1} ${g1} - ${g2} ${team2} är slutspelad!* 🏁
 
 📝 **Matchsammanfattning:**
-[Din sammanfattning]
+[sammanfattning]
 
 📈 **Matchfakta (${team1} - ${team2}):**
-[Inkludera bara rader med verklig data, t.ex:]
-⚽️ Bollinnehav: [X]% - [Y]%
-🚩 Hörnor: [X] - [Y]
-🟨 Gula kort: [X] - [Y]
-🟥 Röda kort: [X] - [Y]
-👟 Frisparkar: [X] - [Y]
+[bara rader med verifierad data]
 
 🎯 **Statistikerns Dom:**
-[Din analys. Var rolig och hård!]
+[din analys]
 
 *(Totalt ${totalTournamentGoals} mål i turneringen hittills)*`;
 
@@ -165,6 +216,9 @@ Formatera ditt EXAKTA svar så här (utelämna statistikrader som du inte hittar
       });
       console.log(`✅ Uppdaterat inlägg för match ${match.id}`);
     }
+
+    // Skicka @-notiser till omnämnda deltagare
+    await sendMentionNotifications(aiText, allTips);
   }
 
   console.log("Statistikern klar!");
