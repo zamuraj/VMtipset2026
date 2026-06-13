@@ -40,7 +40,7 @@ async function run() {
 
   matchesSnapshot.forEach(doc => {
     const d = doc.data();
-    if (d.status === "FINISHED") {
+    if (d.status === "finished") {
       if (d.goals1 != null && d.goals2 != null) {
         totalTournamentGoals += (d.goals1 + d.goals2);
       }
