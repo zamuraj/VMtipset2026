@@ -4,6 +4,8 @@
   "type": "module",
   "description": "Admin scripts for VM-tipset — run locally, never deployed.",
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "dotenv": "^17.4.2",
     "firebase-admin": "^13.8.0"
   }
 }
