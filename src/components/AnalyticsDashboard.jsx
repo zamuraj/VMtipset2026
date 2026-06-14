@@ -378,9 +378,14 @@ export default function AnalyticsDashboard() {
         </h3>
         <div className="flex items-center gap-2 flex-wrap">
           {/* Admin-filter */}
-          <label className="flex items-center gap-1.5 cursor-pointer select-none">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={hideAdmin}
+            onClick={() => setHideAdmin((v) => !v)}
+            className="flex items-center gap-1.5 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 rounded-sm"
+          >
             <div
-              onClick={() => setHideAdmin((v) => !v)}
               className={`w-8 h-4 rounded-full transition-colors relative ${hideAdmin ? 'bg-indigo-500' : 'bg-slate-300'}`}
             >
               <div
@@ -388,7 +393,7 @@ export default function AnalyticsDashboard() {
               />
             </div>
             <span className="text-[11px] font-black text-slate-500">Bara spelare</span>
-          </label>
+          </button>
 
           {/* Tidsfilter: VM-anpassade */}
           {[1, 7, 0].map((d) => (

@@ -1,0 +1,3 @@
+## 2025-06-14 - Semantic Switch Accessibility
+**Learning:** A custom toggle switch built with a `div` element inside a `label` creates an inaccessible experience because the switch itself cannot receive keyboard focus naturally and the clickable area is often restricted.
+**Action:** Always use native `<button type="button" role="switch" aria-checked={state}>` elements for custom switches. Ensure the text label is inside the button so the entire element is clickable and semantic. Add `focus-visible` utilities to provide clear focus rings for keyboard users without affecting mouse interactions.
