@@ -378,9 +378,14 @@ export default function AnalyticsDashboard() {
         </h3>
         <div className="flex items-center gap-2 flex-wrap">
           {/* Admin-filter */}
-          <label className="flex items-center gap-1.5 cursor-pointer select-none">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={hideAdmin}
+            onClick={() => setHideAdmin((v) => !v)}
+            className="flex items-center gap-1.5 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 rounded-sm"
+          >
             <div
-              onClick={() => setHideAdmin((v) => !v)}
               className={`w-8 h-4 rounded-full transition-colors relative ${hideAdmin ? 'bg-indigo-500' : 'bg-slate-300'}`}
             >
               <div
@@ -388,14 +393,15 @@ export default function AnalyticsDashboard() {
               />
             </div>
             <span className="text-[11px] font-black text-slate-500">Bara spelare</span>
-          </label>
+          </button>
 
           {/* Tidsfilter: VM-anpassade */}
           {[1, 7, 0].map((d) => (
             <button
               key={d}
               onClick={() => setTimeRange(d)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-black transition-colors ${
+              aria-pressed={timeRange === d}
+              className={`px-3 py-1.5 rounded-xl text-xs font-black outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 transition-colors ${
                 timeRange === d
                   ? 'bg-indigo-600 text-white'
                   : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
@@ -409,7 +415,8 @@ export default function AnalyticsDashboard() {
             onClick={fetchData}
             disabled={loading}
             title="Uppdatera"
-            className="p-2 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors disabled:opacity-50"
+            aria-label="Uppdatera"
+            className="p-2 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 transition-colors disabled:opacity-50"
           >
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
           </button>
