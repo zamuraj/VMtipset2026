@@ -45,7 +45,6 @@ let _activeTab = null;
 let _activeTabStartTime = null;
 let _tabSwitchCount = 0;
 let _chatInputFocusedThisSession = false;
-let _kupongFormFocusedThisSession = false;
 
 // PII-mönster som aldrig ska loggas
 const PII_PATTERNS = [/password/i, /passwd/i, /token/i, /secret/i, /api.?key/i, /credit.?card/i, /ssn/i, /personnummer/i];
@@ -372,11 +371,33 @@ export function trackChatMessageSent() {
 }
 
 /**
- * Loggar att användaren fokuserade på kupong-formuläret.
- * Spårar bara en gång per session.
+ * @deprecated Kupong-formulärspårning är borttagen. Kvar som no-op-stub för bakåtkompatibilitet.
  */
 export function trackKupongFormFocused() {
-  if (_kupongFormFocusedThisSession) return;
-  _kupongFormFocusedThisSession = true;
-  trackEvent('kupong_form_focused', 'funnel', {}, 'kupong');
+  // no-op
+}
+
+/**
+ * Loggar att användaren öppnat en match-detalj.
+ * @param {string} matchId
+ * @param {string} team1
+ * @param {string} team2
+ */
+export function trackMatchViewed(matchId, team1, team2) {
+  trackEvent('match_viewed', 'custom_event', { match_id: matchId, team1, team2 }, 'matches');
+}
+
+/**
+ * Loggar hur länge användaren stannade i live-vyn.
+ * @param {number} seconds - Antal sekunder
+ */
+export function trackLiveTabDwell(seconds) {
+  trackEvent('live_tab_dwell', 'custom_event', { duration_sec: seconds }, 'live');
+}
+
+/**
+ * Loggar att användaren öppnade notis-klockan.
+ */
+export function trackNotificationOpened() {
+  trackEvent('notification_opened', 'custom_event', {});
 }

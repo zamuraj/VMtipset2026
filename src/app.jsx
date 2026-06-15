@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import TvBadge from './components/TvBadge';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
-import { initAnalytics, trackTabWithDuration, trackEvent, initFormTracking, checkFormAbandonment, setAnalyticsRole, trackChatInputFocused, trackChatMessageSent, trackKupongFormFocused } from './utils/analytics';
+import { initAnalytics, trackTabWithDuration, trackEvent, initFormTracking, checkFormAbandonment, setAnalyticsRole, trackChatInputFocused, trackChatMessageSent, trackKupongFormFocused, trackMatchViewed, trackNotificationOpened } from './utils/analytics';
 
 // --- DATA: LAG & SCHEMA ---
 const TEAMS = { 
@@ -856,7 +856,7 @@ export default function App() {
                <>
                 <div>
                   <label htmlFor="reg-name" className="sr-only">Namn</label>
-                  <input id="reg-name" type="text" value={regName} onFocus={trackKupongFormFocused} onChange={e=>setRegName(e.target.value)} placeholder="Namn" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all" />
+                  <input id="reg-name" type="text" value={regName} onChange={e=>setRegName(e.target.value)} placeholder="Namn" className="w-full p-4 rounded-xl bg-black/40 border border-white/10 outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all" />
                 </div>
                 <div>
                   <label htmlFor="reg-email" className="sr-only">E-post</label>
@@ -941,7 +941,7 @@ export default function App() {
           {timeLeft && <div className="mt-1 px-2 py-0.5 bg-vmgold/10 text-vmgold text-[8px] font-black rounded-full uppercase tracking-widest text-center">{timeLeft}</div>}
         </div>
         <div className="flex items-center gap-4 relative">
-          <button onClick={() => setShowNotifications(!showNotifications)} aria-expanded={showNotifications} aria-haspopup="dialog" aria-label="Notiser" title="Notiser" className="relative p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors outline-none focus:ring-2 focus:ring-indigo-500/50">
+          <button onClick={() => { setShowNotifications(!showNotifications); if (!showNotifications) trackNotificationOpened(); }} aria-expanded={showNotifications} aria-haspopup="dialog" aria-label="Notiser" title="Notiser" className="relative p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors outline-none focus:ring-2 focus:ring-indigo-500/50">
             <Bell size={20} />
             {activeUser?.notifications?.filter(n => !n.isRead).length > 0 && (
                <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border border-vmdark"></span>
@@ -1295,7 +1295,7 @@ export default function App() {
                  const actual = get1X2(m.goals1, m.goals2);
                  const actualPct = (totalTips && actual && counts[actual]) ? Math.round((counts[actual] / totalTips) * 100) : 0;
                  return (
-                 <div key={m.id} className="bg-white/90 backdrop-blur-md p-6 rounded-[2rem] border shadow-sm space-y-3 relative overflow-hidden">
+                 <div key={m.id} onClick={() => trackMatchViewed(m.id, m.team1, m.team2)} className="bg-white/90 backdrop-blur-md p-6 rounded-[2rem] border shadow-sm space-y-3 relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow">
                     {m.status === 'live' && (
                       <div className="absolute top-4 right-4 flex items-center gap-1.5">
                         <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]"/>
