@@ -187,6 +187,16 @@ async function run() {
   const allTips = tipsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   console.log(`Hämtade ${allTips.length} tipsdeltagare från databasen.`);
 
+  // Visa en sammanfattning av vad som återstår
+  console.log("\n=== ÅTERSTÅENDE MATCHER ===");
+  matchesToProcess.forEach((m, i) => {
+    const t1 = m.team1 || "?";
+    const t2 = m.team2 || "?";
+    console.log(`  ${i + 1}. Match ${m.id}: ${t1} ${m.goals1}-${m.goals2} ${t2} (${m.isNew ? "ny" : "uppdaterad"})`);
+  });
+  const estMinutes = Math.ceil(((matchesToProcess.length - 1) * 35) / 60);
+  console.log(`Beräknad tid: ~${estMinutes} min (35s mellanrum)\n`);
+
   for (let matchIndex = 0; matchIndex < matchesToProcess.length; matchIndex++) {
     const match = matchesToProcess[matchIndex];
     const team1 = match.team1 || "Okänt lag 1";
@@ -197,11 +207,11 @@ async function run() {
     // Vänta mellan matcher för att undvika Gemini rate limits (max 10 req/min)
     if (matchIndex > 0) {
       const delaySeconds = 35;
-      console.log(`Väntar ${delaySeconds}s innan nästa match för att undvika API rate limit...`);
+      console.log(`\n⏳ Väntar ${delaySeconds}s (rate limit-paus)...`);
       await new Promise(r => setTimeout(r, delaySeconds * 1000));
     }
 
-    console.log(`[${matchIndex + 1}/${matchesToProcess.length}] Bearbetar: ${team1} ${g1}-${g2} ${team2}`);
+    console.log(`\n[${matchIndex + 1}/${matchesToProcess.length}] ⚽ ${team1} ${g1}-${g2} ${team2} (match-ID: ${match.id})`);
 
     let correctSign = "X";
     if (g1 > g2) correctSign = "1";
