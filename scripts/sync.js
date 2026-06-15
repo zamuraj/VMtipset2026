@@ -249,9 +249,9 @@ async function run() {
   const isLive = await fetchAndSync();
 
   if (isLive) {
-     console.log("Minst en match är LIVE. Startar loop var 5:e minut i 30 minuter...");
+     console.log("Minst en match är LIVE. Startar loop var 10:e minut i 30 minuter...");
      let count = 0;
-     const maxLoops = 6;
+     const maxLoops = 3;
 
      const interval = setInterval(async () => {
          count++;
@@ -264,12 +264,7 @@ async function run() {
              process.exit(0);
          }
 
-         // Avbryta tidigare om inga matcher längre är live?
-         // Issue 3: "Om en match är 'LIVE', kör en loop som hämtar data och uppdaterar Firebase varje minut i 30 minuter, sen avsluta (så att GitHub-cron kan starta nästa)."
-         // "sen avsluta" implicerar att den kör alla 30 minuter, så vi kan låta den göra det.
-         // Om man vill avbryta if(!stillLive) kan man göra det, men vi följer instruktionerna.
-
-     }, 300000); // 5 minuter
+     }, 600000); // 10 minuter
   } else {
      console.log("Inga matcher är LIVE. Avslutar direkt.");
      process.exit(0);
