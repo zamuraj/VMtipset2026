@@ -30,6 +30,95 @@ const model = genAI.getGenerativeModel({
   tools: [{ googleSearch: {} }]
 });
 
+// Uppslagsregister: match-ID → starttid (svensk lokal tid)
+// Används för att ge chattposter rätt tidsstämpel (matchstart + 2h)
+const MATCH_START_TIMES = {
+  1:  "2026-06-11T21:00:00",
+  3:  "2026-06-12T04:00:00",
+  2:  "2026-06-12T21:00:00",
+  4:  "2026-06-13T03:00:00",
+  5:  "2026-06-13T21:00:00",
+  6:  "2026-06-14T00:00:00",
+  7:  "2026-06-14T03:00:00",
+  8:  "2026-06-14T06:00:00",
+  9:  "2026-06-14T19:00:00",
+  10: "2026-06-14T22:00:00",
+  11: "2026-06-15T01:00:00",
+  12: "2026-06-15T04:00:00",
+  13: "2026-06-15T18:00:00",
+  14: "2026-06-15T21:00:00",
+  15: "2026-06-16T00:00:00",
+  16: "2026-06-16T03:00:00",
+  17: "2026-06-16T21:00:00",
+  18: "2026-06-17T00:00:00",
+  19: "2026-06-17T03:00:00",
+  20: "2026-06-17T06:00:00",
+  21: "2026-06-17T19:00:00",
+  22: "2026-06-17T22:00:00",
+  23: "2026-06-18T01:00:00",
+  24: "2026-06-18T04:00:00",
+  25: "2026-06-18T18:00:00",
+  26: "2026-06-18T21:00:00",
+  27: "2026-06-19T00:00:00",
+  28: "2026-06-19T03:00:00",
+  29: "2026-06-19T21:00:00",
+  30: "2026-06-20T00:00:00",
+  31: "2026-06-20T02:30:00",
+  32: "2026-06-20T05:00:00",
+  33: "2026-06-20T19:00:00",
+  34: "2026-06-20T22:00:00",
+  35: "2026-06-21T02:00:00",
+  36: "2026-06-21T06:00:00",
+  37: "2026-06-21T18:00:00",
+  38: "2026-06-21T21:00:00",
+  39: "2026-06-22T00:00:00",
+  40: "2026-06-22T03:00:00",
+  41: "2026-06-22T19:00:00",
+  42: "2026-06-22T23:00:00",
+  43: "2026-06-23T02:00:00",
+  44: "2026-06-23T05:00:00",
+  45: "2026-06-23T19:00:00",
+  46: "2026-06-23T22:00:00",
+  47: "2026-06-24T01:00:00",
+  48: "2026-06-24T04:00:00",
+  49: "2026-06-25T03:00:00",
+  50: "2026-06-25T03:00:00",
+  51: "2026-06-24T21:00:00",
+  52: "2026-06-24T21:00:00",
+  53: "2026-06-25T00:00:00",
+  54: "2026-06-25T00:00:00",
+  55: "2026-06-26T04:00:00",
+  56: "2026-06-26T04:00:00",
+  57: "2026-06-25T22:00:00",
+  58: "2026-06-25T22:00:00",
+  59: "2026-06-27T00:00:00",
+  60: "2026-06-26T01:00:00",
+  61: "2026-06-27T05:00:00",
+  62: "2026-06-27T05:00:00",
+  63: "2026-06-28T00:00:00",
+  64: "2026-06-27T02:00:00",
+  65: "2026-06-26T21:00:00",
+  66: "2026-06-26T21:00:00",
+  67: "2026-06-28T04:00:00",
+  68: "2026-06-28T04:00:00",
+  69: "2026-06-29T18:00:00",
+  70: "2026-06-28T01:30:00",
+  71: "2026-06-27T23:00:00",
+  72: "2026-06-27T23:00:00",
+};
+
+// Returnerar ISO-sträng för matchens starttid + 2 timmar (lokal tid → UTC -6h för USA)
+// Tiderna i schemat är svenska lokal-tider (CEST = UTC+2)
+function getMatchPostTimestamp(matchId) {
+  const localStr = MATCH_START_TIMES[parseInt(matchId)];
+  if (!localStr) return new Date().toISOString(); // fallback: nu
+  // Svensk sommartid = UTC+2, så vi drar bort 2h för att få UTC, sen lägger till 2h för matchslut
+  // Netto: starttid + 2h kvar i lokal tid = starttid + 2h + 0h UTC-korrigering = starttid i UTC
+  const startLocal = new Date(localStr + '+02:00'); // tolka som CEST
+  const postTime = new Date(startLocal.getTime() + 2 * 60 * 60 * 1000); // + 2h för matchslut
+  return postTime.toISOString();
+}
+
 // Skicka @-notis till omnämnda deltagare
 async function sendMentionNotifications(aiText, allTips) {
   const mentionedNames = [];
@@ -229,10 +318,12 @@ Formatera svaret EXAKT så här:
 
 
     if (match.isNew || !match.statsChatId) {
+      const postTimestamp = getMatchPostTimestamp(match.id);
+      console.log(`⏰ Tidsstämpel för match ${match.id}: ${postTimestamp}`);
       const chatRef = await db.collection("chat").add({
         text: aiText,
         user: "🤖 Statistikern",
-        createdAt: new Date().toISOString()
+        createdAt: admin.firestore.Timestamp.fromDate(new Date(postTimestamp))
       });
 
       await db.collection("matches").doc(match.id.toString()).update({
