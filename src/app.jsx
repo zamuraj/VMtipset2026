@@ -5,7 +5,7 @@ import { collection, onSnapshot, doc, setDoc, addDoc, query, orderBy, serverTime
 import { 
   Trophy, Settings, CalendarDays,
   Clock, Grid3X3, User, X, LogOut, Award, History, Star,
-  Swords, Bell, PlayCircle, MessageSquare, Send, Goal, ShieldCheck, ChevronDown, ChevronUp, MapPin, ListOrdered, Trash2, Users, Activity, Loader2, Unlock
+  Swords, Bell, PlayCircle, MessageSquare, Send, Goal, ShieldCheck, ChevronDown, ChevronUp, MapPin, ListOrdered, Trash2, Users, Activity, Loader2, Unlock, TrendingUp, TrendingDown, Crosshair
 } from 'lucide-react';
 import TvBadge from './components/TvBadge';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
@@ -571,14 +571,49 @@ export default function App() {
     }).sort((a, b) => b.pts - a.pts || a.diff - b.diff).map((u, i) => ({ ...u, rank: i + 1 }));
   }, [activePlayers, matches, projectedGoals]);
 
-  const optimist = useMemo(() => {
-    if (!activePlayers.length) return null;
-    return activePlayers.reduce((max, u) => (!max || (parseInt(u.goals) || 0) > (parseInt(max.goals) || 0)) ? u : max, null);
-  }, [activePlayers]);
-  const pessimist = useMemo(() => {
-    if (!activePlayers.length) return null;
-    return activePlayers.reduce((min, u) => (!min || (parseInt(u.goals) || 0) < (parseInt(min.goals) || 0)) ? u : min, null);
-  }, [activePlayers]);
+  const recentMatches = useMemo(() => {
+    return matches.filter(m => m.status === 'finished').sort((a,b) => b.id - a.id).slice(0, 5);
+  }, [matches]);
+
+  const formtoppen = useMemo(() => {
+    if (!activePlayers.length || !recentMatches.length) return null;
+    let leader = null;
+    let maxPts = -1;
+    activePlayers.forEach(u => {
+      let pts = 0;
+      recentMatches.forEach(m => {
+        let correctSign = "X";
+        if (m.goals1 > m.goals2) correctSign = "1";
+        if (m.goals2 > m.goals1) correctSign = "2";
+        if (u.predictions?.[m.id] === correctSign) pts++;
+      });
+      if (pts > maxPts) {
+        maxPts = pts;
+        leader = { ...u, recentPts: pts };
+      }
+    });
+    return leader;
+  }, [activePlayers, recentMatches]);
+
+  const formsvackan = useMemo(() => {
+    if (!activePlayers.length || !recentMatches.length) return null;
+    let loser = null;
+    let minPts = 999;
+    activePlayers.forEach(u => {
+      let pts = 0;
+      recentMatches.forEach(m => {
+        let correctSign = "X";
+        if (m.goals1 > m.goals2) correctSign = "1";
+        if (m.goals2 > m.goals1) correctSign = "2";
+        if (u.predictions?.[m.id] === correctSign) pts++;
+      });
+      if (pts < minPts) {
+        minPts = pts;
+        loser = { ...u, recentPts: pts };
+      }
+    });
+    return loser;
+  }, [activePlayers, recentMatches]);
 
   const uniqueTips = useMemo(() => {
     const flags = {};
@@ -598,28 +633,26 @@ export default function App() {
     return flags;
   }, [activePlayers, matches]);
 
-  const folketsLeader = useMemo(() => {
+  const krysskungen = useMemo(() => {
     if (!activePlayers.length) return null;
-    const validFolkTips = matches
-      .map(m => ({ id: m.id, sign: folketsTips[m.id] }))
-      .filter(t => t.sign && t.sign !== '-');
-
-    let leader = null;
-    let maxPts = -1;
-
+    const finishedMatches = matches.filter(m => m.status === 'finished');
+    if (!finishedMatches.length) return null;
+    let king = null;
+    let maxX = -1;
     activePlayers.forEach(u => {
-      let pts = 0;
-      const predictions = u.predictions || {};
-      validFolkTips.forEach(ft => {
-        if (predictions[ft.id] === ft.sign) pts++;
+      let xPts = 0;
+      finishedMatches.forEach(m => {
+        if (m.goals1 === m.goals2 && u.predictions?.[m.id] === 'X') {
+          xPts++;
+        }
       });
-      if (pts > maxPts) {
-        maxPts = pts;
-        leader = { ...u, pts };
+      if (xPts > maxX) {
+        maxX = xPts;
+        king = { ...u, xPts };
       }
     });
-    return leader;
-  }, [activePlayers, matches, folketsTips]);
+    return king;
+  }, [activePlayers, matches]);
 
   const prizePool = useMemo(() => {
     const n = activePlayers.length;
@@ -985,16 +1018,16 @@ export default function App() {
              {/* STATS WIDGETS */}
              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white p-4 rounded-3xl border shadow-sm flex items-center gap-4">
-                  <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600"><Goal size={24}/></div>
-                  <div><div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Optimist</div><div className="font-black text-sm">{optimist?.name?.split(' ')[0]} ({optimist?.goals} mål)</div></div>
+                  <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600"><TrendingUp size={24}/></div>
+                  <div><div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Formtoppen</div><div className="font-black text-sm">{formtoppen?.name?.split(' ')[0]} ({formtoppen?.recentPts} rätt senaste 5)</div></div>
                 </div>
                 <div className="bg-white p-4 rounded-3xl border shadow-sm flex items-center gap-4">
-                  <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600"><ShieldCheck size={24}/></div>
-                  <div><div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pessimist</div><div className="font-black text-sm">{pessimist?.name?.split(' ')[0]} ({pessimist?.goals} mål)</div></div>
+                  <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600"><TrendingDown size={24}/></div>
+                  <div><div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Formsvackan</div><div className="font-black text-sm">{formsvackan?.name?.split(' ')[0]} ({formsvackan?.recentPts} rätt senaste 5)</div></div>
                 </div>
                 <div className="bg-white p-4 rounded-3xl border shadow-sm flex items-center gap-4">
-                  <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600"><Users size={24}/></div>
-                  <div><div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Folkets Ledare</div><div className="font-black text-sm">{folketsLeader?.name?.split(' ')[0]}</div></div>
+                  <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600"><Crosshair size={24}/></div>
+                  <div><div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Kryss-kungen</div><div className="font-black text-sm">{krysskungen?.name?.split(' ')[0]} ({krysskungen?.xPts} rätta X)</div></div>
                 </div>
              </div>
 
