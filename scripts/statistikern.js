@@ -120,7 +120,7 @@ function getMatchPostTimestamp(matchId) {
 }
 
 // Skicka @-notis till omnämnda deltagare
-async function sendMentionNotifications(aiText, allTips) {
+async function sendMentionNotifications(aiText, allTips, matchName) {
   const mentionedNames = [];
   const mentionRegex = /@([\wÅÄÖåäö-]+)/g;
   let match;
@@ -132,19 +132,30 @@ async function sendMentionNotifications(aiText, allTips) {
   const notifPromises = [];
   allTips.forEach(tipDoc => {
     if (!tipDoc.isApproved || tipDoc.isAdmin) return;
-    const firstName = (tipDoc.name || '').split(' ')[0].toLowerCase();
-    const fullName = (tipDoc.name || '').toLowerCase();
-    if (mentionedNames.some(n => n === firstName || n === fullName.replace(' ', ''))) {
-      const notifs = tipDoc.notifications || [];
-      notifs.unshift({
-        id: Date.now().toString() + Math.random(),
-        type: 'mention',
-        text: `🤖 Statistikern har nämnt dig i Snackis`,
-        isRead: false,
-        createdAt: new Date().toISOString()
-      });
+    const nameParts = (tipDoc.name || '').trim().split(' ');
+    const firstName = nameParts[0].toLowerCase();
+    const fullNameNoSpace = nameParts.join('').toLowerCase();
+    const isMatch = mentionedNames.some(n =>
+      n === firstName ||
+      n === fullNameNoSpace
+    );
+    if (isMatch) {
+      // Fetch fresh data to avoid overwriting newer notifications from parallel updates
       notifPromises.push(
-        db.collection("tips").doc(tipDoc.id).update({ notifications: notifs })
+        db.collection("tips").doc(tipDoc.id).get().then(freshDoc => {
+          const fresh = freshDoc.data();
+          const notifs = fresh.notifications || [];
+          // Add new notification at front, cap at 30
+          notifs.unshift({
+            id: Date.now().toString() + Math.random(),
+            type: 'mention',
+            text: `🤖 Statistikern har nämnt dig i Snackis (${matchName})`,
+            isRead: false,
+            createdAt: new Date().toISOString()
+          });
+          const cappedNotifs = notifs.slice(0, 30);
+          return db.collection("tips").doc(tipDoc.id).update({ notifications: cappedNotifs });
+        })
       );
       console.log(`📬 Notis skickad till ${tipDoc.name}`);
     }
@@ -356,7 +367,7 @@ Formatera svaret EXAKT så här:
     }
 
     // Skicka @-notiser till omnämnda deltagare
-    await sendMentionNotifications(aiText, allTips);
+    await sendMentionNotifications(aiText, allTips, `${team1} ${g1}-${g2} ${team2}`);
   }
 
   console.log("Statistikern klar!");
