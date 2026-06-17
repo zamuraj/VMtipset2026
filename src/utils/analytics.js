@@ -23,7 +23,6 @@ const APP_NAME = 'vm-tipset';
 const MAX_EVENTS_SESSION = 200;
 const MAX_BATCH_SIZE = 20;
 const FLUSH_INTERVAL_MS = 5000;
-const HESITATION_THRESHOLD_MS = 10_000; // 10 sekunder
 const BOUNCE_MAX_EVENTS = 2; // Sessioner med ≤2 events och inga tab-byten = bounce
 
 // --- INTERN STATE ---
@@ -193,7 +192,6 @@ export function initAnalytics() {
 
   // Aktivera passiva UX-friktionsdetektorer
   _initRageClickDetector();
-  _initFieldHesitationDetector();
 
   // Flusha kvarvarande händelser och logga session_end när användaren stänger/minimerar fliken
   document.addEventListener('visibilitychange', () => {
@@ -256,101 +254,6 @@ function _initRageClickDetector() {
   );
 }
 
-/** Field Hesitation: fokus på ett fält i >10 sekunder utan att göra en ändring. */
-function _initFieldHesitationDetector() {
-  const focusMap = new Map(); // fieldKey -> { time, changed }
-
-  document.addEventListener(
-    'focusin',
-    (e) => {
-      const el = e.target;
-      if (!['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName)) return;
-      const key = el.id || el.name || el.tagName;
-      focusMap.set(key, { time: Date.now(), changed: false });
-    },
-    { passive: true }
-  );
-
-  document.addEventListener(
-    'input',
-    (e) => {
-      const key = e.target.id || e.target.name || e.target.tagName;
-      const entry = focusMap.get(key);
-      if (entry) entry.changed = true;
-    },
-    { passive: true }
-  );
-
-  document.addEventListener(
-    'focusout',
-    (e) => {
-      const el = e.target;
-      const key = el.id || el.name || el.tagName;
-      const entry = focusMap.get(key);
-      if (!entry) return;
-
-      const elapsed = Date.now() - entry.time;
-      if (!entry.changed && elapsed >= HESITATION_THRESHOLD_MS) {
-        trackEvent('field_hesitation', 'friction', {
-          field_id: key,
-          duration_ms: elapsed,
-        });
-      }
-      focusMap.delete(key);
-    },
-    { passive: true }
-  );
-}
-
-// --- FORMULÄRSPÅRNING ---
-
-const _formDirtyMap = new Map(); // formId -> { dirty, startTime }
-
-/**
- * Registrerar ett formulär för avbrottsdetektering.
- * Anropa en gång per formulär (t.ex. i useEffect).
- * @param {string} formId - ID-attributet på formulärelementet
- */
-export function initFormTracking(formId) {
-  const form = document.getElementById(formId);
-  if (!form) return;
-
-  form.addEventListener(
-    'input',
-    () => {
-      if (!_formDirtyMap.has(formId)) {
-        _formDirtyMap.set(formId, { dirty: true, startTime: Date.now() });
-      }
-    },
-    { passive: true }
-  );
-
-  form.addEventListener(
-    'submit',
-    () => {
-      _formDirtyMap.delete(formId); // Rensas vid lyckad inskickning
-    },
-    { passive: true }
-  );
-}
-
-/**
- * Kontrollera om ett formulär lämnats halvt ifyllt.
- * Anropa vid tab-byte eller vy-navigering.
- * @param {string} formId - ID-attributet på formulärelementet
- */
-export function checkFormAbandonment(formId) {
-  const entry = _formDirtyMap.get(formId);
-  if (entry?.dirty) {
-    const elapsed = Date.now() - entry.startTime;
-    trackEvent('form_abandoned', 'friction', {
-      form_id: formId,
-      time_spent_ms: elapsed,
-    });
-    _formDirtyMap.delete(formId);
-  }
-}
-
 // --- TRATT-HJÄLPARE ---
 
 /**
@@ -371,10 +274,28 @@ export function trackChatMessageSent() {
 }
 
 /**
- * @deprecated Kupong-formulärspårning är borttagen. Kvar som no-op-stub för bakåtkompatibilitet.
+ * Loggar när en användare kollar på en specifik spelares tips.
+ * @param {string} playerId
+ * @param {string} playerName
  */
-export function trackKupongFormFocused() {
-  // no-op
+export function trackPlayerProfileViewed(playerId, playerName) {
+  trackEvent('player_profile_viewed', 'custom_event', { player_id: playerId, player_name: playerName }, 'leaderboard');
+}
+
+/**
+ * Loggar när prispotten fälls ut eller in.
+ * @param {boolean} isExpanded
+ */
+export function trackPrizeInfoToggled(isExpanded) {
+  trackEvent('prize_info_toggled', 'custom_event', { expanded: isExpanded });
+}
+
+/**
+ * Loggar när användaren byter läge i Folkets Tips.
+ * @param {string} mode ('1', 'X', '2')
+ */
+export function trackFolketsTipsModeChanged(mode) {
+  trackEvent('folkets_tips_mode_changed', 'custom_event', { mode }, 'leaderboard');
 }
 
 /**

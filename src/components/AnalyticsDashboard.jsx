@@ -23,19 +23,6 @@ const VM_START = new Date('2026-06-11T00:00:00');
 // -------------------------------------------------------------------
 // Hjälpfunktioner
 // -------------------------------------------------------------------
-function friendlyFieldName(id) {
-  const map = {
-    'reg-name': 'Namn',
-    'reg-email': 'E-post',
-    'reg-phone': 'Telefon',
-    'reg-goals': 'Antal mål (gissning)',
-    INPUT: 'Okänt fält',
-    TEXTAREA: 'Textfält',
-    SELECT: 'Urval',
-  };
-  return map[id] || id;
-}
-
 function friendlyTabName(tab) {
   const map = {
     leaderboard: '🏆 Tabell',
@@ -434,20 +421,19 @@ export default function AnalyticsDashboard() {
     return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
   }, [filteredEvents]);
 
-  // --- Field Hesitation ---
-  const hesitations = useMemo(() => {
-    const map = {};
+  // --- Profilvisningar ---
+  const profileViews = useMemo(() => {
+    const counts = {};
     filteredEvents
-      .filter((e) => e.event_name === 'field_hesitation')
+      .filter((e) => e.event_name === 'player_profile_viewed')
       .forEach((e) => {
-        const key = e.metadata?.field_id || 'okänt';
-        if (!map[key]) map[key] = { total: 0, count: 0 };
-        map[key].total += e.metadata?.duration_ms || 0;
-        map[key].count++;
+        const name = e.metadata?.player_name || 'okänd';
+        counts[name] = (counts[name] || 0) + 1;
       });
-    return Object.entries(map)
-      .map(([k, v]) => ({ field: k, avgSec: Math.round(v.total / v.count / 1000), count: v.count }))
-      .sort((a, b) => b.avgSec - a.avgSec);
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([name, count]) => ({ name, count }));
   }, [filteredEvents]);
 
   const timeLabels = { 1: '24h', 7: '7 dagar', 0: 'Hela VM' };
@@ -723,36 +709,20 @@ export default function AnalyticsDashboard() {
                 )}
               </div>
 
-              {/* Formulärtvekan */}
+              {/* Profilvisningar */}
               <div className="p-5 bg-white rounded-2xl border shadow-sm space-y-3">
                 <div>
                   <h5 className="font-black text-sm text-slate-700 flex items-center gap-2">
-                    <Clock size={14} className="text-amber-400" /> 🤔 Formulärtvekan
+                    <User size={14} className="text-indigo-400" /> 👀 Profilvisningar
                   </h5>
-                  <p className="text-xs text-slate-400 mt-0.5">Stannade länge i ett fält utan att skriva</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Vems tips är mest intressanta?</p>
                 </div>
-                {hesitations.length === 0 ? (
-                  <p className="text-sm text-slate-400 font-bold">Ingen tvekan registrerad 🎉</p>
+                {profileViews.length === 0 ? (
+                  <p className="text-sm text-slate-400 font-bold">Inga registrerade 🎉</p>
                 ) : (
                   <div className="space-y-2">
-                    {hesitations.map(({ field, avgSec, count }) => (
-                      <div key={field} className="flex items-center gap-3">
-                        <div
-                          className="shrink-0 text-sm font-bold text-slate-700 truncate"
-                          style={{ width: '9rem' }}
-                        >
-                          {friendlyFieldName(field)}
-                        </div>
-                        <div className="flex-1 bg-slate-100 rounded-full overflow-hidden" style={{ height: 10 }}>
-                          <div
-                            className="h-full rounded-full bg-amber-400 transition-all duration-700"
-                            style={{ width: `${Math.min(100, (avgSec / 60) * 100)}%` }}
-                          />
-                        </div>
-                        <div className="text-xs font-black text-slate-600 tabular-nums" style={{ width: '5rem', textAlign: 'right' }}>
-                          ~{avgSec}s <span className="font-normal text-slate-400">({count}×)</span>
-                        </div>
-                      </div>
+                    {profileViews.map(({ name, count }) => (
+                      <HBar key={name} label={name} value={count} max={profileViews[0].count} color="#8b5cf6" />
                     ))}
                   </div>
                 )}

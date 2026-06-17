@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import TvBadge from './components/TvBadge';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
-import { initAnalytics, trackTabWithDuration, trackEvent, initFormTracking, checkFormAbandonment, setAnalyticsRole, trackChatInputFocused, trackChatMessageSent, trackKupongFormFocused, trackMatchViewed, trackNotificationOpened } from './utils/analytics';
+import { initAnalytics, trackTabWithDuration, trackEvent, setAnalyticsRole, trackChatInputFocused, trackChatMessageSent, trackMatchViewed, trackNotificationOpened, trackPlayerProfileViewed, trackPrizeInfoToggled, trackFolketsTipsModeChanged } from './utils/analytics';
 
 // --- DATA: LAG & SCHEMA ---
 const TEAMS = { 
@@ -446,7 +446,7 @@ export default function App() {
   // --- ANALYTICS INIT ---
   useEffect(() => {
     initAnalytics();
-    initFormTracking('reg-form');
+    // Analytics for form has been removed
   }, []);
 
   // --- AUTOSAVE LOGIC ---
@@ -842,7 +842,7 @@ export default function App() {
   };
 
   const navigateTab = (tab) => {
-    checkFormAbandonment('reg-form');
+    // checkFormAbandonment('reg-form'); // Removed
     trackTabWithDuration(tab);
     setActiveTab(tab);
     window.scrollTo(0, 0);
@@ -1014,7 +1014,7 @@ export default function App() {
              {/* PRISPOTT */}
              <div className="bg-vmdark text-white rounded-[2rem] shadow-xl overflow-hidden">
                <button
-                 onClick={() => setIsPrizeExpanded(!isPrizeExpanded)}
+                 onClick={() => { setIsPrizeExpanded(!isPrizeExpanded); trackPrizeInfoToggled(!isPrizeExpanded); }}
                  aria-expanded={isPrizeExpanded}
                  aria-label={isPrizeExpanded ? "Dölj prispott" : "Visa prispott"}
                  className="w-full p-6 flex justify-between items-center outline-none focus:ring-2 focus:ring-vmgold/50"
@@ -1081,7 +1081,7 @@ export default function App() {
                           <tr key={u.id} className="hover:bg-indigo-50/50 transition-colors">
                             <td className="p-5 font-black text-slate-300">#{u.rank}</td>
                             <td className="p-0 font-bold hover:text-indigo-600 transition-colors">
-                              <button onClick={() => setSelectedUser(u)} className="w-full h-full text-left flex items-center gap-1.5 p-5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+                              <button onClick={() => { setSelectedUser(u); trackPlayerProfileViewed(u.id, u.name); }} className="w-full h-full text-left flex items-center gap-1.5 p-5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
                                 {u.name}{hallOfFame.some(h => h.champion.toLowerCase() === u.name.toLowerCase()) && <span title="Tidigare mästare" className="text-vmgold"><Star size={12} fill="#fbbf24"/></span>}
                               </button>
                             </td>
@@ -1219,7 +1219,7 @@ export default function App() {
                  <h2 className="font-black text-xl">Gruppspel</h2>
                  <div className="flex rounded-xl border bg-white overflow-hidden shadow-sm">
                    {[{label:'Verkliga', val:0},{label:'Folkets', val:1},{label:'Kombo', val:2}].map(({label, val}) => (
-                     <button key={val} onClick={() => setFolketsTipsMode(val)} aria-pressed={folketsTipsMode === val} className={`px-3 py-2 text-xs font-black transition-all flex items-center gap-1 ${folketsTipsMode === val ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-50'}`}>
+                     <button key={val} onClick={() => { setFolketsTipsMode(val); trackFolketsTipsModeChanged(val); }} aria-pressed={folketsTipsMode === val} className={`px-3 py-2 text-xs font-black transition-all flex items-center gap-1 ${folketsTipsMode === val ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-50'}`}>
                        {val === 1 && <Users size={10}/>} {label}
                      </button>
                    ))}
