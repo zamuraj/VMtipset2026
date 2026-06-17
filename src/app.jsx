@@ -640,13 +640,15 @@ export default function App() {
   }, [activePlayers, matches, projectedGoals]);
 
   const recentMatches = useMemo(() => {
-    return matches.filter(m => m.status === 'finished').sort((a,b) => b.id - a.id).slice(0, 5);
+    const finished = matches.filter(m => m.status === 'finished').sort((a,b) => b.id - a.id);
+    const formCount = Math.max(1, Math.round(finished.length * 0.25));
+    return finished.slice(0, formCount);
   }, [matches]);
 
   const formtoppen = useMemo(() => {
     if (!activePlayers.length || !recentMatches.length) return null;
-    let leader = null;
     let maxPts = -1;
+    let candidates = [];
     activePlayers.forEach(u => {
       let pts = 0;
       recentMatches.forEach(m => {
@@ -657,16 +659,19 @@ export default function App() {
       });
       if (pts > maxPts) {
         maxPts = pts;
-        leader = { ...u, recentPts: pts };
+        candidates = [{ ...u, recentPts: pts }];
+      } else if (pts === maxPts) {
+        candidates.push({ ...u, recentPts: pts });
       }
     });
-    return leader;
-  }, [activePlayers, recentMatches]);
+    const seed = matches.filter(m => m.status === 'finished').length;
+    return candidates[seed % candidates.length];
+  }, [activePlayers, recentMatches, matches]);
 
   const formsvackan = useMemo(() => {
     if (!activePlayers.length || !recentMatches.length) return null;
-    let loser = null;
     let minPts = 999;
+    let candidates = [];
     activePlayers.forEach(u => {
       let pts = 0;
       recentMatches.forEach(m => {
@@ -677,11 +682,14 @@ export default function App() {
       });
       if (pts < minPts) {
         minPts = pts;
-        loser = { ...u, recentPts: pts };
+        candidates = [{ ...u, recentPts: pts }];
+      } else if (pts === minPts) {
+        candidates.push({ ...u, recentPts: pts });
       }
     });
-    return loser;
-  }, [activePlayers, recentMatches]);
+    const seed = matches.filter(m => m.status === 'finished').length;
+    return candidates[seed % candidates.length];
+  }, [activePlayers, recentMatches, matches]);
 
   const uniqueTips = useMemo(() => {
     const flags = {};
@@ -705,8 +713,8 @@ export default function App() {
     if (!activePlayers.length) return null;
     const finishedMatches = matches.filter(m => m.status === 'finished');
     if (!finishedMatches.length) return null;
-    let king = null;
     let maxX = -1;
+    let candidates = [];
     activePlayers.forEach(u => {
       let xPts = 0;
       finishedMatches.forEach(m => {
@@ -716,10 +724,13 @@ export default function App() {
       });
       if (xPts > maxX) {
         maxX = xPts;
-        king = { ...u, xPts };
+        candidates = [{ ...u, xPts }];
+      } else if (xPts === maxX) {
+        candidates.push({ ...u, xPts });
       }
     });
-    return king;
+    const seed = finishedMatches.length;
+    return candidates[seed % candidates.length];
   }, [activePlayers, matches]);
 
   const prizePool = useMemo(() => {
@@ -1087,11 +1098,11 @@ export default function App() {
              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white p-4 rounded-3xl border shadow-sm flex items-center gap-4">
                   <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600"><TrendingUp size={24}/></div>
-                  <div><div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Formtoppen</div><div className="font-black text-sm">{formtoppen?.name ? <>{formtoppen.name.split(' ')[0]} ({formtoppen.recentPts} rätt senaste 5)</> : <span className="text-slate-400 font-medium">Inväntar resultat</span>}</div></div>
+                  <div><div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Formtoppen</div><div className="font-black text-sm">{formtoppen?.name ? <>{formtoppen.name.split(' ')[0]} ({formtoppen.recentPts} rätt senaste {recentMatches.length})</> : <span className="text-slate-400 font-medium">Inväntar resultat</span>}</div></div>
                 </div>
                 <div className="bg-white p-4 rounded-3xl border shadow-sm flex items-center gap-4">
                   <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600"><TrendingDown size={24}/></div>
-                  <div><div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Formsvackan</div><div className="font-black text-sm">{formsvackan?.name ? <>{formsvackan.name.split(' ')[0]} ({formsvackan.recentPts} rätt senaste 5)</> : <span className="text-slate-400 font-medium">Inväntar resultat</span>}</div></div>
+                  <div><div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Formsvackan</div><div className="font-black text-sm">{formsvackan?.name ? <>{formsvackan.name.split(' ')[0]} ({formsvackan.recentPts} rätt senaste {recentMatches.length})</> : <span className="text-slate-400 font-medium">Inväntar resultat</span>}</div></div>
                 </div>
                 <div className="bg-white p-4 rounded-3xl border shadow-sm flex items-center gap-4">
                   <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600"><Crosshair size={24}/></div>
