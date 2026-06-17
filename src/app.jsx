@@ -281,6 +281,33 @@ export default function App() {
       chatEndRef.current.scrollIntoView();
     }
   }, [chatMessages, activeTab]);
+
+  React.useEffect(() => {
+    if (activeTab === 'matches' && matches.length > 0) {
+      const timer = setTimeout(() => {
+        const liveMatch = matches.find(m => m.status === 'live');
+        const upcomingMatch = matches.find(m => m.status === 'upcoming');
+        const finishedMatches = matches.filter(m => m.status === 'finished');
+        
+        let targetId = null;
+        if (liveMatch) {
+          targetId = liveMatch.id;
+        } else if (upcomingMatch) {
+          targetId = upcomingMatch.id;
+        } else if (finishedMatches.length > 0) {
+          targetId = finishedMatches[finishedMatches.length - 1].id;
+        }
+        
+        if (targetId !== null) {
+          const el = document.getElementById(`match-card-${targetId}`);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [activeTab, matches]);
   const [newChatMsg, setNewChatMsg] = useState('');
   const [deadline, setDeadline] = useState(null);
   const [hallOfFame, setHallOfFame] = useState([]);
@@ -1303,7 +1330,7 @@ export default function App() {
                  const actual = get1X2(m.goals1, m.goals2);
                  const actualPct = (totalTips && actual && counts[actual]) ? Math.round((counts[actual] / totalTips) * 100) : 0;
                  return (
-                 <div key={m.id} onClick={() => trackMatchViewed(m.id, m.team1, m.team2)} className="bg-white/90 backdrop-blur-md p-6 rounded-[2rem] border shadow-sm space-y-3 relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow">
+                 <div key={m.id} id={`match-card-${m.id}`} onClick={() => trackMatchViewed(m.id, m.team1, m.team2)} className="bg-white/90 backdrop-blur-md p-6 rounded-[2rem] border shadow-sm space-y-3 relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow">
                     {m.status === 'live' && (
                       <div className="absolute top-4 right-4 flex items-center gap-1.5">
                         <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]"/>
