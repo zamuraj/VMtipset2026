@@ -265,6 +265,7 @@ export default function App() {
   const [showMentions, setShowMentions] = useState(false);
   const [mentionSearch, setMentionSearch] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showMatrixModal, setShowMatrixModal] = useState(false);
   const [isPrizeExpanded, setIsPrizeExpanded] = useState(false);
   const [hofYear, setHofYear] = useState('');
   const [hofName, setHofName] = useState('');
@@ -1149,98 +1150,130 @@ export default function App() {
                 </div>
              </div>
 
-             {/* TIPPNINGSMATRIS */}
-             {activePlayers.length > 0 && (() => {
-               const sortedPlayers = activePlayers;
-               const lastPlayedMatch = matches.filter(m => m.status === 'finished' || m.status === 'live').pop();
-               const leaderboardMap = new Map(leaderboard.map(u => [u.id, u.pts]));
-               
-               return (
-                 <div className="rounded-[2rem] border bg-white shadow-xl overflow-hidden">
-                   <div className="p-4 border-b flex items-center justify-between">
-                     <h3 className="font-black text-sm flex items-center gap-2"><Grid3X3 size={16} className="text-indigo-600"/> Tippningsmatris</h3>
-                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{sortedPlayers.length} spelare &middot; {matches.length} matcher</span>
+             {/* TIPPNINGSMATRIS - KNAPP */}
+             {activePlayers.length > 0 && (
+               <button
+                 onClick={() => { setShowMatrixModal(true); document.body.style.overflow = 'hidden'; }}
+                 className="w-full rounded-[2rem] border bg-white shadow-sm p-6 flex items-center justify-between hover:shadow-md transition-all group cursor-pointer"
+               >
+                 <div className="flex items-center gap-4">
+                   <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-100 transition-colors">
+                     <Grid3X3 size={26}/>
                    </div>
-                   <div onScroll={handleTableScroll} className="overflow-auto max-h-[75vh] no-scrollbar relative">
-                     <table className="text-xs text-left" style={{borderCollapse:'separate', borderSpacing:0}}>
-                       <thead className="text-[10px] uppercase text-slate-400">
-                         <tr>
-                           <th className="sticky top-0 left-0 z-50 bg-vmdark text-vmgold p-4 border-r border-b whitespace-nowrap font-black">Match</th>
-                           {sortedPlayers.map(p => (
-                             <th key={p.id} className="sticky top-0 z-40 bg-vmdark text-white p-3 border-r border-b whitespace-nowrap text-center font-black min-w-[60px]">
-                               {p.name}
-                             </th>
-                           ))}
-                         </tr>
-                       </thead>
-                       <tbody>
-                         {matches.map(m => {
-                           const actual = get1X2(m.goals1, m.goals2);
-                           const isFinished = m.status === 'finished' || m.status === 'live';
-                           const isLastPlayed = m.id === lastPlayedMatch?.id;
-                           const matchCellClass = `sticky left-0 z-30 border-r border-b ${isTableScrolled ? 'p-2 max-w-[88px] overflow-hidden' : 'p-3 max-w-[260px] overflow-hidden'} whitespace-nowrap transition-all duration-300 shadow-[4px_0_10px_rgba(0,0,0,0.04)] ${isLastPlayed ? 'bg-amber-50 border-l-4 border-l-vmgold' : 'bg-white'}`;
-                           const matchCellStyle = isTableScrolled ? { minWidth: 88, maxWidth: 88, width: 88 } : {};
-                           return (
-                             <tr key={m.id} className="hover:bg-slate-50/50 transition-colors">
-                               <td className={matchCellClass} style={matchCellStyle}>
-                                 <div className="flex items-center gap-1">
-                                   <span className="text-[9px] font-black text-slate-300 w-5 shrink-0">#{m.id}</span>
-                                   <Flag code={TEAMS[m.team1]?.flag} className="w-5 h-4 rounded-sm object-cover shadow-sm shrink-0"/>
-                                   {!isTableScrolled && (
-                                     <span className="font-bold truncate max-w-[100px] sm:max-w-none inline-block" title={m.team1} style={{color: TEAMS[m.team1]?.primary === '#FFFFFF' ? '#334155' : TEAMS[m.team1]?.primary}}>{m.team1}</span>
-                                   )}
-                                   {isFinished && !isTableScrolled && <span className="text-[10px] font-black text-slate-500 mx-0.5 shrink-0">{m.goals1}-{m.goals2}</span>}
-                                   <Flag code={TEAMS[m.team2]?.flag} className="w-5 h-4 rounded-sm object-cover shadow-sm shrink-0"/>
-                                   {!isTableScrolled && (
-                                     <span className="font-bold truncate max-w-[100px] sm:max-w-none inline-block" title={m.team2} style={{color: TEAMS[m.team2]?.primary === '#FFFFFF' ? '#334155' : TEAMS[m.team2]?.primary}}>{m.team2}</span>
-                                   )}
-                                 </div>
-                               </td>
-                               {sortedPlayers.map(p => {
-                                 const pick = p.predictions?.[m.id];
-                                 const isCorrect = isFinished && actual && pick === actual;
-                                 const isWrong = isFinished && actual && pick && pick !== actual;
-                                 let bg = 'transparent';
-                                 let textCl = 'text-slate-400';
-                                 if (isCorrect) {
-                                   bg = pick === '1' ? (TEAMS[m.team1]?.primary || '#4f46e5') : pick === '2' ? (TEAMS[m.team2]?.primary || '#4f46e5') : '#64748b';
-                                   if (bg === '#FFFFFF') bg = '#64748b';
-                                   textCl = 'text-white';
-                                 } else if (isWrong) {
-                                   textCl = 'text-red-300';
-                                 }
-                                 return (
-                                   <td key={p.id} className={`border-r border-b p-3 text-center font-black transition-colors ${isWrong ? 'opacity-50' : ''}`} style={{backgroundColor: bg}}>
-                                     <span className={textCl}>{pick || <span className="text-slate-200">—</span>}</span>
-                                   </td>
-                                 );
-                               })}
-                             </tr>
-                           );
-                         })}
-                       </tbody>
-                       <tfoot>
-                         <tr>
-                           <td className="sticky bottom-0 left-0 z-50 bg-vmdark text-vmgold p-4 border-r border-t border-vmgold/20 font-black uppercase text-[10px] shadow-[0_-4px_10px_rgba(0,0,0,0.1)]">
-                             {isTableScrolled ? 'Rätt' : 'Totalt Rätt'}
-                           </td>
-                           {sortedPlayers.map(p => {
-                              const pPts = leaderboardMap.get(p.id) || 0;
-                              return (
-                                <td key={p.id} className="sticky bottom-0 z-40 bg-vmdark text-white p-3 border-r border-t border-white/10 text-center font-black text-sm shadow-[0_-4px_10px_rgba(0,0,0,0.1)]">
-                                  {pPts}
-                                </td>
-                              );
-                           })}
-                         </tr>
-                       </tfoot>
-                     </table>
+                   <div className="text-left">
+                     <div className="font-black text-slate-800 text-base">Tippningsmatris</div>
+                     <div className="text-[11px] text-slate-400 font-medium mt-0.5">{activePlayers.length} spelare · {matches.length} matcher · Klicka för att öppna</div>
                    </div>
                  </div>
-               );
-             })()}
-          </div>
-        )}
+                 <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-md group-hover:bg-indigo-700 transition-colors shrink-0">
+                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h6v6M14 10l7-7M9 21H3v-6M10 14l-7 7"/></svg>
+                 </div>
+               </button>
+             )}
+           </div>
+         )}
+
+         {/* TIPPNINGSMATRIS FULLSCREEN MODAL */}
+         {showMatrixModal && (() => {
+           const sortedPlayers = activePlayers;
+           const lastPlayedMatch = matches.filter(m => m.status === 'finished' || m.status === 'live').pop();
+           const leaderboardMap = new Map(leaderboard.map(u => [u.id, u.pts]));
+           return (
+             <div className="fixed inset-0 z-[200] bg-slate-50 flex flex-col animate-in fade-in duration-200">
+               <div className="bg-vmdark text-white flex items-center justify-between px-4 py-3 shrink-0 shadow-lg">
+                 <div className="flex items-center gap-3">
+                   <Grid3X3 size={18} className="text-vmgold"/>
+                   <div>
+                     <div className="font-black text-sm tracking-tight">Tippningsmatris</div>
+                     <div className="text-[10px] text-white/50 font-medium">{sortedPlayers.length} spelare · {matches.length} matcher</div>
+                   </div>
+                 </div>
+                 <button
+                   onClick={() => { setShowMatrixModal(false); document.body.style.overflow = ''; }}
+                   className="flex items-center gap-2 bg-white/10 hover:bg-white/20 transition-colors px-4 py-2 rounded-xl font-black text-xs"
+                 >
+                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                   Stäng
+                 </button>
+               </div>
+               <div onScroll={handleTableScroll} className="flex-1 overflow-auto no-scrollbar">
+                 <table className="text-xs text-left" style={{borderCollapse:'separate', borderSpacing:0}}>
+                   <thead className="text-[10px] uppercase text-slate-400">
+                     <tr>
+                       <th className="sticky top-0 left-0 z-50 bg-vmdark text-vmgold p-4 border-r border-b whitespace-nowrap font-black">Match</th>
+                       {sortedPlayers.map(p => (
+                         <th key={p.id} className="sticky top-0 z-40 bg-vmdark text-white p-3 border-r border-b whitespace-nowrap text-center font-black min-w-[60px]">
+                           {p.name}
+                         </th>
+                       ))}
+                     </tr>
+                   </thead>
+                   <tbody>
+                     {matches.map(m => {
+                       const actual = get1X2(m.goals1, m.goals2);
+                       const isFinished = m.status === 'finished' || m.status === 'live';
+                       const isLastPlayed = m.id === lastPlayedMatch?.id;
+                       const matchCellClass = `sticky left-0 z-30 border-r border-b ${isTableScrolled ? "p-2 max-w-[88px] overflow-hidden" : "p-3 max-w-[260px] overflow-hidden"} whitespace-nowrap transition-all duration-300 shadow-[4px_0_10px_rgba(0,0,0,0.04)] ${isLastPlayed ? "bg-amber-50 border-l-4 border-l-vmgold" : "bg-white"}`;
+                       const matchCellStyle = isTableScrolled ? { minWidth: 88, maxWidth: 88, width: 88 } : {};
+                       return (
+                         <tr key={m.id} className="hover:bg-slate-50/50 transition-colors">
+                           <td className={matchCellClass} style={matchCellStyle}>
+                             <div className="flex items-center gap-1">
+                               <span className="text-[9px] font-black text-slate-300 w-5 shrink-0">#{m.id}</span>
+                               <Flag code={TEAMS[m.team1]?.flag} className="w-5 h-4 rounded-sm object-cover shadow-sm shrink-0"/>
+                               {!isTableScrolled && (
+                                 <span className="font-bold truncate max-w-[100px] sm:max-w-none inline-block" title={m.team1} style={{color: TEAMS[m.team1]?.primary === '#FFFFFF' ? '#334155' : TEAMS[m.team1]?.primary}}>{m.team1}</span>
+                               )}
+                               {isFinished && !isTableScrolled && <span className="text-[10px] font-black text-slate-500 mx-0.5 shrink-0">{m.goals1}-{m.goals2}</span>}
+                               <Flag code={TEAMS[m.team2]?.flag} className="w-5 h-4 rounded-sm object-cover shadow-sm shrink-0"/>
+                               {!isTableScrolled && (
+                                 <span className="font-bold truncate max-w-[100px] sm:max-w-none inline-block" title={m.team2} style={{color: TEAMS[m.team2]?.primary === '#FFFFFF' ? '#334155' : TEAMS[m.team2]?.primary}}>{m.team2}</span>
+                               )}
+                             </div>
+                           </td>
+                           {sortedPlayers.map(p => {
+                             const pick = p.predictions?.[m.id];
+                             const isCorrect = isFinished && actual && pick === actual;
+                             const isWrong = isFinished && actual && pick && pick !== actual;
+                             let bg = 'transparent';
+                             let textCl = 'text-slate-400';
+                             if (isCorrect) {
+                               bg = pick === '1' ? (TEAMS[m.team1]?.primary || '#4f46e5') : pick === '2' ? (TEAMS[m.team2]?.primary || '#4f46e5') : '#64748b';
+                               if (bg === '#FFFFFF') bg = '#64748b';
+                               textCl = 'text-white';
+                             } else if (isWrong) {
+                               textCl = 'text-red-300';
+                             }
+                             return (
+                               <td key={p.id} className={`border-r border-b p-3 text-center font-black transition-colors ${isWrong ? "opacity-50" : ""}`} style={{backgroundColor: bg}}>
+                                 <span className={textCl}>{pick || <span className="text-slate-200">—</span>}</span>
+                               </td>
+                             );
+                           })}
+                         </tr>
+                       );
+                     })}
+                   </tbody>
+                   <tfoot>
+                     <tr>
+                       <td className="sticky bottom-0 left-0 z-50 bg-vmdark text-vmgold p-4 border-r border-t border-vmgold/20 font-black uppercase text-[10px] shadow-[0_-4px_10px_rgba(0,0,0,0.1)]">
+                         {isTableScrolled ? 'Rätt' : 'Totalt Rätt'}
+                       </td>
+                       {sortedPlayers.map(p => {
+                         const pPts = leaderboardMap.get(p.id) || 0;
+                         return (
+                           <td key={p.id} className="sticky bottom-0 z-40 bg-vmdark text-white p-3 border-r border-t border-white/10 text-center font-black text-sm shadow-[0_-4px_10px_rgba(0,0,0,0.1)]">
+                             {pPts}
+                           </td>
+                         );
+                       })}
+                     </tr>
+                   </tfoot>
+                 </table>
+               </div>
+             </div>
+           );
+         })()}
 
         {activeTab === 'groups' && (
           <div className="space-y-6 animate-in fade-in duration-300">
