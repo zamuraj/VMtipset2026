@@ -47,6 +47,7 @@ const TEAMS_MAP = {
   'Ivory Coast': 'Elfenbenskusten',
   'Tunisia': 'Tunisien',
   'Cape Verde': 'Kap Verde',
+  'Cape Verde Islands': 'Kap Verde',
   'Egypt': 'Egypten',
   'Saudi Arabia': 'Saudiarabien',
   'Iran': 'Iran',
@@ -55,6 +56,7 @@ const TEAMS_MAP = {
   'Algeria': 'Algeriet',
   'Austria': 'Österrike',
   'DR Congo': 'DR Kongo',
+  'Congo DR': 'DR Kongo',
   'Colombia': 'Colombia',
   'Croatia': 'Kroatien',
   'Ghana': 'Ghana'
