@@ -1340,14 +1340,33 @@ export default function App() {
 
         {activeTab === 'matches' && (
            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 animate-in fade-in duration-300">
-              {matches.map(m => {
+              {matches.map((m, index) => {
+                 let roundMarker = null;
+                 if (index === 0) roundMarker = "Omgång 1";
+                 else if (index === 24) roundMarker = "Omgång 2";
+                 else if (index === 48) roundMarker = "Omgång 3";
+                 else if (index === 72) roundMarker = "Sextondelsfinaler";
+                 else if (index === 88) roundMarker = "Åttondelsfinaler";
+                 else if (index === 96) roundMarker = "Kvartsfinaler";
+                 else if (index === 100) roundMarker = "Semifinaler";
+                 else if (index === 102) roundMarker = "Bronsmatch";
+                 else if (index === 103) roundMarker = "Final";
+
                  const fact = MATCH_FACTS[m.id];
                  const stats = matchStats[m.id] || { totalTips: 0, counts: { '1': 0, 'X': 0, '2': 0 }, maxSign: '1', maxPct: 0 };
                  const { totalTips, counts, maxSign, maxPct } = stats;
                  const actual = get1X2(m.goals1, m.goals2);
                  const actualPct = (totalTips && actual && counts[actual]) ? Math.round((counts[actual] / totalTips) * 100) : 0;
                  return (
-                 <div key={m.id} id={`match-card-${m.id}`} onClick={() => { setSelectedMatchInfo(m); trackMatchViewed(m.id, m.team1, m.team2); }} className="bg-white/90 backdrop-blur-md p-6 rounded-[2rem] border shadow-sm space-y-3 relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow">
+                 <React.Fragment key={m.id}>
+                    {roundMarker && (
+                       <div className="col-span-full mt-4 mb-2 flex items-center gap-4">
+                          <div className="h-px bg-slate-200 flex-1"></div>
+                          <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em]">{roundMarker}</h3>
+                          <div className="h-px bg-slate-200 flex-1"></div>
+                       </div>
+                    )}
+                 <div id={`match-card-${m.id}`} onClick={() => { setSelectedMatchInfo(m); trackMatchViewed(m.id, m.team1, m.team2); }} className="bg-white/90 backdrop-blur-md p-6 rounded-[2rem] border shadow-sm space-y-3 relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow">
                     {m.status === 'live' && (
                       <div className="absolute top-4 right-4 flex items-center gap-1.5">
                         <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]"/>
@@ -1401,6 +1420,7 @@ export default function App() {
                       </div>
                     )}
                  </div>
+                 </React.Fragment>
                  );
               })}
            </div>
