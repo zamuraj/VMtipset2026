@@ -1429,11 +1429,18 @@ export default function App() {
                         </div>
                         {totalTips > 0 && (
                           <div className="p-2.5 text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
-                            {m.status === 'finished' ? (
-                               actualPct < 20 ? <span className="text-red-500">🚨 SKRÄLL! Endast {actualPct}% trodde på detta!</span> :
-                               actualPct > 75 ? <span className="text-emerald-600">✅ Favoritseger! Hela {actualPct}% hade rätt.</span> :
-                               <span className="text-slate-500">Tippades av {actualPct}% av spelarna.</span>
-                            ) : (
+                            {m.status === 'finished' ? (() => {
+                               const correctCount = counts[actual] || 0;
+                               const wrongCount = totalTips - correctCount;
+                               if (correctCount === 0) return <span className="text-red-500">🚨 MEGA-SKRÄLL! Ingen hade rätt!</span>;
+                               if (correctCount === 1) return <span className="text-red-500">🚨 SKRÄLL! Endast 1 person hade rätt!</span>;
+                               if (wrongCount === 0) return <span className="text-emerald-600">✅ ALLA hade rätt!</span>;
+                               if (wrongCount === 1) return <span className="text-emerald-600">✅ Favoritseger! Alla utom 1 hade rätt.</span>;
+                               if (wrongCount === 2) return <span className="text-emerald-600">✅ Favoritseger! Alla utom 2 hade rätt.</span>;
+                               if (actualPct < 25) return <span className="text-red-500">🚨 SKRÄLL! Endast {correctCount} st hade rätt!</span>;
+                               if (actualPct > 75) return <span className="text-emerald-600">✅ Favoritseger! Hela {correctCount} st hade rätt.</span>;
+                               return <span className="text-slate-500">{correctCount} st prickade rätt.</span>;
+                            })() : (
                                maxPct > 75 ? <span className="text-indigo-600">🔥 {maxPct}% tror på {maxSign === '1' ? m.team1 : maxSign === '2' ? m.team2 : 'Kryss'}!</span> :
                                maxPct < 45 ? <span className="text-amber-600">⚖️ Rysare! Publiken är helt oense.</span> :
                                <span className="text-slate-500">Mest tippad: {maxSign} ({maxPct}%)</span>
