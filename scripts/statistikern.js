@@ -242,6 +242,12 @@ async function run() {
       }
     });
 
+    // Blanda tipsen för att AI:n inte alltid ska välja de första namnen
+    for (let i = userTipsList.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [userTipsList[i], userTipsList[j]] = [userTipsList[j], userTipsList[i]];
+    }
+
     console.log(`Hittade ${userTipsList.length} tips för match ${match.id}`);
 
     const correctTippers = userTipsList.filter(t => t.correct).map(t => `@${t.name}`);
@@ -270,17 +276,16 @@ async function run() {
 
 Matchen ${team1} mot ${team2} slutade ${g1} - ${g2} (rätt tecken: ${correctSign}).
 
-Tippade deltagare:
+Tippade deltagare (i blandad ordning):
 ${tipsText}
 
 INSTRUKTIONER:
-1. Sök på nätet efter matchen och hämta bara dessa EXAKTA fem statistikvärden: bollinnehav (%), hörnor, gula kort, röda kort, frisparkar. Ta BARA med rader du hittar data för.
-2. Skriv en levande matchsammanfattning (2-3 meningar) – lyft fram något intressant eller dramatiskt.
+1. Sök på nätet efter matchen och hämta BARA dessa EXAKTA fem statistikvärden: bollinnehav (%), hörnor, gula kort, röda kort, frisparkar. Ta BARA med rader du hittar data för.
+2. Skriv en LÄNGRE och LEVANDE matchsammanfattning (ca 4-6 meningar). Fokusera på matchens gång, nyckelögonblick, och dramatik. Gör det intressant för den som missat matchen!
 3. Skriv "Statistikerns Dom" med värme och humor:
-   - Kommentera hur gruppen tippade på ett roligt sätt – var klyftig, inte elak.
-   - Om någon stack ut positivt (hade rätt när få andra hade det), lyft gärna fram dem med @Förnamn.
-   - Undvik att lista upp eller hänga ut de som tippade fel – det räcker med en smidig sidokommentar om det passar naturligt.
-   - Fokusera mer på matchen och stämningen än på att döma tipparna.
+   - Kommentera hur gruppen tippade, men HÅLL DETTA AVSNITT KORT (gör det ca 30-50% kortare än matchsammanfattningen).
+   - Du MÅSTE nämna 1-3 specifika deltagare med ett "@" framför deras förnamn (t.ex. @Anna eller @Johan). Välj slumpmässigt ut någon som stack ut (t.ex. prickade rätt ensam, eller trodde på en rolig skräll). Eftersom listan är blandad, plocka gärna namn från slutet eller mitten av listan!
+   - Fokusera mer på matchen och stämningen än på att lista tippare.
    - Inga långa namnlistor.
 
 VIKTIGT FORMAT – följ detta EXAKT, avvik inte:
@@ -294,7 +299,7 @@ Formatera svaret EXAKT så här:
 *${team1} ${g1} - ${g2} ${team2} är slutspelad!* 🏁
 
 📝 **Matchsammanfattning:**
-[sammanfattning]
+[din längre, levande sammanfattning]
 
 📈 **Matchfakta (${team1} - ${team2}):**
 ⚽️ Bollinnehav: X% - Y%
@@ -304,7 +309,7 @@ Formatera svaret EXAKT så här:
 👟 Frisparkar: X - Y
 
 🎯 **Statistikerns Dom:**
-[din analys]
+[din korta analys av tippandet med 1-3 @-omnämnanden]
 
 *(Totalt ${totalTournamentGoals} mål i turneringen hittills)*`;
 
