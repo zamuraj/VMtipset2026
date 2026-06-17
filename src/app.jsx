@@ -512,7 +512,7 @@ export default function App() {
   };
 
   // --- CALCULATIONS ---
-  const activeUser = useMemo(() => currentUser ? tips.find(t => t.id === currentUser.id) || currentUser : null, [currentUser, tips]);
+  const activeUser = useMemo(() => currentUser ? tips.find(t => t.id === currentUser.id || (t.email && currentUser.email && t.email.toLowerCase() === currentUser.email.toLowerCase())) || currentUser : null, [currentUser, tips]);
   const activePlayers = useMemo(() => {
     let players = tips.filter(t => t.isApproved && !t.isAdmin);
     
@@ -1535,6 +1535,7 @@ export default function App() {
                         {msg.text.split(/(@[a-zA-ZåäöÅÄÖ\w-]+)/g).map((part, i) => {
                            if (part.startsWith('@')) {
                              const name = part.substring(1).toLowerCase();
+                             if (name === 'alla') return <span key={i} className="text-vmgold font-black bg-black/10 px-1.5 py-0.5 rounded-md shadow-sm">{part}</span>;
                              const isReal = activePlayers.some(p => p.name.toLowerCase().startsWith(name));
                              if (isReal) return <span key={i} className="text-blue-400 font-bold underline cursor-pointer">{part}</span>;
                            }
