@@ -1433,7 +1433,11 @@ export default function App() {
                                const correctCount = counts[actual] || 0;
                                const wrongCount = totalTips - correctCount;
                                if (correctCount === 0) return <span className="text-red-500">🚨 MEGA-SKRÄLL! Ingen hade rätt!</span>;
-                               if (correctCount === 1) return <span className="text-red-500">🚨 SKRÄLL! Endast 1 person hade rätt!</span>;
+                               if (correctCount === 1) {
+                                  const winner = activePlayers.find(p => p.predictions?.[m.id] === actual);
+                                  const winnerName = winner ? winner.name : 'Någon';
+                                  return <span className="text-amber-600 font-black">🏆 Grattis {winnerName}, ensam med rätt!!</span>;
+                               }
                                if (wrongCount === 0) return <span className="text-emerald-600">✅ ALLA hade rätt!</span>;
                                if (wrongCount === 1) return <span className="text-emerald-600">✅ Favoritseger! Alla utom 1 hade rätt.</span>;
                                if (wrongCount === 2) return <span className="text-emerald-600">✅ Favoritseger! Alla utom 2 hade rätt.</span>;
