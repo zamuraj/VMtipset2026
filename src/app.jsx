@@ -1019,15 +1019,15 @@ export default function App() {
              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white p-4 rounded-3xl border shadow-sm flex items-center gap-4">
                   <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600"><TrendingUp size={24}/></div>
-                  <div><div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Formtoppen</div><div className="font-black text-sm">{formtoppen?.name?.split(' ')[0]} ({formtoppen?.recentPts} rätt senaste 5)</div></div>
+                  <div><div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Formtoppen</div><div className="font-black text-sm">{formtoppen?.name ? <>{formtoppen.name.split(' ')[0]} ({formtoppen.recentPts} rätt senaste 5)</> : <span className="text-slate-400 font-medium">Inväntar resultat</span>}</div></div>
                 </div>
                 <div className="bg-white p-4 rounded-3xl border shadow-sm flex items-center gap-4">
                   <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600"><TrendingDown size={24}/></div>
-                  <div><div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Formsvackan</div><div className="font-black text-sm">{formsvackan?.name?.split(' ')[0]} ({formsvackan?.recentPts} rätt senaste 5)</div></div>
+                  <div><div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Formsvackan</div><div className="font-black text-sm">{formsvackan?.name ? <>{formsvackan.name.split(' ')[0]} ({formsvackan.recentPts} rätt senaste 5)</> : <span className="text-slate-400 font-medium">Inväntar resultat</span>}</div></div>
                 </div>
                 <div className="bg-white p-4 rounded-3xl border shadow-sm flex items-center gap-4">
                   <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600"><Crosshair size={24}/></div>
-                  <div><div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Kryss-kungen</div><div className="font-black text-sm">{krysskungen?.name?.split(' ')[0]} ({krysskungen?.xPts} rätta X)</div></div>
+                  <div><div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Kryss-kungen</div><div className="font-black text-sm">{krysskungen?.name ? <>{krysskungen.name.split(' ')[0]} ({krysskungen.xPts} rätta X)</> : <span className="text-slate-400 font-medium">Inväntar resultat</span>}</div></div>
                 </div>
              </div>
 
@@ -1043,18 +1043,26 @@ export default function App() {
                       </tr>
                     </thead>
                     <tbody className="divide-y">
-                      {leaderboard.map(u => (
-                        <tr key={u.id} className="hover:bg-indigo-50/50 transition-colors">
-                          <td className="p-5 font-black text-slate-300">#{u.rank}</td>
-                          <td className="p-0 font-bold hover:text-indigo-600 transition-colors">
-                            <button onClick={() => setSelectedUser(u)} className="w-full h-full text-left flex items-center gap-1.5 p-5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
-                              {u.name}{hallOfFame.some(h => h.champion.toLowerCase() === u.name.toLowerCase()) && <span title="Tidigare mästare" className="text-vmgold"><Star size={12} fill="#fbbf24"/></span>}
-                            </button>
+                      {leaderboard.length === 0 ? (
+                        <tr>
+                          <td colSpan="4" className="p-8 text-center text-slate-400 font-bold text-sm bg-slate-50/50">
+                            Inga godkända spelare ännu.
                           </td>
-                          <td className="p-5 text-center font-bold text-slate-400 text-sm">{u.goals ?? '-'}</td>
-                          <td className="p-5 text-center font-black text-indigo-600 bg-indigo-50/20">{u.pts}</td>
                         </tr>
-                      ))}
+                      ) : (
+                        leaderboard.map(u => (
+                          <tr key={u.id} className="hover:bg-indigo-50/50 transition-colors">
+                            <td className="p-5 font-black text-slate-300">#{u.rank}</td>
+                            <td className="p-0 font-bold hover:text-indigo-600 transition-colors">
+                              <button onClick={() => setSelectedUser(u)} className="w-full h-full text-left flex items-center gap-1.5 p-5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+                                {u.name}{hallOfFame.some(h => h.champion.toLowerCase() === u.name.toLowerCase()) && <span title="Tidigare mästare" className="text-vmgold"><Star size={12} fill="#fbbf24"/></span>}
+                              </button>
+                            </td>
+                            <td className="p-5 text-center font-bold text-slate-400 text-sm">{u.goals ?? '-'}</td>
+                            <td className="p-5 text-center font-black text-indigo-600 bg-indigo-50/20">{u.pts}</td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -1610,17 +1618,17 @@ export default function App() {
                           <div className="flex items-center justify-between gap-2">
                              <div className="flex items-center gap-2 flex-1"><Flag code={TEAMS[m.team1]?.flag}/><span className="text-xs font-black truncate">{m.team1}</span></div>
                              <label htmlFor={`match-goals1-${m.id}`} className="sr-only">Mål {m.team1}</label>
-                             <input id={`match-goals1-${m.id}`} type="number" disabled={isLiveSyncActive} defaultValue={m.goals1} onBlur={e => updateMatch(m.id, { goals1: parseInt(e.target.value) || 0, status: 'finished' })} className="w-12 p-2 border rounded-xl text-center font-black outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent bg-white disabled:opacity-50"/>
+                             <input id={`match-goals1-${m.id}`} type="number" disabled={isLiveSyncActive} title={isLiveSyncActive ? "Låst av Live-Sync" : undefined} defaultValue={m.goals1} onBlur={e => updateMatch(m.id, { goals1: parseInt(e.target.value) || 0, status: 'finished' })} className="w-12 p-2 border rounded-xl text-center font-black outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent bg-white disabled:opacity-50 disabled:cursor-not-allowed"/>
                           </div>
                           <div className="flex items-center justify-between gap-2">
                              <div className="flex items-center gap-2 flex-1"><Flag code={TEAMS[m.team2]?.flag}/><span className="text-xs font-black truncate">{m.team2}</span></div>
                              <label htmlFor={`match-goals2-${m.id}`} className="sr-only">Mål {m.team2}</label>
-                             <input id={`match-goals2-${m.id}`} type="number" disabled={isLiveSyncActive} defaultValue={m.goals2} onBlur={e => updateMatch(m.id, { goals2: parseInt(e.target.value) || 0, status: 'finished' })} className="w-12 p-2 border rounded-xl text-center font-black outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent bg-white disabled:opacity-50"/>
+                             <input id={`match-goals2-${m.id}`} type="number" disabled={isLiveSyncActive} title={isLiveSyncActive ? "Låst av Live-Sync" : undefined} defaultValue={m.goals2} onBlur={e => updateMatch(m.id, { goals2: parseInt(e.target.value) || 0, status: 'finished' })} className="w-12 p-2 border rounded-xl text-center font-black outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent bg-white disabled:opacity-50 disabled:cursor-not-allowed"/>
                           </div>
                           <div className="flex gap-2">
                              <label htmlFor={`match-minute-${m.id}`} className="sr-only">Minut</label>
-                             <input id={`match-minute-${m.id}`} type="text" disabled={isLiveSyncActive} placeholder="Minut (ex 65)" defaultValue={m.minute} onBlur={e => updateMatch(m.id, { minute: e.target.value, status: e.target.value ? 'live' : 'finished' })} className="flex-1 p-2 border rounded-xl text-[10px] font-black outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent bg-white disabled:opacity-50"/>
-                             <button disabled={isLiveSyncActive} onClick={() => updateMatch(m.id, { status: 'upcoming', goals1: null, goals2: null, minute: null })} aria-label="Återställ match" title="Återställ match" className="p-2 text-slate-300 hover:text-red-400 transition-colors disabled:opacity-30 outline-none focus:ring-2 focus:ring-red-500/50"><X size={16}/></button>
+                             <input id={`match-minute-${m.id}`} type="text" disabled={isLiveSyncActive} title={isLiveSyncActive ? "Låst av Live-Sync" : undefined} placeholder="Minut (ex 65)" defaultValue={m.minute} onBlur={e => updateMatch(m.id, { minute: e.target.value, status: e.target.value ? 'live' : 'finished' })} className="flex-1 p-2 border rounded-xl text-[10px] font-black outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent bg-white disabled:opacity-50 disabled:cursor-not-allowed"/>
+                             <button disabled={isLiveSyncActive} onClick={() => updateMatch(m.id, { status: 'upcoming', goals1: null, goals2: null, minute: null })} aria-label="Återställ match" title={isLiveSyncActive ? "Låst av Live-Sync" : "Återställ match"} className="p-2 text-slate-300 hover:text-red-400 transition-colors disabled:opacity-30 disabled:cursor-not-allowed outline-none focus:ring-2 focus:ring-red-500/50"><X size={16}/></button>
                           </div>
                        </div>
                     </div>
