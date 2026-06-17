@@ -1281,7 +1281,7 @@ export default function App() {
                 <label htmlFor="h2h-user1" className="sr-only">Välj Spelare 1</label>
                 <select id="h2h-user1" className="w-full p-3 bg-slate-50 border rounded-xl font-bold outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent transition-colors" value={h2hUser1} onChange={e => setH2hUser1(e.target.value)}>
                   <option value="">Välj Spelare 1...</option>
-                  {activePlayers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                  {activePlayers.map(u => <option key={u.id} value={u.id}>{u.fullName}</option>)}
                 </select>
               </div>
               <div className="flex items-center font-black text-slate-300">VS</div>
@@ -1289,7 +1289,7 @@ export default function App() {
                 <label htmlFor="h2h-user2" className="sr-only">Välj Spelare 2</label>
                 <select id="h2h-user2" className="w-full p-3 bg-slate-50 border rounded-xl font-bold outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent transition-colors" value={h2hUser2} onChange={e => setH2hUser2(e.target.value)}>
                   <option value="">Välj Spelare 2...</option>
-                  {activePlayers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                  {activePlayers.map(u => <option key={u.id} value={u.id}>{u.fullName}</option>)}
                 </select>
               </div>
             </div>
@@ -1696,7 +1696,7 @@ export default function App() {
                        <User size={40} />
                     </div>
                     <div>
-                       <h2 className="text-3xl font-black italic tracking-tighter">{selectedUser.name}</h2>
+                       <h2 className="text-3xl font-black italic tracking-tighter">{selectedUser.fullName}</h2>
                        <div className="flex items-center gap-4 mt-2">
                           <div className="bg-white/10 px-3 py-1 rounded-full text-xs font-bold text-vmgold border border-vmgold/30">PLACERING #{selectedUser.rank}</div>
                           <div className="text-slate-400 text-xs font-bold uppercase tracking-widest">{selectedUser.pts} Poäng | {selectedUser.goals} Mål</div>
@@ -1755,10 +1755,16 @@ export default function App() {
          const tips2 = [];
          activePlayers.forEach(p => {
            const pick = p.predictions?.[m.id];
-           if (pick === '1') tips1.push(p.name);
-           else if (pick === 'X') tipsX.push(p.name);
-           else if (pick === '2') tips2.push(p.name);
+           if (pick === '1') tips1.push(p.fullName);
+           else if (pick === 'X') tipsX.push(p.fullName);
+           else if (pick === '2') tips2.push(p.fullName);
          });
+         
+         const statistikerMsgs = m.status === 'finished' ? chatMessages.filter(msg => 
+            msg.user?.toLowerCase().includes('statistiker') && 
+            msg.text.includes(m.team1) && 
+            msg.text.includes(m.team2)
+         ) : [];
          return (
          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-vmdark/80 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setSelectedMatchInfo(null)}>
             <div className="bg-white w-full max-w-4xl rounded-[3rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
@@ -1787,6 +1793,18 @@ export default function App() {
                   </div>
                </div>
                <div className="flex-1 overflow-y-auto p-6 md:p-8 no-scrollbar bg-slate-50">
+                  {statistikerMsgs.length > 0 && (
+                     <div className="mb-8 bg-indigo-50 border border-indigo-100 rounded-3xl p-6">
+                        <h3 className="font-black text-xs text-indigo-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2"><Activity size={14}/> Statistikerns inlägg</h3>
+                        <div className="space-y-4">
+                           {statistikerMsgs.map(msg => (
+                              <div key={msg.id} className="text-sm text-indigo-900 leading-relaxed font-medium whitespace-pre-wrap">
+                                 {msg.text}
+                              </div>
+                           ))}
+                        </div>
+                     </div>
+                  )}
                   <h3 className="font-black text-xs text-slate-400 uppercase tracking-[0.2em] mb-6 text-center">Så tippade deltagarna</h3>
                   <div className="grid grid-cols-3 gap-4 md:gap-6">
                      {[
