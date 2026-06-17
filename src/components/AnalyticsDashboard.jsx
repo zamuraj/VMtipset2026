@@ -4,7 +4,6 @@ import { collection, query, limit, getDocs, orderBy } from 'firebase/firestore';
 import {
   Activity,
   MousePointerClick,
-  Clock,
   RefreshCw,
   Users,
   XCircle,
@@ -12,9 +11,7 @@ import {
   MessageSquare,
   Timer,
   AlertTriangle,
-  Smartphone,
-  Monitor,
-  Tablet,
+  User,
 } from 'lucide-react';
 
 // VM 2026 startdatum
