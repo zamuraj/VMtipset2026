@@ -1318,16 +1318,39 @@ export default function App() {
                     {matches.map(m => {
                       const p1 = u1?.predictions?.[m.id];
                       const p2 = u2?.predictions?.[m.id];
+                      const actual = get1X2(m.goals1, m.goals2);
                       const diff = p1 && p2 && p1 !== p2;
+                      
+                      const p1Correct = actual && p1 === actual;
+                      const p2Correct = actual && p2 === actual;
+                      const p1Wrong = actual && p1 !== actual;
+                      const p2Wrong = actual && p2 !== actual;
+
+                      const rowClass = actual ? 'bg-white border-slate-100' : diff ? 'bg-amber-50 border-amber-200 shadow-sm' : 'bg-white border-slate-100';
+
+                      const getBoxClass = (p, isCorrect, isWrong) => {
+                         if (!p) return 'text-slate-300';
+                         if (isCorrect) return 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20';
+                         if (isWrong) return 'bg-slate-100 text-slate-300 line-through opacity-70';
+                         if (diff) return 'bg-amber-100 text-amber-700 font-black';
+                         return 'bg-slate-50 text-slate-600 font-bold';
+                      };
+
                       return (
-                        <div key={m.id} className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${diff ? 'bg-amber-50 border-amber-200 shadow-sm' : 'bg-white'}`}>
-                          <div className={`w-8 font-black text-center ${diff ? 'text-amber-600' : 'text-slate-600'}`}>{p1 || '-'}</div>
-                          <div className="flex items-center gap-3 flex-1 justify-center opacity-80">
-                            <span className="text-xs font-bold text-right w-20">{m.team1}</span>
-                            <span className="text-[10px] text-slate-300">vs</span>
-                            <span className="text-xs font-bold w-20">{m.team2}</span>
+                        <div key={m.id} className={`flex items-center justify-between p-2 rounded-[1.25rem] border transition-colors ${rowClass}`}>
+                          <div className={`w-10 h-10 shrink-0 flex items-center justify-center rounded-xl text-lg transition-all ${getBoxClass(p1, p1Correct, p1Wrong)}`}>{p1 || '-'}</div>
+                          <div className="flex items-center gap-2 md:gap-3 flex-1 justify-center opacity-90">
+                            <span className="text-xs font-bold text-right flex-1 truncate max-w-[80px] md:max-w-none">{m.team1}</span>
+                            <div className="flex flex-col items-center justify-center shrink-0 w-12">
+                               {actual ? (
+                                  <span className="text-[10px] font-black text-vmgold bg-vmdark px-2 py-0.5 rounded-full shadow-sm">{m.goals1} - {m.goals2}</span>
+                               ) : (
+                                  <span className="text-[10px] text-slate-300 font-black uppercase">VS</span>
+                               )}
+                            </div>
+                            <span className="text-xs font-bold text-left flex-1 truncate max-w-[80px] md:max-w-none">{m.team2}</span>
                           </div>
-                          <div className={`w-8 font-black text-center ${diff ? 'text-amber-600' : 'text-slate-600'}`}>{p2 || '-'}</div>
+                          <div className={`w-10 h-10 shrink-0 flex items-center justify-center rounded-xl text-lg transition-all ${getBoxClass(p2, p2Correct, p2Wrong)}`}>{p2 || '-'}</div>
                         </div>
                       );
                     })}
