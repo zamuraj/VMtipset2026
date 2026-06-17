@@ -873,12 +873,14 @@ export default function App() {
     try {
       await addDoc(collection(db, "chat"), { user: currentUser.name, text: newChatMsg, createdAt: serverTimestamp() });
 
+      const isMentioningAll = newChatMsg.toLowerCase().includes('@alla');
+
       activePlayers.forEach(p => {
         const firstName = p.name.split(' ')[0].toLowerCase();
-        if (newChatMsg.toLowerCase().includes(`@${firstName}`) || newChatMsg.toLowerCase().includes(`@${p.name.toLowerCase()}`)) {
+        if (isMentioningAll || newChatMsg.toLowerCase().includes(`@${firstName}`) || newChatMsg.toLowerCase().includes(`@${p.name.toLowerCase()}`)) {
           if (p.id !== currentUser.id) {
             const notifs = p.notifications || [];
-            notifs.unshift({ id: Date.now().toString() + Math.random(), type: 'mention', text: `${currentUser.name} har nämnt dig i Snackis`, isRead: false, createdAt: new Date().toISOString() });
+            notifs.unshift({ id: Date.now().toString() + Math.random(), type: 'mention', text: isMentioningAll ? `${currentUser.name} nämnde @alla i Snackis` : `${currentUser.name} har nämnt dig i Snackis`, isRead: false, createdAt: new Date().toISOString() });
             updateDoc(doc(db, "tips", p.id), { notifications: notifs });
           }
         }
@@ -1572,6 +1574,14 @@ export default function App() {
                 {!currentUser?.isAdmin && <div className="text-[10px] text-slate-400 font-bold ml-1 text-right">{newChatMsg.length}/300 tecken</div>}
                 {showMentions && (
                    <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
+                     {'alla'.includes(mentionSearch.toLowerCase()) && (
+                       <button type="button" onClick={() => {
+                         const val = newChatMsg.substring(0, newChatMsg.lastIndexOf('@')) + '@alla ';
+                         setNewChatMsg(val);
+                         setShowMentions(false);
+                         document.getElementById('chat-input').focus();
+                       }} className="px-3 py-1.5 bg-vmgold text-vmdark rounded-full text-[10px] font-black border border-vmgold/50 shrink-0 shadow-sm">@alla</button>
+                     )}
                      {activePlayers.filter(p => p.name.toLowerCase().includes(mentionSearch.toLowerCase())).map(p => (
                        <button key={p.id} type="button" onClick={() => {
                          const val = newChatMsg.substring(0, newChatMsg.lastIndexOf('@')) + '@' + p.name + ' ';
