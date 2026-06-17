@@ -513,7 +513,47 @@ export default function App() {
 
   // --- CALCULATIONS ---
   const activeUser = useMemo(() => currentUser ? tips.find(t => t.id === currentUser.id) || currentUser : null, [currentUser, tips]);
-  const activePlayers = useMemo(() => tips.filter(t => t.isApproved && !t.isAdmin), [tips]);
+  const activePlayers = useMemo(() => {
+    let players = tips.filter(t => t.isApproved && !t.isAdmin);
+    
+    // Sanitize and save full name
+    players = players.map(p => {
+      let fullName = p.name || '';
+      if (typeof fullName === 'string') {
+        fullName = fullName.split(' ')
+          .filter(part => part && part.toLowerCase() !== 'undefined')
+          .join(' ')
+          .replace(/\.\s*$/, '')
+          .trim();
+      }
+      return { ...p, fullName };
+    });
+
+    // Sort alphabetically by full name (first name, then last name)
+    players.sort((a, b) => a.fullName.localeCompare(b.fullName, 'sv'));
+
+    // Count first names to handle collisions
+    const firstNameCount = {};
+    players.forEach(p => {
+      const fn = p.fullName.split(' ')[0];
+      if (fn) firstNameCount[fn] = (firstNameCount[fn] || 0) + 1;
+    });
+
+    // Compute display name
+    return players.map(p => {
+      const parts = p.fullName.split(' ');
+      let displayName = '?';
+      if (parts.length > 0) {
+        const fn = parts[0];
+        if (firstNameCount[fn] > 1 && parts.length > 1) {
+          displayName = `${fn} ${parts[parts.length - 1][0]}.`;
+        } else {
+          displayName = fn;
+        }
+      }
+      return { ...p, name: displayName };
+    });
+  }, [tips]);
   const matchStats = useMemo(() => {
     const stats = {};
     matches.forEach(m => {
@@ -596,7 +636,7 @@ export default function App() {
         if (mr.result && predictions[mr.id] === mr.result) pts++;
       });
       return { ...u, pts, diff: Math.abs((parseInt(u.goals) || 0) - projectedGoals) };
-    }).sort((a, b) => b.pts - a.pts || a.diff - b.diff).map((u, i) => ({ ...u, rank: i + 1 }));
+    }).sort((a, b) => b.pts - a.pts || a.diff - b.diff || a.fullName.localeCompare(b.fullName, 'sv')).map((u, i) => ({ ...u, rank: i + 1 }));
   }, [activePlayers, matches, projectedGoals]);
 
   const recentMatches = useMemo(() => {
@@ -1098,34 +1138,10 @@ export default function App() {
 
              {/* TIPPNINGSMATRIS */}
              {activePlayers.length > 0 && (() => {
-               const sortedPlayers = [...activePlayers].sort((a, b) => a.name.localeCompare(b.name, 'sv'));
+               const sortedPlayers = activePlayers;
                const lastPlayedMatch = matches.filter(m => m.status === 'finished' || m.status === 'live').pop();
                const leaderboardMap = new Map(leaderboard.map(u => [u.id, u.pts]));
-               // Sanitize away "undefined" tokens (stored from old registration bugs)
-               const sanitizeName = (raw) => {
-                 if (!raw || typeof raw !== 'string') return '';
-                 return raw.split(' ')
-                   .filter(p => p && p.toLowerCase() !== 'undefined')
-                   .join(' ')
-                   .replace(/\.\s*$/, '')   // strip trailing dots
-                   .trim();
-               };
-               // Show last-name initial only when first names clash
-               const firstNameCount = sortedPlayers.reduce((acc, p) => {
-                 const fn = sanitizeName(p.name).split(' ')[0];
-                 if (fn) acc[fn] = (acc[fn] || 0) + 1;
-                 return acc;
-               }, {});
-               const getDisplayName = (name) => {
-                 const clean = sanitizeName(name);
-                 const parts = clean.split(' ').filter(Boolean);
-                 if (!parts.length) return '?';
-                 const fn = parts[0];
-                 if (firstNameCount[fn] > 1 && parts.length > 1) {
-                   return `${fn} ${parts[parts.length - 1][0]}.`;
-                 }
-                 return fn;
-               };
+               
                return (
                  <div className="rounded-[2rem] border bg-white shadow-xl overflow-hidden">
                    <div className="p-4 border-b flex items-center justify-between">
@@ -1139,7 +1155,7 @@ export default function App() {
                            <th className="sticky top-0 left-0 z-50 bg-vmdark text-vmgold p-4 border-r border-b whitespace-nowrap font-black">Match</th>
                            {sortedPlayers.map(p => (
                              <th key={p.id} className="sticky top-0 z-40 bg-vmdark text-white p-3 border-r border-b whitespace-nowrap text-center font-black min-w-[60px]">
-                               {getDisplayName(p.name)}
+                               {p.name}
                              </th>
                            ))}
                          </tr>
