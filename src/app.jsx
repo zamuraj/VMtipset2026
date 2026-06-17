@@ -258,6 +258,7 @@ export default function App() {
   const toastTimeoutRef = useRef(null);
   const [activeTab, setActiveTab] = useState('leaderboard');
   const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedMatchInfo, setSelectedMatchInfo] = useState(null);
   const [folketsTipsMode, setFolketsTipsMode] = useState(0); 
   const [h2hUser1, setH2hUser1] = useState('');
   const [h2hUser2, setH2hUser2] = useState('');
@@ -1330,7 +1331,7 @@ export default function App() {
                  const actual = get1X2(m.goals1, m.goals2);
                  const actualPct = (totalTips && actual && counts[actual]) ? Math.round((counts[actual] / totalTips) * 100) : 0;
                  return (
-                 <div key={m.id} id={`match-card-${m.id}`} onClick={() => trackMatchViewed(m.id, m.team1, m.team2)} className="bg-white/90 backdrop-blur-md p-6 rounded-[2rem] border shadow-sm space-y-3 relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow">
+                 <div key={m.id} id={`match-card-${m.id}`} onClick={() => { setSelectedMatchInfo(m); trackMatchViewed(m.id, m.team1, m.team2); }} className="bg-white/90 backdrop-blur-md p-6 rounded-[2rem] border shadow-sm space-y-3 relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow">
                     {m.status === 'live' && (
                       <div className="absolute top-4 right-4 flex items-center gap-1.5">
                         <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]"/>
@@ -1730,6 +1731,79 @@ export default function App() {
            </div>
         </div>
       )}
+      {selectedMatchInfo && (() => {
+         const m = selectedMatchInfo;
+         const actual = get1X2(m.goals1, m.goals2);
+         const tips1 = [];
+         const tipsX = [];
+         const tips2 = [];
+         activePlayers.forEach(p => {
+           const pick = p.predictions?.[m.id];
+           if (pick === '1') tips1.push(p.name);
+           else if (pick === 'X') tipsX.push(p.name);
+           else if (pick === '2') tips2.push(p.name);
+         });
+         return (
+         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-vmdark/80 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setSelectedMatchInfo(null)}>
+            <div className="bg-white w-full max-w-4xl rounded-[3rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
+               <div className="bg-vmdark p-8 text-white relative">
+                  <button onClick={() => setSelectedMatchInfo(null)} aria-label="Stäng" title="Stäng" className="absolute top-6 right-6 p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors outline-none focus:ring-2 focus:ring-white/50"><X/></button>
+                  <div className="flex flex-col items-center gap-4 mt-2">
+                     <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{m.date} | Grupp {m.group}</div>
+                     <div className="flex items-center justify-center gap-6 w-full">
+                        <div className="flex flex-col items-center gap-2 flex-1">
+                           <Flag code={TEAMS[m.team1]?.flag} />
+                           <span className="text-xl font-black text-center">{m.team1}</span>
+                        </div>
+                        <div className="flex flex-col items-center gap-1 shrink-0">
+                           <div className="flex items-center gap-2 bg-white/10 px-6 py-3 rounded-2xl border border-white/10">
+                              <span className="font-black text-4xl">{m.goals1 ?? '-'}</span>
+                              <span className="text-slate-400 text-2xl">:</span>
+                              <span className="font-black text-4xl">{m.goals2 ?? '-'}</span>
+                           </div>
+                           {actual && <div className="text-xs font-black text-vmdark bg-vmgold px-3 py-1 rounded-full uppercase mt-2 shadow-[0_0_15px_rgba(251,191,36,0.5)] border border-vmgold/50">Rätt tecken: {actual}</div>}
+                        </div>
+                        <div className="flex flex-col items-center gap-2 flex-1">
+                           <Flag code={TEAMS[m.team2]?.flag} />
+                           <span className="text-xl font-black text-center">{m.team2}</span>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+               <div className="flex-1 overflow-y-auto p-6 md:p-8 no-scrollbar bg-slate-50">
+                  <h3 className="font-black text-xs text-slate-400 uppercase tracking-[0.2em] mb-6 text-center">Så tippade deltagarna</h3>
+                  <div className="grid grid-cols-3 gap-4 md:gap-6">
+                     {[
+                       { sign: '1', label: m.team1, data: tips1 },
+                       { sign: 'X', label: 'Oavgjort', data: tipsX },
+                       { sign: '2', label: m.team2, data: tips2 }
+                     ].map(col => {
+                       const isCorrect = actual === col.sign;
+                       const isWrong = actual && actual !== col.sign;
+                       return (
+                         <div key={col.sign} className={`flex flex-col rounded-[2rem] border overflow-hidden ${isCorrect ? 'bg-emerald-50 border-emerald-200' : isWrong ? 'bg-white border-slate-200 opacity-60' : 'bg-white border-slate-200'} shadow-sm transition-all`}>
+                           <div className={`p-4 border-b flex flex-col items-center justify-center gap-1 ${isCorrect ? 'bg-emerald-500 text-white border-emerald-600 shadow-inner' : 'bg-slate-100 border-slate-200 text-slate-500'}`}>
+                              <span className="font-black text-3xl">{col.sign}</span>
+                              <span className="text-[10px] font-bold uppercase truncate max-w-full text-center px-2 opacity-80">{col.label}</span>
+                           </div>
+                           <div className="p-4 space-y-2 max-h-[40vh] overflow-y-auto no-scrollbar">
+                             {col.data.length === 0 ? (
+                               <div className="text-xs text-slate-400 font-bold text-center italic py-6">Ingen tippade detta</div>
+                             ) : (
+                               col.data.map((name, i) => (
+                                 <div key={i} className="text-sm font-bold text-slate-700 truncate text-center py-1 border-b border-slate-100 last:border-0" title={name}>{name}</div>
+                               ))
+                             )}
+                           </div>
+                         </div>
+                       );
+                     })}
+                  </div>
+               </div>
+            </div>
+         </div>
+         );
+      })()}
       {isEditing && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-vmdark/80 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="bg-white w-full max-w-2xl rounded-[3rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
