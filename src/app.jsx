@@ -1163,19 +1163,16 @@ export default function App() {
                             <td className="p-5 font-black text-slate-300">#{u.rank}</td>
                             <td className="p-0 font-bold hover:text-indigo-600 transition-colors">
                               <button onClick={() => { setSelectedUser(u); trackPlayerProfileViewed(u.id, u.name); }} className="w-full h-full text-left flex items-center gap-1.5 p-5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
-                                {u.name}{hallOfFame.some(h => {
+                                 {u.name.trim().split(' ').length > 1 ? u.name.trim().split(' ')[0] + ' ' + u.name.trim().split(' ')[1][0] + '.' : u.name.trim()}{hallOfFame.some(h => {
                                   const hc = h.champion.trim().toLowerCase();
                                   const un = u.name.trim().toLowerCase();
                                   if (hc === un) return true;
                                   const hFirst = hc.split(' ')[0];
                                   const uFirst = un.split(' ')[0];
                                   if (hFirst !== uFirst) return false;
-                                  const hofLastInitial = hc.split(' ')[1]?.[0] || '';
-                                  const playerLastInitial = un.split(' ')[1]?.[0] || '';
-                                  // Om HoF-posten har ett efternamn maste initialen stamma
-                                  if (hofLastInitial) return hofLastInitial === playerLastInitial;
-                                  // HoF-posten saknar efternamn - ok om fornamnet ar unikt
-                                  return leaderboard.filter(p => p.name.trim().toLowerCase().split(' ')[0] === uFirst).length === 1;
+                                  const hofInitial = hc.split(' ')[1]?.[0] || '';
+                                  const playerInitial = un.split(' ')[1]?.[0] || '';
+                                  return hofInitial === playerInitial;
                                 }) && <span title="Tidigare m\u00e4stare" className="text-vmgold ml-1"><Star size={12} fill="#fbbf24"/></span>}
                               </button>
                             </td>
