@@ -1163,9 +1163,9 @@ export default function App() {
                             <td className="p-5 font-black text-slate-300">#{u.rank}</td>
                             <td className="p-0 font-bold hover:text-indigo-600 transition-colors">
                               <button onClick={() => { setSelectedUser(u); trackPlayerProfileViewed(u.id, u.name); }} className="w-full h-full text-left flex items-center gap-1.5 p-5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
-                                 {u.name.trim().split(' ').length > 1 ? u.name.trim().split(' ')[0] + ' ' + u.name.trim().split(' ')[1][0] + '.' : u.name.trim()}{hallOfFame.some(h => {
+                                 {u.fullName.trim().split(' ').length > 1 ? u.fullName.trim().split(' ')[0] + ' ' + u.fullName.trim().split(' ')[1][0] + '.' : u.fullName.trim()}{hallOfFame.some(h => {
                                   const hc = h.champion.trim().toLowerCase();
-                                  const un = u.name.trim().toLowerCase();
+                                  const un = u.fullName.trim().toLowerCase();
                                   if (hc === un) return true;
                                   const hFirst = hc.split(' ')[0];
                                   const uFirst = un.split(' ')[0];
@@ -1557,7 +1557,17 @@ export default function App() {
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {hallOfFame.map((entry, idx) => {
-                  const isActive = activePlayers.some(p => p.name.toLowerCase() === entry.champion.toLowerCase());
+                  const isActive = activePlayers.some(p => {
+                    const hc = entry.champion.trim().toLowerCase();
+                    const un = p.fullName.trim().toLowerCase();
+                    if (hc === un) return true;
+                    const hFirst = hc.split(' ')[0];
+                    const uFirst = un.split(' ')[0];
+                    if (hFirst !== uFirst) return false;
+                    const hofInitial = hc.split(' ')[1]?.[0] || '';
+                    const playerInitial = un.split(' ')[1]?.[0] || '';
+                    return hofInitial === playerInitial;
+                  });
                   const isLatest = idx === 0;
                   return (
                     <div key={entry.id} className={`rounded-[2rem] border p-6 shadow-sm flex flex-col items-center text-center transition-all ${isLatest ? 'bg-vmdark text-white border-vmgold/30 shadow-[0_0_30px_rgba(251,191,36,0.1)]' : 'bg-white/90 backdrop-blur-md'}`}>
