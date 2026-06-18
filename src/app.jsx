@@ -1170,13 +1170,12 @@ export default function App() {
                                   const hFirst = hc.split(' ')[0];
                                   const uFirst = un.split(' ')[0];
                                   if (hFirst !== uFirst) return false;
-                                  // Förnamnet matchar - kolla om det är unikt i topplistan
-                                  const firstNameIsUnique = leaderboard.filter(p => p.name.trim().toLowerCase().split(' ')[0] === uFirst).length === 1;
-                                  if (firstNameIsUnique) return true;
-                                  // Dubbelt förnamn - kräv att efternamnets initial matchar
                                   const hofLastInitial = hc.split(' ')[1]?.[0] || '';
                                   const playerLastInitial = un.split(' ')[1]?.[0] || '';
-                                  return hofLastInitial && playerLastInitial && hofLastInitial === playerLastInitial;
+                                  // Om HoF-posten har ett efternamn maste initialen stamma
+                                  if (hofLastInitial) return hofLastInitial === playerLastInitial;
+                                  // HoF-posten saknar efternamn - ok om fornamnet ar unikt
+                                  return leaderboard.filter(p => p.name.trim().toLowerCase().split(' ')[0] === uFirst).length === 1;
                                 }) && <span title="Tidigare m\u00e4stare" className="text-vmgold ml-1"><Star size={12} fill="#fbbf24"/></span>}
                               </button>
                             </td>
