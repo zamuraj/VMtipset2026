@@ -922,7 +922,7 @@ export default function App() {
               </div>
             )}
             {authError && <p className="text-red-400 text-xs font-bold text-center">{authError}</p>}
-            <button type="submit" disabled={isLoggingIn} title={isLoggingIn ? "Loggar in..." : undefined} className="w-full py-4 bg-indigo-600 disabled:opacity-50 flex items-center justify-center gap-2 rounded-xl font-black shadow-lg">
+            <button type="submit" disabled={isLoggingIn} title={isLoggingIn ? "Loggar in..." : undefined} className="w-full py-4 bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 rounded-xl font-black shadow-lg">
               {isLoggingIn && <Loader2 className="animate-spin" size={20} />} LOGGA IN
             </button>
             {!isDeadlinePassed && <button type="button" onClick={() => { resetRegFields(); setShowRegister(true); }} className="w-full text-emerald-400 font-bold text-sm">LÄMNA NYTT TIPS</button>}
@@ -1003,7 +1003,7 @@ export default function App() {
                       </div>
                     ))}
                   </div>
-                  <button onClick={submitTips} disabled={Object.keys(regPicks).length < 72 || isDeadlinePassed || isSubmitting} title={isSubmitting ? 'Skickar in...' : isDeadlinePassed ? 'Anmälan är stängd' : Object.keys(regPicks).length < 72 ? `Du måste tippa alla 72 matcher (${72 - Object.keys(regPicks).length} kvar)` : 'Klicka för att skicka in'} className="w-full py-5 bg-indigo-600 disabled:opacity-30 flex items-center justify-center gap-2 rounded-2xl font-black shadow-[0_10px_20px_rgba(79,70,229,0.3)] mt-2">
+                  <button onClick={submitTips} disabled={Object.keys(regPicks).length < 72 || isDeadlinePassed || isSubmitting} title={isSubmitting ? 'Skickar in...' : isDeadlinePassed ? 'Anmälan är stängd' : Object.keys(regPicks).length < 72 ? `Du måste tippa alla 72 matcher (${72 - Object.keys(regPicks).length} kvar)` : 'Klicka för att skicka in'} className="w-full py-5 bg-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2 rounded-2xl font-black shadow-[0_10px_20px_rgba(79,70,229,0.3)] mt-2">
                     {isSubmitting && <Loader2 className="animate-spin" size={20} />}
                     {isDeadlinePassed ? 'DEADLINE PASSERAD' : 'SKICKA IN ANMÄLAN'}
                   </button>
@@ -1626,7 +1626,7 @@ export default function App() {
                      ))}
                    </div>
                 )}
-                <button type="submit" disabled={isSendingChat || !newChatMsg.trim()} title={isSendingChat ? "Skickar..." : (!newChatMsg.trim() ? "Skriv ett meddelande först" : undefined)} className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition-all disabled:opacity-50">
+                <button type="submit" disabled={isSendingChat || !newChatMsg.trim()} title={isSendingChat ? "Skickar..." : (!newChatMsg.trim() ? "Skriv ett meddelande först" : undefined)} className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                   {isSendingChat ? <Loader2 className="animate-spin" size={18}/> : <Send size={18}/>} SKICKA
                 </button>
              </form>
@@ -1690,7 +1690,7 @@ export default function App() {
                             }}
                             disabled={approvingId === t.id}
                             title={approvingId === t.id ? "Godkänner..." : undefined}
-                            className="px-6 py-3 bg-emerald-600 disabled:opacity-50 text-white rounded-2xl font-black shadow-lg shadow-emerald-600/20 flex items-center gap-2"
+                            className="px-6 py-3 bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-2xl font-black shadow-lg shadow-emerald-600/20 flex items-center gap-2"
                           >
                             {approvingId === t.id ? <Loader2 size={16} className="animate-spin" /> : null}
                             GODKÄNN
@@ -2003,7 +2003,7 @@ export default function App() {
             </div>
             <div className="p-6 flex gap-3 border-t bg-white">
               <button onClick={() => setIsEditing(false)} className="flex-1 py-3 rounded-2xl border font-bold text-slate-500 hover:bg-slate-50 transition-colors">Avbryt</button>
-              <button onClick={async () => { if (await submitTips()) setIsEditing(false); }} disabled={isSubmitting} title={isSubmitting ? "Sparar..." : undefined} className="flex-1 py-3 bg-indigo-600 disabled:opacity-50 text-white rounded-2xl font-black flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-colors">
+              <button onClick={async () => { if (await submitTips()) setIsEditing(false); }} disabled={isSubmitting} title={isSubmitting ? "Sparar..." : undefined} className="flex-1 py-3 bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-2xl font-black flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-colors">
                 {isSubmitting && <Loader2 className="animate-spin" size={20} />} Spara ändringar
               </button>
             </div>

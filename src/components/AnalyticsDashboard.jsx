@@ -507,8 +507,9 @@ export default function AnalyticsDashboard() {
           <button
             onClick={fetchData}
             disabled={loading}
+            aria-label="Uppdatera analytics-data"
             title="Uppdatera"
-            className="p-2 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors disabled:opacity-50"
+            className="p-2 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
           </button>
