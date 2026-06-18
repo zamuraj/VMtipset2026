@@ -1167,13 +1167,17 @@ export default function App() {
                                   const hc = h.champion.trim().toLowerCase();
                                   const un = u.name.trim().toLowerCase();
                                   if (hc === un) return true;
-                                  const hParts = hc.split(' ');
-                                  const uParts = un.split(' ');
-                                  const sameFirst = hParts[0] === uParts[0];
-                                  const hofLastInitial = hParts[1]?.[0] || '';
-                                  const playerLastInitial = uParts[1]?.[0] || '';
-                                  return sameFirst && hofLastInitial && playerLastInitial && hofLastInitial === playerLastInitial;
-                                }) && <span title="Tidigare mästare" className="text-vmgold ml-1"><Star size={12} fill="#fbbf24"/></span>}
+                                  const hFirst = hc.split(' ')[0];
+                                  const uFirst = un.split(' ')[0];
+                                  if (hFirst !== uFirst) return false;
+                                  // Förnamnet matchar - kolla om det är unikt i topplistan
+                                  const firstNameIsUnique = leaderboard.filter(p => p.name.trim().toLowerCase().split(' ')[0] === uFirst).length === 1;
+                                  if (firstNameIsUnique) return true;
+                                  // Dubbelt förnamn - kräv att efternamnets initial matchar
+                                  const hofLastInitial = hc.split(' ')[1]?.[0] || '';
+                                  const playerLastInitial = un.split(' ')[1]?.[0] || '';
+                                  return hofLastInitial && playerLastInitial && hofLastInitial === playerLastInitial;
+                                }) && <span title="Tidigare m\u00e4stare" className="text-vmgold ml-1"><Star size={12} fill="#fbbf24"/></span>}
                               </button>
                             </td>
                             <td className="p-5 text-center font-bold text-slate-400 text-sm">{u.goals ?? '-'}</td>
