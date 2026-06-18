@@ -1163,7 +1163,17 @@ export default function App() {
                             <td className="p-5 font-black text-slate-300">#{u.rank}</td>
                             <td className="p-0 font-bold hover:text-indigo-600 transition-colors">
                               <button onClick={() => { setSelectedUser(u); trackPlayerProfileViewed(u.id, u.name); }} className="w-full h-full text-left flex items-center gap-1.5 p-5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
-                                {u.name}{hallOfFame.some(h => { const hc = h.champion.trim().toLowerCase(); const un = u.name.trim().toLowerCase(); return hc === un || un.startsWith(hc) || hc.startsWith(un) || un.split(' ')[0] === hc.split(' ')[0]; }) && <span title="Tidigare mästare" className="text-vmgold ml-1"><Star size={12} fill="#fbbf24"/></span>}
+                                {u.name}{hallOfFame.some(h => {
+                                  const hc = h.champion.trim().toLowerCase();
+                                  const un = u.name.trim().toLowerCase();
+                                  if (hc === un) return true;
+                                  const hParts = hc.split(' ');
+                                  const uParts = un.split(' ');
+                                  const sameFirst = hParts[0] === uParts[0];
+                                  const hofLastInitial = hParts[1]?.[0] || '';
+                                  const playerLastInitial = uParts[1]?.[0] || '';
+                                  return sameFirst && hofLastInitial && playerLastInitial && hofLastInitial === playerLastInitial;
+                                }) && <span title="Tidigare mästare" className="text-vmgold ml-1"><Star size={12} fill="#fbbf24"/></span>}
                               </button>
                             </td>
                             <td className="p-5 text-center font-bold text-slate-400 text-sm">{u.goals ?? '-'}</td>
