@@ -317,7 +317,6 @@ export default function App() {
   const [editingParticipantId, setEditingParticipantId] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isLiveSyncActive, setIsLiveSyncActive] = useState(false);
-  const API_KEY = import.meta.env.VITE_FOOTBALL_API_KEY;
 
   // --- REGISTRATION DRAFT ---
   const [regStep, setRegStep] = useState(1);
@@ -399,36 +398,17 @@ export default function App() {
     return () => { unsubTips(); unsubMatches(); unsubChat(); unsubConfig(); unsubHof(); };
   }, []);
 
-  const fetchLiveResults = async () => {
-    try {
-      const response = await fetch('https://api.football-data.org/v4/competitions/WC/matches', { headers: { 'X-Auth-Token': API_KEY } });
-      if (response.status === 429) {
-        console.warn("Live-sync: API Rate limit nådd. Avvaktar till nästa cykel.");
-        return;
-      }
-      if (!response.ok) throw new Error('API-fel: ' + response.status);
-      const data = await response.json();
-      const map = { 'Mexico':'Mexiko', 'Ecuador':'Ecuador', 'Canada':'Kanada', 'Italy':'Italien', 'Togo':'Togo', 'United States':'USA', 'Morocco':'Marocko', 'Spain':'Spanien', 'Japan':'Japan', 'Brazil':'Brasilien', 'South Korea':'Sydkorea', 'Sweden':'Sverige', 'Jordan':'Jordanien', 'England':'England', 'Peru':'Peru', 'Germany':'Tyskland', 'Norway':'Norge', 'France':'Frankrike', 'Uzbekistan':'Uzbekistan', 'Uruguay':'Uruguay', 'Cameroon':'Kamerun', 'Netherlands':'Nederländerna', 'Australia':'Australien', 'Argentina':'Argentina', 'Haiti':'Haiti', 'Belgium':'Belgien', 'Panama':'Panama', 'Portugal':'Portugal', 'Senegal':'Senegal', 'Denmark':'Danmark', 'Nigeria':'Nigeria', 'South Africa':'Sydafrika', 'Czech Republic':'Tjeckien', 'Bosnia-Herzegovina':'Bosnien', 'Paraguay':'Paraguay', 'Qatar':'Qatar', 'Switzerland':'Schweiz', 'Scotland':'Skottland', 'Turkey':'Turkiet', 'Curaçao':'Curaçao', 'Ivory Coast':'Elfenbenskusten', 'Tunisia':'Tunisien', 'Cape Verde':'Kap Verde', 'Egypt':'Egypten', 'Saudi Arabia':'Saudiarabien', 'Iran':'Iran', 'New Zealand':'Nya Zeeland', 'Iraq':'Irak', 'Algeria':'Algeriet', 'Austria':'Österrike', 'DR Congo':'DR Kongo', 'Colombia':'Colombia', 'Croatia':'Kroatien', 'Ghana':'Ghana' };
-      data.matches?.forEach(mApi => {
-        const h = map[mApi.homeTeam.name] || mApi.homeTeam.name;
-        const a = map[mApi.awayTeam.name] || mApi.awayTeam.name;
-        const m = matchesRef.current.find(x => x.team1 === h && x.team2 === a);
-        if (m) {
-          const g1 = mApi.score.fullTime.home, g2 = mApi.score.fullTime.away;
-          const st = mApi.status === 'FINISHED' ? 'finished' : (['IN_PLAY','LIVE','PAUSED'].includes(mApi.status) ? 'live' : 'upcoming');
-          if (m.goals1 !== g1 || m.goals2 !== g2 || m.status !== st) updateMatch(m.id, { goals1: g1, goals2: g2, status: st, minute: mApi.minute?.toString() || null });
-        }
-      });
-    } catch(e) { console.error("Live Sync Error:", e); }
-  };
+  // Live sync hanteras av GitHub Actions (sync.js) och speglas hit via Firestore onSnapshot.
+  // Klient-sidans direkta API-anrop är borttaget för att undvika att API-nyckeln
+  // exponeras i den byggda JS-bunten.
 
   useEffect(() => {
     if (currentUser?.isAdmin && isLiveSyncActive) {
-      const interval = setInterval(fetchLiveResults, 60000);
-      fetchLiveResults();
-      return () => clearInterval(interval);
+      // Ingen polling behövs – Firestore onSnapshot uppdaterar matcher realtid
+      console.log('Live sync aktiv: Firestore speglar GitHub Actions sync.js automatiskt.');
     }
   }, [currentUser, isLiveSyncActive]);
+
 
   // --- SESSION LOGIC ---
   useEffect(() => {
@@ -915,10 +895,10 @@ export default function App() {
               <label htmlFor="login-email" className="sr-only">Din e-post</label>
               <input id="login-email" type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} placeholder="Din e-post" className="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all" required />
             </div>
-            {loginEmail.toLowerCase().trim() === import.meta.env.VITE_ADMIN_EMAIL?.toLowerCase().trim() && (
+            {loginEmail.includes('@') && (
               <div>
                 <label htmlFor="login-password" className="sr-only">Lösenord</label>
-                <input id="login-password" type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} placeholder="Lösenord" className="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all" required />
+                <input id="login-password" type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} placeholder="Lösenord (valfritt)" className="w-full p-4 rounded-2xl bg-black/40 border border-white/10 outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all" />
               </div>
             )}
             {authError && <p className="text-red-400 text-xs font-bold text-center">{authError}</p>}

@@ -2,28 +2,77 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // 1. Analytics-loggar: Alla kan skriva, admin-dashboardet kan läsa
+    // ─────────────────────────────────────────────────────────
+    // TIPS-samlingen: Registreringar, tipspoäng, notifikationer
+    // Alla kan läsa (krävs för leaderboard & login-sökning).
+    // Skrivning tillåts för eget dokument ELLER för ny registrering,
+    // men KRITISKA FÄLT (isAdmin, isApproved, password) är låsta.
+    // ─────────────────────────────────────────────────────────
+    match /tips/{docId} {
+      allow read: if true;
+
+      // Ny registrering: tillåt create om inga skyddade fält sätts
+      allow create: if !('isAdmin' in request.resource.data)
+                    && !('isApproved' in request.resource.data)
+                    && !('password' in request.resource.data);
+
+      // Uppdatering av eget dokument (t.ex. notifications, lastLoginDate, isUnlockedForEdit)
+      // Tillåts om inga skyddade fält ändras
+      allow update: if !('isAdmin' in request.resource.data)
+                    && !('isApproved' in request.resource.data)
+                    && !('password' in request.resource.data);
+
+      // Radering: ingen klient får radera (admin gör det via Admin SDK)
+      allow delete: if false;
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // MATCHES-samlingen: Matchresultat och status
+    // Alla kan läsa. INGEN klient kan skriva – enbart Admin SDK
+    // (GitHub Actions sync.js / serviceAccountKey) kan uppdatera.
+    // ─────────────────────────────────────────────────────────
+    match /matches/{document} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // CHAT-samlingen: Gruppchatten
+    // Alla kan läsa och skapa meddelanden.
+    // Ingen kan uppdatera eller radera (skyddar mot manipulation).
+    // ─────────────────────────────────────────────────────────
+    match /chat/{document} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if false;
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // SETTINGS-samlingen: Appkonfiguration (deadline, adminFee etc.)
+    // Alla kan läsa. INGEN klient kan skriva – admin sätter via skript.
+    // ─────────────────────────────────────────────────────────
+    match /settings/{document} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // HALL OF FAME-samlingen
+    // Alla kan läsa. INGEN klient kan skriva eller radera.
+    // ─────────────────────────────────────────────────────────
+    match /hallOfFame/{document} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // ANALYTICS-samlingen
+    // Alla kan skapa logg-händelser. Ingen kan uppdatera/radera.
+    // ─────────────────────────────────────────────────────────
     match /app_analytics/{document} {
       allow create: if true;
       allow read: if true;
       allow update, delete: if false;
-    }
-
-    // 2. Övriga samlingar: Tillåt alla att läsa/skriva fritt (eftersom appen hanterar inloggning manuellt)
-    match /tips/{document} {
-      allow read, write: if true;
-    }
-    match /matches/{document} {
-      allow read, write: if true;
-    }
-    match /chat/{document} {
-      allow read, write: if true;
-    }
-    match /settings/{document} {
-      allow read, write: if true;
-    }
-    match /hallOfFame/{document} {
-      allow read, write: if true;
     }
   }
 }
