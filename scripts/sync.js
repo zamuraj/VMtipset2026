@@ -251,22 +251,23 @@ async function run() {
   const isLive = await fetchAndSync();
 
   if (isLive) {
-     console.log("Minst en match är LIVE. Startar loop var 10:e minut i 30 minuter...");
+     console.log("Minst en match är LIVE. Startar loop var 1:a minut i 9 minuter (nästa cron tar vid)...");
      let count = 0;
-     const maxLoops = 3;
+     const maxLoops = 9;
 
      const interval = setInterval(async () => {
          count++;
          console.log(`--- Loop iteration ${count}/${maxLoops} ---`);
          const stillLive = await fetchAndSync();
 
-         if (count >= maxLoops) {
-             console.log("Max antal loop-iterationer nådd (30 min). Avslutar.");
+         if (!stillLive || count >= maxLoops) {
+             if (!stillLive) console.log("Inga matcher längre LIVE. Avslutar loopen.");
+             if (count >= maxLoops) console.log("Max antal loop-iterationer nådd (9 min). Nästa cron-körning tar vid.");
              clearInterval(interval);
              process.exit(0);
          }
 
-     }, 600000); // 10 minuter
+     }, 60000); // 1 minut
   } else {
      console.log("Inga matcher är LIVE. Avslutar direkt.");
      process.exit(0);
