@@ -245,9 +245,47 @@ async function fetchAndSync() {
     return false;
   }
 }
+function isAnyMatchScheduled(scheduleArr) {
+    const now = new Date();
+    // 15 min innan start till 4 timmar (240 min) efter start
+    const PRE_MATCH_MS = 15 * 60 * 1000; 
+    const POST_MATCH_MS = 240 * 60 * 1000; 
+
+    for (let row of scheduleArr) {
+        const parts = row.split('|');
+        const dateStr = parts[1]; // "11 jun 21:00"
+        
+        const dateParts = dateStr.split(' ');
+        const day = dateParts[0].padStart(2, '0');
+        const monthStr = dateParts[1].toLowerCase();
+        const time = dateParts[2];
+        
+        let month = '06';
+        if (monthStr === 'jul') month = '07';
+        
+        // Matcherna spelas i Nordamerika men tiderna är i svensk tid (CEST = UTC+2)
+        const isoString = `2026-${month}-${day}T${time}:00+02:00`;
+        const matchStart = new Date(isoString);
+        
+        const matchWindowStart = new Date(matchStart.getTime() - PRE_MATCH_MS);
+        const matchWindowEnd = new Date(matchStart.getTime() + POST_MATCH_MS);
+        
+        if (now >= matchWindowStart && now <= matchWindowEnd) {
+            return true;
+        }
+    }
+    return false;
+}
 
 async function run() {
-  console.log("Startar sync.js...");
+  console.log(`Startar sync.js... (${new Date().toISOString()})`);
+  
+  if (!isAnyMatchScheduled(VM_SCHEDULE)) {
+      console.log("Ingen match är schemalagd just nu (kollar 15 min innan till 4h efter starttid). Avslutar direkt utan API-anrop.");
+      process.exit(0);
+  }
+  
+  console.log("Match är schemalagd just nu! Anropar football-data API...");
   const isLive = await fetchAndSync();
 
   if (isLive) {
