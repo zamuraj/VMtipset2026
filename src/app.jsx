@@ -1451,7 +1451,7 @@ export default function App() {
                           <div className="h-px bg-slate-200 flex-1"></div>
                        </div>
                     )}
-                 <div id={`match-card-${m.id}`} onClick={() => { setSelectedMatchInfo(m); trackMatchViewed(m.id, m.team1, m.team2); }} className="bg-white/90 backdrop-blur-md p-6 rounded-[2rem] border shadow-sm space-y-3 relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow">
+                 <button id={`match-card-${m.id}`} onClick={() => { setSelectedMatchInfo(m); trackMatchViewed(m.id, m.team1, m.team2); }} className="w-full text-left bg-white/90 backdrop-blur-md p-6 rounded-[2rem] border shadow-sm space-y-3 relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50">
                     {m.status === 'live' && (
                       <div className="absolute top-4 right-4 flex items-center gap-1.5">
                         <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]"/>
@@ -1515,7 +1515,7 @@ export default function App() {
                         )}
                       </div>
                     )}
-                 </div>
+                 </button>
                  </React.Fragment>
                  );
               })}
