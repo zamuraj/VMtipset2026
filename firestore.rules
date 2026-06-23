@@ -18,9 +18,7 @@ service cloud.firestore {
 
       // Uppdatering av eget dokument (t.ex. notifications, lastLoginDate, isUnlockedForEdit)
       // Tillåts om inga skyddade fält ändras
-      allow update: if !('isAdmin' in request.resource.data)
-                    && !('isApproved' in request.resource.data)
-                    && !('password' in request.resource.data);
+      allow update: if !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin', 'isApproved', 'password']);
 
       // Radering: ingen klient får radera (admin gör det via Admin SDK)
       allow delete: if false;
