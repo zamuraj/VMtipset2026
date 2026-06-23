@@ -1451,7 +1451,7 @@ export default function App() {
                           <div className="h-px bg-slate-200 flex-1"></div>
                        </div>
                     )}
-                 <div id={`match-card-${m.id}`} onClick={() => { setSelectedMatchInfo(m); trackMatchViewed(m.id, m.team1, m.team2); }} className="bg-white/90 backdrop-blur-md p-6 rounded-[2rem] border shadow-sm space-y-3 relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow">
+                 <button id={`match-card-${m.id}`} onClick={() => { setSelectedMatchInfo(m); trackMatchViewed(m.id, m.team1, m.team2); }} className="w-full text-left bg-white/90 backdrop-blur-md p-6 rounded-[2rem] border shadow-sm space-y-3 relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50">
                     {m.status === 'live' && (
                       <div className="absolute top-4 right-4 flex items-center gap-1.5">
                         <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]"/>
@@ -1515,7 +1515,7 @@ export default function App() {
                         )}
                       </div>
                     )}
-                 </div>
+                 </button>
                  </React.Fragment>
                  );
               })}
@@ -1652,7 +1652,7 @@ export default function App() {
                      ))}
                    </div>
                 )}
-                <button type="submit" disabled={isSendingChat || !newChatMsg.trim()} title={isSendingChat ? "Skickar..." : (!newChatMsg.trim() ? "Skriv ett meddelande först" : undefined)} className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition-all disabled:opacity-50">
+                <button type="submit" disabled={isSendingChat || !newChatMsg.trim()} title={isSendingChat ? "Skickar..." : (!newChatMsg.trim() ? "Skriv ett meddelande först" : undefined)} className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                   {isSendingChat ? <Loader2 className="animate-spin" size={18}/> : <Send size={18}/>} SKICKA
                 </button>
              </form>
@@ -1716,7 +1716,7 @@ export default function App() {
                             }}
                             disabled={approvingId === t.id}
                             title={approvingId === t.id ? "Godkänner..." : undefined}
-                            className="px-6 py-3 bg-emerald-600 disabled:opacity-50 text-white rounded-2xl font-black shadow-lg shadow-emerald-600/20 flex items-center gap-2"
+                            className="px-6 py-3 bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-2xl font-black shadow-lg shadow-emerald-600/20 flex items-center gap-2"
                           >
                             {approvingId === t.id ? <Loader2 size={16} className="animate-spin" /> : null}
                             GODKÄNN
@@ -2029,7 +2029,7 @@ export default function App() {
             </div>
             <div className="p-6 flex gap-3 border-t bg-white">
               <button onClick={() => setIsEditing(false)} className="flex-1 py-3 rounded-2xl border font-bold text-slate-500 hover:bg-slate-50 transition-colors">Avbryt</button>
-              <button onClick={async () => { if (await submitTips()) setIsEditing(false); }} disabled={isSubmitting} title={isSubmitting ? "Sparar..." : undefined} className="flex-1 py-3 bg-indigo-600 disabled:opacity-50 text-white rounded-2xl font-black flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-colors">
+              <button onClick={async () => { if (await submitTips()) setIsEditing(false); }} disabled={isSubmitting} title={isSubmitting ? "Sparar..." : undefined} className="flex-1 py-3 bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-2xl font-black flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-colors">
                 {isSubmitting && <Loader2 className="animate-spin" size={20} />} Spara ändringar
               </button>
             </div>
