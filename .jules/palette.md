@@ -1,3 +1,3 @@
-## 2024-06-17 - Graceful Empty States for Derived Data
-**Learning:** Dynamically calculated widgets (like top scorer, form slump) show broken or confusing UI text (e.g., `( rätt senaste 5)`) when they rely on derived data that does not exist yet (e.g., before the tournament begins or before users have picks).
-**Action:** Always provide explicit, friendly empty states (e.g., "Inväntar resultat") for dynamically generated stats widgets to prevent broken UI strings and maintain user trust, especially in dashboards.
+## 2024-06-26 - Keyboard Focus states on UI buttons
+**Learning:** Some custom UI buttons utilizing Tailwind utilities effectively missed visible focus rings. E.g., The "Tippningsmatris" component acts as a button but wasn't clearly indicated on focus using keyboard navigation.
+**Action:** When creating custom buttons using non-standard components (e.g., div mimicking a button or heavily styled button), ensure `focus-visible:ring-2` is applied to maintain the keyboard accessibility navigation loop.
