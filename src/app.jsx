@@ -1170,7 +1170,8 @@ export default function App() {
              {activePlayers.length > 0 && (
                <button
                  onClick={() => { setShowMatrixModal(true); document.body.style.overflow = 'hidden'; }}
-                 className="w-full rounded-[2rem] border bg-white shadow-sm p-6 flex items-center justify-between hover:shadow-md transition-all group cursor-pointer"
+                 aria-label="Öppna tippningsmatris"
+                 className="w-full rounded-[2rem] border bg-white shadow-sm p-6 flex items-center justify-between hover:shadow-md transition-all group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
                >
                  <div className="flex items-center gap-4">
                    <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-100 transition-colors">
@@ -1206,6 +1207,7 @@ export default function App() {
                  </div>
                  <button
                    onClick={() => { setShowMatrixModal(false); document.body.style.overflow = ''; }}
+                   aria-label="Stäng tippningsmatris"
                    className="flex items-center gap-2 bg-white/10 hover:bg-white/20 transition-colors px-4 py-2 rounded-xl font-black text-xs"
                  >
                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
