@@ -494,7 +494,8 @@ export default function AnalyticsDashboard() {
             <button
               key={d}
               onClick={() => setTimeRange(d)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-black transition-colors ${
+              aria-pressed={timeRange === d}
+              className={`px-3 py-1.5 rounded-xl text-xs font-black transition-colors outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 ${
                 timeRange === d
                   ? 'bg-indigo-600 text-white'
                   : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
@@ -507,8 +508,9 @@ export default function AnalyticsDashboard() {
           <button
             onClick={fetchData}
             disabled={loading}
+            aria-label="Uppdatera"
             title="Uppdatera"
-            className="p-2 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors disabled:opacity-50"
+            className="p-2 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
           >
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
           </button>
